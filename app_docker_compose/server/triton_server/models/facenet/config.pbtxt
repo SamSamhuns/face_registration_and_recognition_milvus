@@ -1,0 +1,48 @@
+name: "facenet"
+platform: "tensorflow_savedmodel"
+max_batch_size: 0
+
+input [
+  {
+    name: "input"
+    data_type: TYPE_UINT8
+    dims: [-1, 160, 160, 3]
+  }
+]
+output [
+  {
+    name: "output"
+    data_type: TYPE_FP32
+    dims: [-1, 128]
+  }
+]
+
+optimization { execution_accelerators {
+  gpu_execution_accelerator : [
+    { name : "auto_mixed_precision" }
+  ]
+}}
+
+instance_group [
+    {
+      count: 1
+      kind: KIND_GPU
+      gpus: [ 0 ]
+    }
+  ]
+
+model_warmup {
+    name: "Warmup1"
+    batch_size: 0
+    inputs: {
+        key: "input"
+        value: {
+            dims: 32
+            dims: 160
+            dims: 160
+            dims: 3
+            data_type: TYPE_UINT8
+            zero_data: true
+        }
+     }
+}
