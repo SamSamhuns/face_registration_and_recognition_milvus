@@ -3,6 +3,10 @@ FROM nvcr.io/nvidia/tritonserver:22.01-py3
 # maintainer
 LABEL maintainer="fname.lname@domain.com"
 
+# install opencv & python-venv reqs
+RUN apt-get update \
+ && apt-get install libsm6 libxext6 libgl1-mesa-glx python3-venv -y
+
 # set work directory
 WORKDIR /app
 
