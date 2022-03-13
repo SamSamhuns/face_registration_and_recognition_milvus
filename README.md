@@ -1,1 +1,1 @@
-# Face Recognition System with ElasticSearch
+# Face Registration and Recognition System with ElasticSearch

@@ -11,7 +11,7 @@ def remove_file(path: str) -> None:
         os.remove(path)
 
 
-def download_url_file(download_url: str, download_path: str) -> None:
+async def download_url_file(download_url: str, download_path: str) -> None:
     response = urllib2.urlopen(download_url)
     with open(download_path, 'wb') as f:
         f.write(response.read())
