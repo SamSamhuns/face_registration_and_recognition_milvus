@@ -11,8 +11,8 @@ class InputModel(BaseModel):
 
 
 class ModelType(str, Enum):
-    cpu = "cpu"
-    gpu = "gpu"
+    fast = "mobilenetV2SSD_with_faceReid"
+    slow = "yoloV5Face_with_faceNet"
 
 
 class InferenceMode(str, Enum):
