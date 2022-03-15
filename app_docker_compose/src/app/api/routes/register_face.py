@@ -10,6 +10,7 @@ from models import InputModel, ModelType
 from utils import get_mode_ext, remove_file, download_url_file, cache_file_locally
 
 router = APIRouter()
+TEMP_DOWNLOAD_URL = os.getenv('TEMP_DOWNLOAD_URL')
 
 
 class RegisterFaceProcessTask():
@@ -40,8 +41,8 @@ async def register_face_file(background_tasks: BackgroundTasks,
     try:
         file_name = str(uuid.uuid4()) + get_mode_ext("image")
         file_bytes_content = file.file.read()
-        file_cache_path = os.path.join(ROOT_DOWNLOAD_URL, file_name)
-        os.makedirs(ROOT_DOWNLOAD_URL, exist_ok=True)
+        file_cache_path = os.path.join(TEMP_DOWNLOAD_URL, file_name)
+        os.makedirs(TEMP_DOWNLOAD_URL, exist_ok=True)
         await cache_file_locally(file_cache_path, file_bytes_content)
         background_tasks.add_task(remove_file, file_cache_path)
 
@@ -61,12 +62,12 @@ async def register_face_file(background_tasks: BackgroundTasks,
 async def register_face_url(background_tasks: BackgroundTasks,
                             model_type: ModelType,
                             person_name: str,
-                            url: str = Form("")):
+                            url: str):
     response_data = dict()
     try:
-        os.makedirs(ROOT_DOWNLOAD_URL, exist_ok=True)
+        os.makedirs(TEMP_DOWNLOAD_URL, exist_ok=True)
         file_name = str(uuid.uuid4()) + get_mode_ext("image")
-        file_cache_path = os.path.join(ROOT_DOWNLOAD_URL, file_name)
+        file_cache_path = os.path.join(TEMP_DOWNLOAD_URL, file_name)
         download_url_file(url, file_cache_path)
         background_tasks.add_task(remove_file, file_cache_path)
     except Exception as e:

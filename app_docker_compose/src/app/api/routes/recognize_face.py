@@ -10,6 +10,7 @@ from utils import get_mode_ext, remove_file, download_url_file, cache_file_local
 from inference import recognize_face
 
 router = APIRouter()
+TEMP_DOWNLOAD_URL = os.getenv('TEMP_DOWNLOAD_URL')
 
 
 class RecognizeFaceProcessTask():
@@ -31,18 +32,18 @@ class RecognizeFaceProcessTask():
         self.response_data = {**results}
 
 
-@router.post("/recognize_face_file/{inference_mode}")
+@router.post("/recognize_face_file")
 async def recognize_face_file(background_tasks: BackgroundTasks,
-                              inference_mode: InferenceMode,
                               model_type: ModelType,
+                              inference_mode: InferenceMode,
                               file: UploadFile = File(...),
                               threshold: float = Form(0.30)):
     response_data = dict()
     try:
         file_name = str(uuid.uuid4()) + get_mode_ext(inference_mode.value)
         file_bytes_content = file.file.read()
-        file_cache_path = os.path.join(ROOT_DOWNLOAD_URL, file_name)
-        os.makedirs(ROOT_DOWNLOAD_URL, exist_ok=True)
+        file_cache_path = os.path.join(TEMP_DOWNLOAD_URL, file_name)
+        os.makedirs(TEMP_DOWNLOAD_URL, exist_ok=True)
         await cache_file_locally(file_cache_path, file_bytes_content)
         background_tasks.add_task(remove_file, file_cache_path)
 
@@ -59,17 +60,17 @@ async def recognize_face_file(background_tasks: BackgroundTasks,
     return response_data
 
 
-@router.post("/recognize_face_url/{inference_mode}")
+@router.post("/recognize_face_url")
 async def recognize_face_url(background_tasks: BackgroundTasks,
-                             inference_mode: InferenceMode,
                              model_type: ModelType,
-                             url: str = Form(""),
+                             inference_mode: InferenceMode,
+                             url: str,
                              threshold: float = Form(0.30)):
     response_data = dict()
     try:
-        os.makedirs(ROOT_DOWNLOAD_URL, exist_ok=True)
+        os.makedirs(TEMP_DOWNLOAD_URL, exist_ok=True)
         file_name = str(uuid.uuid4()) + get_mode_ext(inference_mode.value)
-        file_cache_path = os.path.join(ROOT_DOWNLOAD_URL, file_name)
+        file_cache_path = os.path.join(TEMP_DOWNLOAD_URL, file_name)
         download_url_file(url, file_cache_path)
         background_tasks.add_task(remove_file, file_cache_path)
     except Exception as e:
