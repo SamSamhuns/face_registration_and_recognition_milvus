@@ -4,6 +4,7 @@ services:
     build:
       context: server
       dockerfile: ./Dockerfile
+    container_name: uvi_trt_server
     shm_size: 2gb
     ulimits:
       stack: 67108864

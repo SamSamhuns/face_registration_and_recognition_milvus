@@ -9,6 +9,8 @@ RUN apt-get update \
 # set work directory
 WORKDIR /src
 
+# set temp download env var
+ENV TEMP_DOWNLOAD_URL="/src/app/.data_cache"
 # setup python env vars & virtual env
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONBUFFERED 1
