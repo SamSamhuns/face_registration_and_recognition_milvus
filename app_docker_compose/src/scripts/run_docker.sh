@@ -1,4 +1,7 @@
 #!/bin/bash
+
+def_cont_name=face_recog_container
+
 helpFunction()
 {
    echo ""
@@ -24,14 +27,14 @@ fi
 
 echo "Stopping and removing docker container 'face_recog_container' if it is running on port $port"
 echo "Ignore No such container Error messages"
-docker stop face_recog_container || true
-docker rm face_recog_container || true
+docker stop "$def_cont_name" || true
+docker rm "$def_cont_name" || true
 
 docker run \
       -ti --rm \
-      -p 0.0.0.0:$port:8080 \
-      -v $PWD/data:/app/data \
-      --name face_recog_container \
+      -p "0.0.0.0:$port:8080" \
+      -v "$PWD/data:/app/data" \
+      --name "$def_cont_name" \
       -e TEMP_DOWNLOAD_URL='/src/app/.data_cache' \
       face_recog \
       python app/server.py
