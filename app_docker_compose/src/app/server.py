@@ -3,6 +3,8 @@ import argparse
 
 import uvicorn
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.routes import face, recognize_face, register_face
@@ -15,6 +17,7 @@ ROOT_DOWNLOAD_URL = os.path.join(ROOT, ".data_cache")
 
 def get_application(title="Face Registration and Recognition"):
     app = FastAPI(title=title, version="1.0.0")
+    app.mount("/static", StaticFiles(directory="./app/static"), name="static")
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -34,6 +37,13 @@ app.include_router(register_face.router)
 @app.get("/")
 async def index():
     return {"Welcome to Face Registration & Recognition Service": "Please visit /docs for list of apis"}
+
+
+@app.get('/favicon.ico')
+async def favicon():
+    file_name = "favicon.ico"
+    file_path = os.path.join(app.root_path, "app/static", file_name)
+    return FileResponse(path=file_path, headers={"Content-Disposition": "attachment; filename=" + file_name})
 
 
 if __name__ == '__main__':
