@@ -9,6 +9,7 @@ from inference import register_face
 from models import InputModel, ModelType
 from utils import get_mode_ext, remove_file, download_url_file, cache_file_locally
 
+
 router = APIRouter()
 TEMP_DOWNLOAD_URL = os.getenv('TEMP_DOWNLOAD_URL')
 
@@ -50,8 +51,8 @@ async def register_face_file(background_tasks: BackgroundTasks,
         task = RegisterFaceProcessTask(register_face, input_data)
         task.run()
         response_data = task.response_data
-    except Exception as e:
-        print(e, traceback.print_exc())
+    except Exception as excep:
+        print(excep, traceback.print_exc())
         response_data["code"] = "failed"
         response_data["msg"] = "failed to register uploaded image to server"
 
@@ -70,8 +71,8 @@ async def register_face_url(background_tasks: BackgroundTasks,
         file_cache_path = os.path.join(TEMP_DOWNLOAD_URL, file_name)
         download_url_file(url, file_cache_path)
         background_tasks.add_task(remove_file, file_cache_path)
-    except Exception as e:
-        print(e, traceback.print_exc())
+    except Exception as excep:
+        print(excep, traceback.print_exc())
         response_data["code"] = "failed"
         response_data['msg'] = f"couldn't download image from \'{url}\'. Not a valid link."
         return response_data
@@ -81,8 +82,8 @@ async def register_face_url(background_tasks: BackgroundTasks,
         task = RegisterFaceProcessTask(register_face, input_data)
         task.run()
         response_data = task.response_data
-    except Exception as e:
-        print(e, traceback.print_exc())
+    except Exception as excep:
+        print(excep, traceback.print_exc())
         response_data["code"] = "failed"
         response_data["msg"] = f"failed to register url image from {url} to server"
 

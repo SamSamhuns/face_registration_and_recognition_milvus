@@ -9,6 +9,7 @@ from models import InputModel, InferenceMode, ModelType
 from utils import get_mode_ext, remove_file, download_url_file, cache_file_locally
 from inference import recognize_face
 
+
 router = APIRouter()
 TEMP_DOWNLOAD_URL = os.getenv('TEMP_DOWNLOAD_URL')
 
@@ -52,8 +53,8 @@ async def recognize_face_file(background_tasks: BackgroundTasks,
         task = RecognizeFaceProcessTask(recognize_face, input_data)
         task.run()
         response_data = task.response_data
-    except Exception as e:
-        print(e, traceback.print_exc())
+    except Exception as excep:
+        print(excep, traceback.print_exc())
         response_data["code"] = "failed"
         response_data["msg"] = f"failed to recognize face from {inference_mode.value}"
 
@@ -73,8 +74,8 @@ async def recognize_face_url(background_tasks: BackgroundTasks,
         file_cache_path = os.path.join(TEMP_DOWNLOAD_URL, file_name)
         download_url_file(url, file_cache_path)
         background_tasks.add_task(remove_file, file_cache_path)
-    except Exception as e:
-        print(e, traceback.print_exc())
+    except Exception as excep:
+        print(excep, traceback.print_exc())
         response_data["code"] = "failed"
         response_data['msg'] = f"couldn't download {inference_mode.value} from \'{url}\'. Not a valid link."
         return response_data
@@ -85,8 +86,8 @@ async def recognize_face_url(background_tasks: BackgroundTasks,
         task = RecognizeFaceProcessTask(recognize_face, input_data)
         task.run()
         response_data = task.response_data
-    except Exception as e:
-        print(e, traceback.print_exc())
+    except Exception as excep:
+        print(excep, traceback.print_exc())
         response_data["code"] = "failed"
         response_data["msg"] = f"failed to recognize face  from {inference_mode} downloaded from {url}"
 

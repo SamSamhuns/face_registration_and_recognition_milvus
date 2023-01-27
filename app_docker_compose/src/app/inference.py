@@ -1,4 +1,6 @@
-
+"""
+Inference functions
+"""
 
 def register_face(model_name: str,
                   inference_mode: str,
