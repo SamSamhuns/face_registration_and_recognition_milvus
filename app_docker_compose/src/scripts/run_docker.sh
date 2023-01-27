@@ -36,5 +36,4 @@ docker run \
       -v "$PWD/data:/app/data" \
       --name "$def_cont_name" \
       -e TEMP_DOWNLOAD_URL='/src/app/.data_cache' \
-      face_recog \
-      python app/server.py
+      face_recog

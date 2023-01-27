@@ -1,10 +1,10 @@
-FROM nvcr.io/nvidia/tritonserver:22.01-py3
+FROM nvcr.io/nvidia/tritonserver:22.12-py3
 
 LABEL maintainer="fname.lname@domain.com"
 
 # install opencv & python-venv reqs
 RUN apt-get update \
- && apt-get install libsm6 libxext6 libgl1-mesa-glx python3-venv -y
+    && apt-get install libsm6 libxext6 libgl1-mesa-glx python3-venv --no-install-recommends -y
 
 # set work directory
 WORKDIR /src
@@ -23,5 +23,15 @@ RUN pip install --upgrade pip
 COPY requirements.txt .
 RUN pip install --default-timeout=100 -r requirements.txt
 
+# remove cache
+RUN pip cache purge \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /root/.cache/pip
+
 # copy all files to src & exclude those in dockerignore
 COPY . /src
+
+# make server start script executable
+RUN chmod 777 /src/scripts/start_servers.sh
+CMD ["/bin/bash", "/src/scripts/start_servers.sh"]
