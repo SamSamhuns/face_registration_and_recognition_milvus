@@ -70,15 +70,15 @@ def requestGenerator(input_data_list, input_name_list, output_name_list, input_d
 
     # set inputs and outputs
     inputs = []
-    for i in range(len(input_name_list)):
+    for i, input_name in enumerate(input_name_list):
         inputs.append(grpcclient.InferInput(
-            input_name_list[i], input_data_list[i].shape, input_dtype_list[i]))
+            input_name, input_data_list[i].shape, input_dtype_list[i]))
         inputs[i].set_data_from_numpy(input_data_list[i])
 
     outputs = []
-    for i in range(len(output_name_list)):
+    for output_name in output_name_list:
         outputs.append(grpcclient.InferRequestedOutput(
-            output_name_list[i], class_count=FLAGS.classes))
+            output_name, class_count=FLAGS.classes))
 
     yield inputs, outputs, FLAGS.model_name, FLAGS.model_version
 
@@ -89,7 +89,7 @@ def parse_model_grpc(model_metadata, model_config):
     input_datatype_list = []
     input_metadata_name_list = []
     for i in range(len(model_metadata.inputs)):
-        input_format_list.append(model_config.inputs[i].format)
+        input_format_list.append(model_config.input[i].format)
         input_datatype_list.append(model_metadata.inputs[i].datatype)
         input_metadata_name_list.append(model_metadata.inputs[i].name)
     output_metadata_name_list = []
@@ -108,56 +108,22 @@ def extract_data_from_media(FLAGS, preprocess_func, media_filenames):
     image_data = []
     all_req_imgs_orig = []
     all_req_imgs_orig_size = []
-    fps = None
+
     for filename in media_filenames:
-        if FLAGS.inference_mode == "image":
-            try:
-                # if an image path is provided instead of a numpy H,W,C image
-                if isinstance(filename, str) and os.path.isfile(filename):
-                    img = cv2.imread(filename)
-                else:
-                    img = np.asarray(Image.open(BytesIO(filename)))
-                image_data.append(preprocess_func(img=img))
-                all_req_imgs_orig_size.append(img.shape)
-                if FLAGS.result_save_dir is not None:
-                    all_req_imgs_orig.append(img)
-                fps = 1
-            except Exception as excep:
-                traceback.print_exc()
-                print(f"{excep}. Failed to process image {filename}")
-        elif FLAGS.inference_mode == "video":
-            try:
-                cap = cv2.VideoCapture(filename)
-                fps = round(cap.get(cv2.CAP_PROP_FPS))  # take 1 frame every fps frames
+        try:
+            # if an image path is provided instead of a numpy H,W,C image
+            if isinstance(filename, str) and os.path.isfile(filename):
+                img = cv2.imread(filename)
+            else:
+                img = np.asarray(Image.open(BytesIO(filename)))
+            image_data.append(preprocess_func(img=img))
+            all_req_imgs_orig_size.append(img.shape)
+            if FLAGS.result_save_dir is not None:
+                all_req_imgs_orig.append(img)
+        except Exception as excep:
+            traceback.print_exc()
+            print(f"{excep}. Failed to process image {filename}")
 
-                # check num of channels
-                ret, frame = cap.read()
-                orig_shape = frame.shape
-                if ret and frame.shape[-1] != 3:
-                    raise Exception("Video must have 3 channels")
-
-                # set opencv reader to vid start
-                cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                orig_vid, vid = [], []
-                i = 0
-                while cap.isOpened() and len(vid) <= MAX_FRAMES_TO_GET_FROM_VIDEO:
-                    ret, frame = cap.read()
-                    if ret:
-                        if i % fps == 0:
-                            if FLAGS.result_save_dir is not None:
-                                orig_vid.append(np.copy(frame))
-                            vid.append(preprocess_func(frame))
-                    else:
-                        break
-                    i += 1
-                image_data = vid
-                all_req_imgs_orig = orig_vid
-                all_req_imgs_orig_size = np.array(
-                    [len(image_data), *orig_shape])
-                cap.release()
-            except Exception as excep:
-                traceback.print_exc()
-                print(f"{excep}. Failed to process video {filename}")
     return image_data, all_req_imgs_orig, all_req_imgs_orig_size
 
 
