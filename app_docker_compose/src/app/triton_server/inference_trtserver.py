@@ -3,6 +3,7 @@ Inference with tritonserver. The tritonserver must be runnign the background
 """
 from collections import defaultdict
 from functools import partial
+from pathlib import Path
 import time
 import os
 
@@ -27,11 +28,10 @@ def preprocess(img, width=448, height=448, new_type=np.float32):
 
 
 def postprocess(results, orig_img_size, input_img_size):
-    predictions = {}
+    predictions = {"face_feats": [], "face_detections": []}
 
     results_arr = results.as_numpy("ENSEMBLE_FACE_FEAT")
     if results_arr.any():
-        predictions["face_feats"] = []
         for i, result in enumerate(results_arr):
             if FLAGS.face_feat_model[0].decode() == "facenet_trtserver":
                 result = result
@@ -43,11 +43,10 @@ def postprocess(results, orig_img_size, input_img_size):
     conf_arr = results.as_numpy("ENSEMBLE_FACE_DETECTOR_CONFS").tolist()
 
     if box_arr is not None and box_arr.any():
-        predictions["face_detections"] = []
-        iw, ih = input_img_size
+        in_w, in_h = input_img_size
         orig_w, orig_h = orig_img_size
-        box_arr *= [iw, ih, iw, ih]
-        box_arr = scale_coords((ih, iw), box_arr, (orig_h, orig_w))
+        box_arr *= [in_w, in_h, in_w, in_h]
+        box_arr = scale_coords((in_h, in_w), box_arr, (orig_h, orig_w))
         for i, result in enumerate(box_arr):
             result = result.copy()
             x_min, y_min, x_max, y_max = result.astype(int).tolist()
@@ -66,12 +65,11 @@ def run_inference(media_filename,
                   debug=True,
                   port=8081,
                   return_mode="json"):
+    """
+    Note: only one image is assumed for inferencing
+    """
     FLAGS.media_filename = media_filename
     FLAGS.face_feat_model = np.array([face_feat_model.encode()])
-    if face_feat_model == "facenet_trtserver":
-        FLAGS.model_name = "ensemble_face_facenet"
-    elif face_feat_model == "face-reidentification-retail-0095":
-        FLAGS.model_name = "ensemble_face_face_reid"
     FLAGS.face_det_thres = face_det_thres
     FLAGS.face_bbox_area_thres = face_bbox_area_thres
     FLAGS.face_count_thres = face_count_thres
@@ -85,6 +83,12 @@ def run_inference(media_filename,
     FLAGS.batch_size = 1
     FLAGS.fixed_input_width = None
     FLAGS.fixed_input_height = None
+    if face_feat_model == "facenet_trtserver":
+        FLAGS.model_name = "ensemble_face_facenet"
+    elif face_feat_model == "face-reidentification-retail-0095":
+        FLAGS.model_name = "ensemble_face_face_reid"
+    else:
+        raise NotImplementedError(f"face_feat_model {face_feat_model} is not implemented")
     start_time = time.time()
 
     if FLAGS.result_save_dir is not None:
@@ -133,10 +137,14 @@ def run_inference(media_filename,
     responses = get_inference_responses(
         image_data_list, FLAGS, trt_inf_data)
 
+    print(responses)
+    if responses == -1:
+        raise ValueError(
+            f"""Number of faces detected might have exceeded allowed number of faces ({face_count_thres}).
+                Or there might be other issues during inference. Check triton-server logs""")
     final_results = []
-    for i, response in enumerate(responses):
-        orig_h, orig_w = all_req_imgs_orig_size[i][:2]
-        final_results.append(postprocess(response, (orig_w, orig_h), (w, h)))
+    orig_h, orig_w = all_req_imgs_orig_size[0][:2]
+    final_results.append(postprocess(responses[0], (orig_w, orig_h), (w, h)))
 
     print(f"Inference time {time.time() - start_time:.2f}s")
     if return_mode == "image":
@@ -153,7 +161,8 @@ def run_inference(media_filename,
 
         draw_bbox_on_image(orig_cv2_img, boxes, confs, labels)
         if FLAGS.result_save_dir is not None:
-            cv2.imwrite("bdd.jpg", orig_cv2_img)
+            save_path = os.path.join(FLAGS.result_save_dir, Path(FLAGS.media_filename).stem+".jpg")
+            cv2.imwrite(save_path, orig_cv2_img)
         return orig_cv2_img
     elif return_mode == "json":
         return final_results[0]
@@ -164,7 +173,7 @@ def run_inference(media_filename,
 def main():
     # "facenet_trtserver", "face-reidentification-retail-0095"
     out = run_inference(
-        "bc.jpg",
+        "../static/faces/one_face.jpg",
         face_feat_model="facenet_trtserver",
         face_det_thres=0.55,
         face_bbox_area_thres=0.10,
@@ -172,8 +181,8 @@ def main():
         save_result_dir="output",  # set to None prevent saving
         debug=True,
         port=8081,
-        return_mode="json")
-    print(out)
+        return_mode="image")
+    # print(out)
 
 
 if __name__ == "__main__":
