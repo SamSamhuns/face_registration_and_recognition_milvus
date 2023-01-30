@@ -1,7 +1,6 @@
 """
 Inference with tritonserver. The tritonserver must be runnign the background
 """
-from collections import defaultdict
 from functools import partial
 from pathlib import Path
 import time
@@ -10,10 +9,10 @@ import os
 import numpy as np
 import cv2
 
-from utils import FlagConfig
-from utils import extract_data_from_media, get_client_and_model_metadata_config
-from utils import parse_model_grpc, get_inference_responses
-from image import pad_resize_image, scale_coords, draw_bbox_on_image
+from triton_server.utils import FlagConfig
+from triton_server.utils import extract_data_from_media, get_client_and_model_metadata_config
+from triton_server.utils import parse_model_grpc, get_inference_responses
+from utils.image import pad_resize_image, scale_coords, draw_bbox_on_image
 
 
 FLAGS = FlagConfig()
@@ -171,10 +170,9 @@ def run_inference(media_filename,
 
 
 def main():
-    # "facenet_trtserver", "face-reidentification-retail-0095"
     out = run_inference(
         "../static/faces/one_face.jpg",
-        face_feat_model="facenet_trtserver",
+        face_feat_model="facenet_trtserver",  # "face-reidentification-retail-0095"
         face_det_thres=0.55,
         face_bbox_area_thres=0.10,
         face_count_thres=1,
@@ -182,7 +180,7 @@ def main():
         debug=True,
         port=8081,
         return_mode="image")
-    # print(out)
+    print(out)
 
 
 if __name__ == "__main__":

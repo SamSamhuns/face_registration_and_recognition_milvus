@@ -7,10 +7,10 @@
 
 ```bash
 pip install gdown  # inside virtualenv preferebly
-# download facenet savedmodel weights
-gdown 1Ofy7fIv5YrmbvM5BkSnw-E4_uu0VujK7
-unzip facenet_trtserver.zip -d app_docker_compose/src/app/triton_server/models
-rm facenet_trtserver.zip
+# download model weights
+gdown 18dH0l6ESMaHJo3tFMySt0I8LsKcCss3o
+unzip models.zip -d app_docker_compose/src/app/triton_server
+rm models.zip
 ```
 
 ## Setup with Docker (Recommended)
