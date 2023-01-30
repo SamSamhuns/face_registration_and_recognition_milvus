@@ -9,9 +9,6 @@ import tritonclient.grpc as grpcclient
 from tritonclient.utils import InferenceServerException
 
 
-MAX_FRAMES_TO_GET_FROM_VIDEO = 30
-
-
 class FlagConfig:
     """stores configurations for prediction"""
 
