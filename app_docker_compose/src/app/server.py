@@ -1,8 +1,12 @@
+"""
+Main fastapi server file
+"""
 import os
+import time
 import argparse
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,6 +17,8 @@ from api.routes import face, recognize_face, register_face
 # The root is the absolute path of the __init_.py under the source
 ROOT = os.path.abspath(__file__)[:os.path.abspath(__file__).rfind(os.path.sep)]
 ROOT_DOWNLOAD_URL = os.path.join(ROOT, ".data_cache")
+os.environ["ROOT_DOWNLOAD_URL"] = ROOT_DOWNLOAD_URL
+os.makedirs(ROOT_DOWNLOAD_URL, exist_ok=True)
 
 
 def get_application(title="Face Registration and Recognition"):
@@ -32,6 +38,16 @@ app = get_application()
 app.include_router(face.router)
 app.include_router(recognize_face.router)
 app.include_router(register_face.router)
+
+
+# api call time middleware
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    response.headers["X-Process-Time"] = str(process_time)
+    return response
 
 
 @app.get("/")
@@ -59,4 +75,4 @@ if __name__ == '__main__':
 
     print(
         f"Uvicorn server running on {args.host_ip}:{args.port} with {args.workers} workers")
-    uvicorn.run(app, host=args.host_ip, port=args.port, workers=args.workers)
+    uvicorn.run("server:app", host=args.host_ip, port=args.port, workers=args.workers, reload=True)

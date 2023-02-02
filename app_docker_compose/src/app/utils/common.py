@@ -13,10 +13,10 @@ def remove_file(path: str) -> None:
 
 async def download_url_file(download_url: str, download_path: str) -> None:
     response = urllib2.urlopen(download_url)
-    with open(download_path, 'wb') as f:
+    with open(download_path, "wb") as f:
         f.write(response.read())
 
 
 async def cache_file_locally(file_cache_path: str, data: bytes) -> None:
-    with open(file_cache_path, 'wb') as img_file_ptr:
+    with open(file_cache_path, "wb") as img_file_ptr:
         img_file_ptr.write(data)
