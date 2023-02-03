@@ -28,7 +28,7 @@ bash scripts/build_docker.sh
 bash scripts/run_docker -p EXPOSED_HTTP_PORT
 ```
 
-## Local Setup
+## Local Uvicorn Server Setup
 
 ### Setup requirements
 
@@ -44,8 +44,10 @@ pip install -r app_docker_compose/src/requirements.txt
 
 ```shell
 cd app_docker_compose/src
-# run uvicorn and triton server
-python3 app/server.py -p EXPOSED_HTTP_PORT & tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081 &
+# start triton-server in a docker container exposed onport 8081
+docker run --rm -p 0.0.0.0:8081:8081 --name triton_server_cont face_recog tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
+# run uvicorn server
+python3 app/server.py -p EXPOSED_HTTP_PORT
 ```
 
 #### Notes on triton-server

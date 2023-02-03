@@ -33,7 +33,6 @@ docker rm "$def_cont_name" || true
 docker run \
       -ti --rm \
       -p "0.0.0.0:$port:8080" \
-      -v "$PWD/data:/app/data" \
+      -v "$PWD/data:/src/app/.data_cache" \
       --name "$def_cont_name" \
-      -e TEMP_DOWNLOAD_URL='/src/app/.data_cache' \
       face_recog
