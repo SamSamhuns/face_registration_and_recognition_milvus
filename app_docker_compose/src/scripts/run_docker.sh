@@ -1,6 +1,6 @@
 #!/bin/bash
 
-def_cont_name=face_recog_container
+def_cont_name=uvicorn_trt_server
 
 helpFunction()
 {
@@ -25,7 +25,7 @@ then
    helpFunction
 fi
 
-echo "Stopping and removing docker container 'face_recog_container' if it is running on port $port"
+echo "Stopping and removing docker container '$def_cont' if it is running on port $port"
 echo "Ignore No such container Error messages"
 docker stop "$def_cont_name" || true
 docker rm "$def_cont_name" || true
