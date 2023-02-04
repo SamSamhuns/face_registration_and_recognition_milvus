@@ -2,16 +2,58 @@
 Inference functions
 """
 import os
-from pathlib import Path
 
 import numpy as np
+from pymilvus import connections
+from pymilvus import Collection, CollectionSchema, FieldSchema, DataType, utility
+
 from triton_server.inference_trtserver import run_inference
+
+
+_MILVUS_HOST = os.getenv("MILVUS_HOST", default = "127.0.0.1") 
+_MILVUS_PORT = os.getenv("MILVUS_PORT", default = "19530")
+_VECTOR_DIM = 128
+COLLECTION_NAME = 'faces'
+
+
+# create connec to milvus server
+connections.connect(alias="default", host=_MILVUS_HOST, port=_MILVUS_PORT)
+
+# load collection
+# if collection is not present create one
+if not utility.has_collection(COLLECTION_NAME):
+    fields = [
+        FieldSchema(name="id", dtype=DataType.INT64, descrition="ids", is_primary=True, auto_id=True),
+        FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, descrition="embedding vectors", dim=_VECTOR_DIM),
+        FieldSchema(name="name", dtype=DataType.VARCHAR, descrition="persons name", max_length=200)
+    ]
+    schema = CollectionSchema(fields=fields, description='face recognition system')
+    collection = Collection(name=COLLECTION_NAME, schema=schema, using='default')
+    print(f"Collection {COLLECTION_NAME} created.✅️")
+
+    # Indexing the collection
+    print("Indexing the Collection...🔢️")
+    # create IVF_FLAT index for collection.
+    index_params = {
+        'metric_type':'L2',
+        'index_type':"IVF_FLAT",
+        'params':{"nlist":4096}
+    }
+    collection.create_index(field_name="embedding", index_params=index_params)
+    print(f"Collection {COLLECTION_NAME} indexed.✅️")
+else:
+    print("Collection present already.")
+    collection = Collection(COLLECTION_NAME)
+
+
+# load collection into memory
+collection.load()
 
 
 def register_face(model_name: str,
                   file_path: str,
                   threshold: float,
-                  feat_save_dir: str) -> dict:
+                  person_name: str) -> dict:
     """
     Detects faces in image from the file_path and saves the face feature vector.
     """
@@ -30,18 +72,22 @@ def register_face(model_name: str,
         return pred_dict
 
     # save face feature vector to local system for now
-    face_vector = pred_dict["face_feats"]
-    vector_save_path = os.path.join(feat_save_dir, Path(file_path).stem+".npy")
-    np.save(vector_save_path, face_vector)
+    face_vector = pred_dict["face_feats"][0].tolist()
+    data = [[face_vector], [person_name]]
 
-    # TODO save vectors in a database or ElasticSearch database
+    # insert data into collection book
+    collection.insert(data)
+    print("Vector inserted in.✅️")
+    # After final entity is inserted, it is best to call flush to have no growing segments left in memory
+    collection.flush()
+
     return {"status": "success", "message": "face successfully saved"}
 
 
 def recognize_face(model_name: str,
                    file_path: str,
                    threshold: float,
-                   feat_save_dir: str) -> dict:
+                   face_dist_threshold: float = 0.1) -> dict:
     """
     Detects faces in image from the file_path and finds the most similar face vector 
     from a set of saved face vectors
@@ -60,16 +106,23 @@ def recognize_face(model_name: str,
         pred_dict["status"] = "failed"
         return pred_dict
 
+    face_vector = pred_dict["face_feats"]
     # find and return the closest face
-    # TODO this process is currently extremely inefficient, instead a database or eks system should be used
-    # a threshold should also be added so that a new completely new face is reported as non-present in the database
-    ref_face_vector = pred_dict["face_feats"]
-    feat_path_list = [path for path in Path(feat_save_dir).iterdir() if path.suffix == ".npy"]
-    feat_list = [np.load(path) for path in feat_path_list]
+    search_params = {"metric_type": "L2",  "params": {"nprobe": 2056}}
+    results = collection.search(data=face_vector, anns_field="embedding", param=search_params, limit=3)
+    results = sorted(results, key=lambda k: k.distances)
+    ref_id = results[0].ids[0]
+    ref_dist = results[0].distances[0]
 
-    # get closest face based on euclidean dist & return
-    feat_dist = [np.linalg.norm(face_feat - ref_face_vector) for face_feat in feat_list]
-    index_min = min(range(len(feat_dist)), key=feat_dist.__getitem__)
-    closest_face = feat_path_list[index_min].stem.split('_')[0]
+    matched_data = collection.query(
+        expr = f"id == {ref_id}",
+        offset = 0,
+        limit = 1, 
+        output_fields = ["id", "name"],
+        consistency_level="Strong"
+    )
+
+    # a threshold should also be added so that a new completely new face is reported as non-present in the database
+    closest_face = matched_data[0]["name"]
 
     return {"status": "success", "message": f"Detected face matches {closest_face}", "match_name": closest_face}
