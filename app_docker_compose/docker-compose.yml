@@ -6,6 +6,9 @@ services:
       context: ./
       dockerfile: ./Dockerfile
     container_name: uvicorn_trt_server
+    environment:
+      - MILVUS_HOST=standalone
+      - MILVUS_PORT=19530
     shm_size: 2gb
     ulimits:
       stack: 67108864

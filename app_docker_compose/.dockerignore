@@ -92,3 +92,6 @@ venv*
 */*.swp
 */*/*.swp
 */*/*/*.swp
+
+# must ignore volumes dir created by docker-compose
+volumes

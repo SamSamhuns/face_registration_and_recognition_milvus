@@ -120,4 +120,7 @@ work_dirs/
 ._.DS_Store
 
 # model files
-app_docker_compose/src/app/triton_server/models/*
+app_docker_compose/app/triton_server/models/*
+
+# docker-compose mounted volumes
+app_docker_compose/volumes
