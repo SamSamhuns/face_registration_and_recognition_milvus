@@ -8,6 +8,7 @@ class InputModel(BaseModel):
     """
     model_name: str
     file_path: str
+    person_name: str
     threshold: float = 0.3
 
 

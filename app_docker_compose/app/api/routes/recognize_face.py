@@ -28,8 +28,7 @@ class RecognizeFaceProcessTask():
         results = self.func(
             model_name=self.input_data.model_name,
             file_path=self.input_data.file_path,
-            threshold=self.input_data.threshold,
-            feat_save_dir=ROOT_DOWNLOAD_URL)
+            threshold=self.input_data.threshold)
         self.response_data = {**results}
 
 
@@ -46,7 +45,7 @@ async def recognize_face_file(background_tasks: BackgroundTasks,
         await cache_file_locally(file_cache_path, file_bytes_content)
         background_tasks.add_task(remove_file, file_cache_path)
 
-        input_data = InputModel(model_name=model_type.value, file_path=file_cache_path)
+        input_data = InputModel(model_name=model_type.value, file_path=file_cache_path, person_name="")
         task = RecognizeFaceProcessTask(recognize_face, input_data)
         task.run()
         response_data = task.response_data
