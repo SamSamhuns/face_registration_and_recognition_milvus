@@ -4,6 +4,7 @@ gdown==4.6.0
 opencv-python==4.7.0.68
 Pillow==9.4.0
 python-multipart==0.0.5
+pymilvus==2.2.1
 requests==2.28.2
-tritonclient[grpc]==2.29.0
+tritonclient[grpc]==2.30.0
 uvicorn==0.20.0
