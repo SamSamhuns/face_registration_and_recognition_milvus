@@ -1,3 +1,6 @@
+"""
+Face Recogntion fastapi file
+"""
 import os
 import uuid
 import traceback
@@ -45,7 +48,8 @@ async def recognize_face_file(background_tasks: BackgroundTasks,
         await cache_file_locally(file_cache_path, file_bytes_content)
         background_tasks.add_task(remove_file, file_cache_path)
 
-        input_data = InputModel(model_name=model_type.value, file_path=file_cache_path, person_name="")
+        input_data = InputModel(
+            model_name=model_type.value, file_path=file_cache_path, person_name="")
         task = RecognizeFaceProcessTask(recognize_face, input_data)
         task.run()
         response_data = task.response_data
@@ -75,13 +79,15 @@ async def recognize_face_url(background_tasks: BackgroundTasks,
         return response_data
 
     try:
-        input_data = InputModel(model_name=model_type.value, file_path=file_cache_path)
+        input_data = InputModel(
+            model_name=model_type.value, file_path=file_cache_path)
         task = RecognizeFaceProcessTask(recognize_face, input_data)
         task.run()
         response_data = task.response_data
     except Exception as excep:
         print(excep, traceback.print_exc())
         response_data["code"] = "failed"
-        response_data["msg"] = f"failed to recognize face  from image downloaded from {url}"
+        response_data[
+            "msg"] = f"failed to recognize face  from image downloaded from {url}"
 
     return response_data

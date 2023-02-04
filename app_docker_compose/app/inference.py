@@ -1,5 +1,5 @@
 """
-Inference functions
+Inference functions for registering and recognizing face with trtserver models and save/search with milvus database server
 """
 import os
 
@@ -10,8 +10,8 @@ from pymilvus import Collection, CollectionSchema, FieldSchema, DataType, utilit
 from triton_server.inference_trtserver import run_inference
 
 
-_MILVUS_HOST = os.getenv("MILVUS_HOST", default = "127.0.0.1") 
-_MILVUS_PORT = os.getenv("MILVUS_PORT", default = "19530")
+_MILVUS_HOST = os.getenv("MILVUS_HOST", default="127.0.0.1")
+_MILVUS_PORT = os.getenv("MILVUS_PORT", default="19530")
 _VECTOR_DIM = 128
 COLLECTION_NAME = 'faces'
 
@@ -23,21 +23,26 @@ connections.connect(alias="default", host=_MILVUS_HOST, port=_MILVUS_PORT)
 # if collection is not present create one
 if not utility.has_collection(COLLECTION_NAME):
     fields = [
-        FieldSchema(name="id", dtype=DataType.INT64, descrition="ids", is_primary=True, auto_id=True),
-        FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, descrition="embedding vectors", dim=_VECTOR_DIM),
-        FieldSchema(name="name", dtype=DataType.VARCHAR, descrition="persons name", max_length=200)
+        FieldSchema(name="id", dtype=DataType.INT64,
+                    descrition="ids", is_primary=True, auto_id=True),
+        FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR,
+                    descrition="embedding vectors", dim=_VECTOR_DIM),
+        FieldSchema(name="name", dtype=DataType.VARCHAR,
+                    descrition="persons name", max_length=200)
     ]
-    schema = CollectionSchema(fields=fields, description='face recognition system')
-    collection = Collection(name=COLLECTION_NAME, schema=schema, using='default')
+    schema = CollectionSchema(
+        fields=fields, description='face recognition system')
+    collection = Collection(name=COLLECTION_NAME,
+                            schema=schema, using='default')
     print(f"Collection {COLLECTION_NAME} created.✅️")
 
     # Indexing the collection
     print("Indexing the Collection...🔢️")
     # create IVF_FLAT index for collection.
     index_params = {
-        'metric_type':'L2',
-        'index_type':"IVF_FLAT",
-        'params':{"nlist":4096}
+        'metric_type': 'L2',
+        'index_type': "IVF_FLAT",
+        'params': {"nlist": 4096}
     }
     collection.create_index(field_name="embedding", index_params=index_params)
     print(f"Collection {COLLECTION_NAME} indexed.✅️")
@@ -109,16 +114,17 @@ def recognize_face(model_name: str,
     face_vector = pred_dict["face_feats"]
     # find and return the closest face
     search_params = {"metric_type": "L2",  "params": {"nprobe": 2056}}
-    results = collection.search(data=face_vector, anns_field="embedding", param=search_params, limit=3)
+    results = collection.search(
+        data=face_vector, anns_field="embedding", param=search_params, limit=3)
     results = sorted(results, key=lambda k: k.distances)
     ref_id = results[0].ids[0]
     ref_dist = results[0].distances[0]
 
     matched_data = collection.query(
-        expr = f"id == {ref_id}",
-        offset = 0,
-        limit = 1, 
-        output_fields = ["id", "name"],
+        expr=f"id == {ref_id}",
+        offset=0,
+        limit=1,
+        output_fields=["id", "name"],
         consistency_level="Strong"
     )
 

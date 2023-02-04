@@ -1,5 +1,7 @@
 # Face Registration and Recognition Backend System with uvicron, fastapi, and milvus
 
+<img src="app_docker_compose/app/static/project_flow.png" width="40%" />
+
 [milvus-setup](https://milvus.io/docs/install_standalone-docker.md)
 
 ## Setup

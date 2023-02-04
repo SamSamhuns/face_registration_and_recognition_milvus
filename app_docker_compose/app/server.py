@@ -75,4 +75,5 @@ if __name__ == '__main__':
 
     print(
         f"Uvicorn server running on {args.host_ip}:{args.port} with {args.workers} workers")
-    uvicorn.run("server:app", host=args.host_ip, port=args.port, workers=args.workers, reload=True)
+    uvicorn.run("server:app", host=args.host_ip, port=args.port,
+                workers=args.workers, reload=True)
