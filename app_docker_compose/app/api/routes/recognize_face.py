@@ -14,7 +14,7 @@ from inference import recognize_face
 
 
 router = APIRouter()
-ROOT_DOWNLOAD_URL = os.getenv('ROOT_DOWNLOAD_URL')
+ROOT_DOWNLOAD_URL = os.getenv('ROOT_DOWNLOAD_URL', default="app/.data_cache")
 
 
 class RecognizeFaceProcessTask():
@@ -55,8 +55,8 @@ async def recognize_face_file(background_tasks: BackgroundTasks,
         response_data = task.response_data
     except Exception as excep:
         print(excep, traceback.print_exc())
-        response_data["code"] = "failed"
-        response_data["msg"] = "failed to recognize face from image"
+        response_data["status"] = "failed"
+        response_data["message"] = "failed to recognize face from image"
 
     return response_data
 
@@ -74,8 +74,8 @@ async def recognize_face_url(background_tasks: BackgroundTasks,
         background_tasks.add_task(remove_file, file_cache_path)
     except Exception as excep:
         print(excep, traceback.print_exc())
-        response_data["code"] = "failed"
-        response_data['msg'] = f"couldn't download image from \'{url}\'. Not a valid link."
+        response_data["status"] = "failed"
+        response_data['message'] = f"couldn't download image from \'{url}\'. Not a valid link."
         return response_data
 
     try:
@@ -86,8 +86,8 @@ async def recognize_face_url(background_tasks: BackgroundTasks,
         response_data = task.response_data
     except Exception as excep:
         print(excep, traceback.print_exc())
-        response_data["code"] = "failed"
+        response_data["status"] = "failed"
         response_data[
-            "msg"] = f"failed to recognize face  from image downloaded from {url}"
+            "message"] = f"failed to recognize face  from image downloaded from {url}"
 
     return response_data

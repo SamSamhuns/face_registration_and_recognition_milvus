@@ -14,7 +14,7 @@ from utils import get_mode_ext, remove_file, download_url_file, cache_file_local
 
 
 router = APIRouter()
-ROOT_DOWNLOAD_URL = os.getenv('ROOT_DOWNLOAD_URL')
+ROOT_DOWNLOAD_URL = os.getenv('ROOT_DOWNLOAD_URL', default="app/.data_cache")
 
 
 class RegisterFaceProcessTask():
