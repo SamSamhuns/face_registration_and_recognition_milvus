@@ -104,7 +104,7 @@ def recognize_face(model_name: str,
         face_bbox_area_thres=0.10,
         face_count_thres=1,
         return_mode="json")
-    print(pred_dict)
+
     if pred_dict["status"] == 0 and not pred_dict["face_detections"]:
         return {"status": "failed", "message": "No faces were detected in the image"}
     if pred_dict["status"] < 0:

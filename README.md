@@ -75,6 +75,17 @@ docker logs uvicorn_trt_server
 python3 app/server.py -p EXPOSED_HTTP_PORT
 ```
 
+### Running tests
+
+```shell
+cd app_docker_compose
+pip install -r requirements.txt
+pip install -r tests/requirements.txt
+docker-compose up -d etcd minio standalone
+docker run -d --rm -p 0.0.0.0:8081:8081 --name uvicorn_trt_server face_recog:latest tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
+pytest tests
+````
+
 #### Notes on triton-server
 
 Check saved.model inputs/outputs with `$ saved_model_cli show --dir savemodel_dir --all` after installing tensorflow.

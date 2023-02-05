@@ -1,0 +1,8 @@
+coverage==7.1.0
+httpx==0.23.3
+pytest==7.2.1
+pytest-asyncio==0.20.3
+pytest-cov==4.0.0
+pytest-testmon==1.4.5
+requests==2.28.2
+requirements-parser==0.2.0
