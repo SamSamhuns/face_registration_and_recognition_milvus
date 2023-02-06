@@ -1,8 +1,10 @@
-# Face Registration and Recognition Backend System with uvicron, fastapi, and milvus
+# Face Registration and Recognition Backend System with uvicorn, fastapi, and milvus
+
+Backend system for detecting and saving a face from an image into a vectorized milvus database for running facial recognition on images. (Note: currently only one face per image is supported for both face registration and lookup).
 
 <img src="app_docker_compose/app/static/project_flow.png" width="40%" />
 
-[milvus-setup](https://milvus.io/docs/install_standalone-docker.md)
+-   [milvus official setup reference](https://milvus.io/docs/install_standalone-docker.md)
 
 ## Setup
 
@@ -30,22 +32,26 @@ docker-compose up -d
 
 **Allows for rapid prototyping.**
 
+Change into main working directory where all subsequent commands must be run.
+
+```shell
+cd app_docker_compose 
+```
+
 ### Build docker
 
 ```shell
-cd app_docker_compose
 bash scripts/build_docker.sh
 ```
 
 ### Local Uvicorn requirements
 
 ```bash
-cd app_docker_compose
 # setup virtual env (conda env is fine as well)
 python -m venv venv
 source venv/bin/activate
 # install all reqs
-pip install -r app_docker_compose/requirements.txt
+pip install -r requirements.txt
 ```
 
 ### Run servers
