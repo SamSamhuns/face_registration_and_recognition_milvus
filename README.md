@@ -1,5 +1,9 @@
 # Face Registration and Recognition Backend System with uvicorn, fastapi, and milvus
 
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+
+Tested with `docker-compose version 1.29.2`.
+
 Backend system for detecting and saving a face from an image into a vectorized milvus database for running facial recognition on images. (Note: currently only one face per image is supported for both face registration and lookup).
 
 <img src="app_docker_compose/app/static/project_flow.png" width="40%" />
@@ -21,6 +25,8 @@ rm models.zip
 ## Setup with Docker Compose for Deployment
 
 **Start uvicorn and triton server with a milvus instance for face vector storage & search**
+
+Note, an easier way to use later versions of docker-compose is to install the pip package with `pip install docker-compose` in a venv
 
 ```shell
 cd app_docker_compose
@@ -81,6 +87,11 @@ docker logs uvicorn_trt_server
 python3 app/server.py -p EXPOSED_HTTP_PORT
 ```
 
+### TO-DO
+
+-   Add use of mysql to store faces and redis for a cached-access of data
+-   Setup with GitHub Actions for automatic testing
+
 ### Running tests
 
 ```shell
@@ -91,6 +102,27 @@ docker-compose up -d etcd minio standalone
 docker run -d --rm -p 0.0.0.0:8081:8081 --name uvicorn_trt_server face_recog:latest tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
 pytest tests
 ````
+
+#### Notes on docker-compose yml setup
+
+Note if services other than the uvicorn web-api are to be exposed such as the  milvus or minio servers, alter the `expose` options to published `ports` for access outside the docker containers.
+
+    expose:
+      - "9001"
+
+    ports:
+      - "9001:9001"
+
+For `docker-compose version 1.29.2` and `yaml version 3.9`, `mem_limit` can be used with `docker-compose up`:
+
+    mem_limit: 512m
+
+For `docker-compose version <1.29.2` and `yaml version <3.9`, the following deploy setup can be used with `docker-compose --compatibility up`:
+
+    deploy:
+      resources:
+        limits:
+          memory: 512m
 
 #### Notes on triton-server
 
