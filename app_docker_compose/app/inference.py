@@ -82,7 +82,7 @@ def register_face(model_name: str,
 
     # insert data into collection book
     collection.insert(data)
-    print("Vector inserted in.✅️")
+    print(f"Vector for {person_name} inserted in.✅️")
     # After final entity is inserted, it is best to call flush to have no growing segments left in memory
     collection.flush()
 
@@ -115,20 +115,17 @@ def recognize_face(model_name: str,
     # find and return the closest face
     search_params = {"metric_type": "L2",  "params": {"nprobe": 2056}}
     results = collection.search(
-        data=face_vector, anns_field="embedding", param=search_params, limit=3)
+        data=face_vector,
+        anns_field="embedding",
+        param=search_params,
+        limit=3,
+        output_fields=["name"])
+
     results = sorted(results, key=lambda k: k.distances)
-    ref_id = results[0].ids[0]
-    ref_dist = results[0].distances[0]
 
-    matched_data = collection.query(
-        expr=f"id == {ref_id}",
-        offset=0,
-        limit=1,
-        output_fields=["id", "name"],
-        consistency_level="Strong"
-    )
+    face_dist = results[0].distances[0]
+    face_name = results[0][0].entity.get("name")
+    if face_dist > face_dist_threshold:
+        return {"status": "success", "message": "No similar faces were found in the database"}
 
-    # a threshold should also be added so that a new completely new face is reported as non-present in the database
-    closest_face = matched_data[0]["name"]
-
-    return {"status": "success", "message": f"Detected face matches {closest_face}", "match_name": closest_face}
+    return {"status": "success", "message": f"Detected face matches {face_name}", "match_name": face_name}
