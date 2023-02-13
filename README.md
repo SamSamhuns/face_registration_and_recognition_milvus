@@ -30,6 +30,8 @@ Note, an easier way to use later versions of docker-compose is to install the pi
 
 ```shell
 cd app_docker_compose
+# build all required containers
+docker-compose build
 # start all services
 docker-compose up -d
 ```
