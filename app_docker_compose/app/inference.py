@@ -3,8 +3,7 @@ Inference functions for registering and recognizing face with trtserver models a
 """
 import os
 
-import numpy as np
-from pymilvus import connections
+from pymilvus import connections, MilvusException
 from pymilvus import Collection, CollectionSchema, FieldSchema, DataType, utility
 
 from triton_server.inference_trtserver import run_inference
@@ -33,6 +32,7 @@ if not utility.has_collection(COLLECTION_NAME):
     schema = CollectionSchema(
         fields=fields, description='face recognition system')
     collection = Collection(name=COLLECTION_NAME,
+                            consistency_level="Strong",
                             schema=schema, using='default')
     print(f"Collection {COLLECTION_NAME} created.✅️")
 
@@ -89,6 +89,23 @@ def register_face(model_name: str,
     return {"status": "success", "message": "face successfully saved"}
 
 
+def unregister_face(person_name: str) -> dict:
+    """
+    Deletes a registered face based on the name.
+    Recommended to switch to using person id instead
+    Must use expr with the term expression `in` for delete operations
+    """
+    expr = f'name in ["{person_name}"]'
+
+    try:
+        collection.delete(expr)
+        print(f"Person {person_name} unregistered from database.✅️")
+        return {"status": "success", "message": f"Person {person_name} unregistered"}
+    except MilvusException as excep:
+        print(excep)
+        return {"status": "failure", "message": f"Person {person_name} couldn't be unregistered"}
+
+
 def recognize_face(model_name: str,
                    file_path: str,
                    threshold: float,
@@ -129,3 +146,29 @@ def recognize_face(model_name: str,
         return {"status": "success", "message": "No similar faces were found in the database"}
 
     return {"status": "success", "message": f"Detected face matches {face_name}", "match_name": face_name}
+
+
+def get_registered_face(person_name: str) -> dict:
+    """
+    Get registered face by person_name.
+    Recommended to switch to using person id instead
+    """
+    failure_msg = f"Person {person_name} not found in database"
+    expr = f'name == "{person_name}"'
+    try:
+        results = collection.query(
+            expr=expr,
+            offset=0,
+            limit=10,
+            output_fields=["name"],
+            consistency_level="Strong"
+        )
+        if not results:
+            return {"status": "failure", "message": failure_msg}
+
+        found_person_name = results[0]["name"]
+        print(f"Person {found_person_name} found in database.✅️")
+        return {"status": "success", "message": f"Person {found_person_name} found"}
+    except MilvusException as excep:
+        print(excep)
+        return {"status": "failure", "message": failure_msg}

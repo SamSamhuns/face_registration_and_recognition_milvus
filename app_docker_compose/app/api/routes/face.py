@@ -1,4 +1,9 @@
+"""
+Basic operations for faces
+"""
 from fastapi import APIRouter
+from inference import get_registered_face as get_registered_face_api
+from inference import unregister_face as unregister_face_api
 
 
 router = APIRouter()
@@ -10,10 +15,10 @@ def get_all_registered_face():
 
 
 @router.get("/face/{face_name}")
-def get_registered_face(face_name: str):
-    return {f"TODO: Should return the registered faces based on the unique {face_name}"}
+def get_registered_face(person_name: str):
+    return get_registered_face_api(person_name)
 
 
 @router.delete("/face/{face_name}")
-def delete_registered_face(face_name: str):
-    return {f"TODO: Should delete a registered face based on the unique {face_name}"}
+def unregister_face(person_name: str):
+    return unregister_face_api(person_name)
