@@ -15,7 +15,7 @@ _VECTOR_DIM = 128
 COLLECTION_NAME = 'faces'
 
 
-# create connec to milvus server
+# create connection to milvus server
 connections.connect(alias="default", host=_MILVUS_HOST, port=_MILVUS_PORT)
 
 # load collection
@@ -47,7 +47,7 @@ if not utility.has_collection(COLLECTION_NAME):
     collection.create_index(field_name="embedding", index_params=index_params)
     print(f"Collection {COLLECTION_NAME} indexed.✅️")
 else:
-    print("Collection present already.")
+    print(f"Collection {COLLECTION_NAME} present already.✅️")
     collection = Collection(COLLECTION_NAME)
 
 
@@ -76,11 +76,10 @@ def register_face(model_name: str,
         pred_dict["status"] = "failed"
         return pred_dict
 
-    # save face feature vector to local system for now
     face_vector = pred_dict["face_feats"][0].tolist()
     data = [[face_vector], [person_name]]
 
-    # insert data into collection book
+    # insert data into collection
     collection.insert(data)
     print(f"Vector for {person_name} inserted in.✅️")
     # After final entity is inserted, it is best to call flush to have no growing segments left in memory
@@ -129,7 +128,7 @@ def recognize_face(model_name: str,
         return pred_dict
 
     face_vector = pred_dict["face_feats"]
-    # find and return the closest face
+    # run a vector search and return the closest face with the L2 metric
     search_params = {"metric_type": "L2",  "params": {"nprobe": 2056}}
     results = collection.search(
         data=face_vector,
@@ -137,6 +136,8 @@ def recognize_face(model_name: str,
         param=search_params,
         limit=3,
         output_fields=["name"])
+    if not results:
+        return {"status": "failure", "message": "No saved face entries found in database"}
 
     results = sorted(results, key=lambda k: k.distances)
 
@@ -151,7 +152,6 @@ def recognize_face(model_name: str,
 def get_registered_face(person_name: str) -> dict:
     """
     Get registered face by person_name.
-    Recommended to switch to using person id instead
     """
     failure_msg = f"Person {person_name} not found in database"
     expr = f'name == "{person_name}"'
@@ -161,8 +161,7 @@ def get_registered_face(person_name: str) -> dict:
             offset=0,
             limit=10,
             output_fields=["name"],
-            consistency_level="Strong"
-        )
+            consistency_level="Strong")
         if not results:
             return {"status": "failure", "message": failure_msg}
 
