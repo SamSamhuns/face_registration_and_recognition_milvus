@@ -1,6 +1,6 @@
 # Face Registration and Recognition Backend System with uvicorn, fastapi, and milvus
 
-![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 
 Tested with `docker-compose version 1.29.2`.
 
