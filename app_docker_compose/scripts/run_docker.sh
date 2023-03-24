@@ -25,7 +25,7 @@ then
    helpFunction
 fi
 
-echo "Stopping and removing docker container '$def_cont' if it is running on port $port"
+echo "Stopping and removing docker container '$def_cont_name' if it is running on port $port"
 echo "Ignore No such container Error messages"
 docker stop "$def_cont_name" || true
 docker rm "$def_cont_name" || true
@@ -33,6 +33,6 @@ docker rm "$def_cont_name" || true
 docker run \
       -ti --rm \
       -p "0.0.0.0:$port:8080" \
-      -v "$PWD/data:/src/app/.data_cache" \
+      -v "$PWD/data:/home/triton-server/src/.data_cache" \
       --name "$def_cont_name" \
       face_recog
