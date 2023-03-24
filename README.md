@@ -15,12 +15,26 @@ Backend system for detecting and saving a face from an image into a vectorized m
 ### Download model weights
 
 ```bash
-pip install gdown  # inside virtualenv preferebly
+python3 -m venv venv
+source venv/bin/activate
+# inside venv/virtualenv/conda
+pip install gdown
 # download model weights
 gdown 18dH0l6ESMaHJo3tFMySt0I8LsKcCss3o
 unzip models.zip -d app_docker_compose/app/triton_server
 rm models.zip
 ```
+
+### Create env file
+
+Create a `.env` file inside `app_docker_compose` with the following parameters:
+
+    MYSQL_ROOT_PASSWORD=<MYSQL_ROOT_PASSWORD>
+    MYSQL_DATABASE=<MYSQL_DATABASE>
+    MYSQL_USER=<MYSQL_USER>
+    MYSQL_PASSWORD=<MYSQL_PASSWORD>
+    PMA_USER=<PMA_USER>
+    PMA_PASSWORD=<PMA_PASSWORD>
 
 ## Setup with Docker Compose for Deployment
 
@@ -59,6 +73,7 @@ bash scripts/build_docker.sh
 python -m venv venv
 source venv/bin/activate
 # install all reqs
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
@@ -68,7 +83,7 @@ pip install -r requirements.txt
 
 ```shell
 # clear all stopped containers
-docker-container prune
+docker container prune
 # start milvus vector database server with docker-compose
 docker-compose up -d etcd minio standalone
 # check milvus server status with
@@ -107,7 +122,7 @@ pytest tests
 
 #### Notes on docker-compose yml setup
 
-Note if services other than the uvicorn web-api are to be exposed such as the  milvus or minio servers, alter the `expose` options to published `ports` for access outside the docker containers.
+Note if services other than the uvicorn web-api are to be exposed such as the milvus or minio servers, alter the `expose` options to published `ports` for access outside the docker containers.
 
     expose:
       - "9001"
