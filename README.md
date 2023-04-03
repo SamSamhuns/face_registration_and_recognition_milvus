@@ -27,14 +27,23 @@ rm models.zip
 
 ### Create env file
 
-Create a `.env` file inside `app_docker_compose` with the following parameters:
+Create a `.env` file inside `app_docker_compose` based on the following parameters with necessary variables replaced:
 
-    MYSQL_ROOT_PASSWORD=<MYSQL_ROOT_PASSWORD>
-    MYSQL_DATABASE=<MYSQL_DATABASE>
-    MYSQL_USER=<MYSQL_USER>
-    MYSQL_PASSWORD=<MYSQL_PASSWORD>
-    PMA_USER=<PMA_USER>
-    PMA_PASSWORD=<PMA_PASSWORD>
+    # milvus
+    MILVUS_HOST=standalone
+    MILVUS_PORT=19530
+    # mysql mariadb
+    MYSQL_ROOT_PASSWORD=admin
+    MYSQL_DATABASE=default
+    MYSQL_USER=admin
+    MYSQL_PASSWORD=admin
+    # phpmyadmin mariadb
+    PMA_HOST=mysql
+    PMA_PORT=3306
+    PMA_USER=admin
+    PMA_PASSWORD=admin
+    # redis
+    REDIS_PORT=6379
 
 ## Setup with Docker Compose for Deployment
 

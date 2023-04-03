@@ -7,8 +7,8 @@ services:
       dockerfile: ./Dockerfile
     container_name: uvicorn_trt_server
     environment:
-      - MILVUS_HOST=standalone
-      - MILVUS_PORT=19530
+      - MILVUS_HOST=${MILVUS_HOST}
+      - MILVUS_PORT=${MILVUS_PORT}
     shm_size: 2gb
     ulimits:
       stack: 67108864
@@ -35,7 +35,7 @@ services:
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin
     expose:
-      - "9001"
+      - 9001
     volumes:
       - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/minio:/minio_data
     command: minio server /minio_data --console-address ":9001"
@@ -55,7 +55,7 @@ services:
     volumes:
       - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/milvus:/var/lib/milvus
     ports:
-      - 19530:19530
+      - ${MILVUS_PORT}:${MILVUS_PORT}
     depends_on:
       - "etcd"
       - "minio"
@@ -66,20 +66,20 @@ services:
     restart: always
     env_file: ./.env
     expose:
-      - "3306"
+      - 3306
     volumes:
       - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/store:/var/lib/mysql
     mem_limit: 512m
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_DATABASE="${MYSQL_DATABASE}"
-      - MYSQL_USER="${MYSQL_USER}"
-      - MYSQL_PASSWORD="${MYSQL_PASSWORD}"
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - PMA_ARBITRARY=1
-      - PMA_HOST=mysql
-      - PMA_PORT=3306
-      - PMA_USER="${PMA_USER}"
-      - PMA_PASSWORD="${PMA_PASSWORD}"
+      - PMA_HOST=${PMA_HOST}
+      - PMA_PORT=${PMA_PORT}
+      - PMA_USER=${PMA_USER}
+      - PMA_PASSWORD=${PMA_PASSWORD}
 
   mysql-admin:
     container_name: mariadb-phpmyadmin
@@ -87,15 +87,15 @@ services:
     restart: always
     env_file: ./.env
     ports:
-      - "8001:80"
+      - 8001:80
     mem_limit: 512m
     depends_on:
       - mysql
     environment:
-      - PMA_HOST=mysql
-      - PMA_PORT=3306
-      - PMA_USER="${PMA_USER}"
-      - PMA_PASSWORD="${PMA_PASSWORD}"
+      - PMA_HOST=${PMA_HOST}
+      - PMA_PORT=${PMA_PORT}
+      - PMA_USER=${PMA_USER}
+      - PMA_PASSWORD=${PMA_PASSWORD}
 
   redis-server:
     container_name: redis-server
@@ -105,7 +105,7 @@ services:
     sysctls:
       - net.core.somaxconn=65535
     expose:
-      - "6379"
+      - ${REDIS_PORT}
     volumes:
       - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/redis:/data
     mem_limit: 96m
