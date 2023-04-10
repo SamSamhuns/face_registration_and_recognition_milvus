@@ -6,9 +6,7 @@ services:
       context: ./
       dockerfile: ./Dockerfile
     container_name: uvicorn_trt_server
-    environment:
-      - MILVUS_HOST=${MILVUS_HOST}
-      - MILVUS_PORT=${MILVUS_PORT}
+    env_file: ./.env
     shm_size: 2gb
     ulimits:
       stack: 67108864
@@ -64,9 +62,10 @@ services:
     container_name: mariadb
     image: mariadb:10.3
     restart: always
-    env_file: ./.env
+    ports:
+      - ${MYSQL_PORT}:${MYSQL_PORT}
     expose:
-      - 3306
+      - ${MYSQL_PORT}
     volumes:
       - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/store:/var/lib/mysql
     mem_limit: 512m
@@ -85,7 +84,6 @@ services:
     container_name: mariadb-phpmyadmin
     image: phpmyadmin/phpmyadmin
     restart: always
-    env_file: ./.env
     ports:
       - 8001:80
     mem_limit: 512m

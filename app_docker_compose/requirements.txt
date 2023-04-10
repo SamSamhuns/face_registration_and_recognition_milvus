@@ -5,6 +5,8 @@ opencv-python==4.7.0.72
 Pillow==9.4.0
 python-multipart==0.0.6
 pymilvus==2.2.3
+PyMySQL==1.0.3
+redis==4.5.4
 requests==2.28.2
 tritonclient[grpc]==2.31.0
 uvicorn==0.21.1

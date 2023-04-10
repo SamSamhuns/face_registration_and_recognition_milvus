@@ -3,19 +3,43 @@ Inference functions for registering and recognizing face with trtserver models a
 """
 import os
 
+import redis
+import pymysql
 from pymilvus import connections, MilvusException
 from pymilvus import Collection, CollectionSchema, FieldSchema, DataType, utility
 
 from triton_server.inference_trtserver import run_inference
 
 
+_REDIS_HOST = os.getenv("REDIS_HOST", default="127.0.0.1")
+_REDIS_PORT = os.getenv("REDIS_PORT", default="6379")
+
+_MYSQL_HOST = os.getenv("MYSQL_HOST", default="127.0.0.1")
+_MYSQL_PORT = os.getenv("MYSQL_PORT", default="3306")
+_MYSQL_USER = os.getenv("MYSQL_USER", default="user")
+_MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD", default="pass")
+_MYSQL_DATABASE = os.getenv("MYSQL_DATABASE", default="default")
+
 _MILVUS_HOST = os.getenv("MILVUS_HOST", default="127.0.0.1")
 _MILVUS_PORT = os.getenv("MILVUS_PORT", default="19530")
 _VECTOR_DIM = 128
+_METRIC_TYPE = "L2"
+_INDEX_TYPE = "IVF_FLAT"
 COLLECTION_NAME = 'faces'
 
+# connect to Redis
+redis_conn = redis.Redis(host=_REDIS_HOST, port=_REDIS_PORT)
 
-# create connection to milvus server
+# Connect to MySQL
+mysql_conn = pymysql.connect(
+    host=_MYSQL_HOST,
+    port=_MYSQL_PORT,
+    user=_MYSQL_USER,
+    password=_MYSQL_PASSWORD,
+    db=_MYSQL_DATABASE
+)
+
+# connect to milvus server
 connections.connect(alias="default", host=_MILVUS_HOST, port=_MILVUS_PORT)
 
 # load collection
@@ -40,8 +64,8 @@ if not utility.has_collection(COLLECTION_NAME):
     print("Indexing the Collection...🔢️")
     # create IVF_FLAT index for collection.
     index_params = {
-        'metric_type': 'L2',
-        'index_type': "IVF_FLAT",
+        'metric_type': _METRIC_TYPE,
+        'index_type': _INDEX_TYPE,
         'params': {"nlist": 4096}
     }
     collection.create_index(field_name="embedding", index_params=index_params)

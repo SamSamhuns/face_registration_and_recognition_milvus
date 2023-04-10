@@ -33,17 +33,22 @@ Create a `.env` file inside `app_docker_compose` based on the following paramete
     MILVUS_HOST=standalone
     MILVUS_PORT=19530
     # mysql mariadb
+    MYSQL_HOST=mysql
+    MYSQL_PORT=3306
     MYSQL_ROOT_PASSWORD=admin
     MYSQL_DATABASE=default
     MYSQL_USER=admin
     MYSQL_PASSWORD=admin
     # phpmyadmin mariadb
-    PMA_HOST=mysql
-    PMA_PORT=3306
-    PMA_USER=admin
-    PMA_PASSWORD=admin
+    PMA_HOST=$MYSQL_HOST
+    PMA_PORT=$MYSQL_PORT
+    PMA_USER=$MYSQL_USER
+    PMA_PASSWORD=$MYSQL_PASSWORD
     # redis
+    REDIS_HOST=redis-server
     REDIS_PORT=6379
+
+Note: Only `.env` allows docker-compose to access variables inside `.env` file during build-time. Using `env_file` or the `environment` parameters inside the docker-compose file only allows variable access inside containers and not during build time.
 
 ## Setup with Docker Compose for Deployment
 
