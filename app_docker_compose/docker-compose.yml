@@ -13,6 +13,8 @@ services:
       memlock: -1
     ports:
       - 8080:8080
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/uvicorn_trt_server:/data
 
   etcd:
     container_name: milvus-etcd

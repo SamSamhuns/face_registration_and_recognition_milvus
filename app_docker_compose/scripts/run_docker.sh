@@ -1,6 +1,6 @@
 #!/bin/bash
 
-def_cont_name=uvicorn_trt_server
+def_cont_name=uvicorn_trt_server_cont
 
 helpFunction()
 {
@@ -25,14 +25,17 @@ then
    helpFunction
 fi
 
-echo "Stopping and removing docker container '$def_cont_name' if it is running on port $port"
-echo "Ignore No such container Error messages"
-docker stop "$def_cont_name" || true
-docker rm "$def_cont_name" || true
+# Check if the container is running
+if [ "$(docker ps -q -f name=$def_cont_name)" ]; then
+    # Stop the container
+    echo "Stopping docker container '$def_cont_name'"
+    docker stop "$def_cont_name"
+    echo "Stopped container '$def_cont_name'"
+fi
 
 docker run \
-      -ti --rm \
+      -ti --rm -d \
       -p "0.0.0.0:$port:8080" \
-      -v "$PWD/data:/home/triton-server/src/.data_cache" \
+      -v "$PWD/volumes/uvicorn_trt_server:/home/triton-server/src/.data_cache" \
       --name "$def_cont_name" \
-      face_recog
+      uvicorn_trt_server
