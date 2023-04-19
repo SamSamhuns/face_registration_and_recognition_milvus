@@ -16,7 +16,7 @@ from api.routes import face, recognize_face, register_face
 
 # The root is the absolute path of the __init_.py under the source
 ROOT = os.path.abspath(__file__)[:os.path.abspath(__file__).rfind(os.path.sep)]
-ROOT_DOWNLOAD_URL = os.path.join(ROOT, ".data_cache")
+ROOT_DOWNLOAD_URL = os.path.join(ROOT, "data")
 os.environ["ROOT_DOWNLOAD_URL"] = ROOT_DOWNLOAD_URL
 os.makedirs(ROOT_DOWNLOAD_URL, exist_ok=True)
 

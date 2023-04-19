@@ -12,16 +12,17 @@ from triton_server.inference_trtserver import run_inference
 
 
 _REDIS_HOST = os.getenv("REDIS_HOST", default="127.0.0.1")
-_REDIS_PORT = os.getenv("REDIS_PORT", default="6379")
+_REDIS_PORT = os.getenv("REDIS_PORT", default=6379)
 
 _MYSQL_HOST = os.getenv("MYSQL_HOST", default="127.0.0.1")
-_MYSQL_PORT = os.getenv("MYSQL_PORT", default="3306")
+_MYSQL_PORT = os.getenv("MYSQL_PORT", default=3306)
 _MYSQL_USER = os.getenv("MYSQL_USER", default="user")
 _MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD", default="pass")
 _MYSQL_DATABASE = os.getenv("MYSQL_DATABASE", default="default")
+_MYSQL_PERSON_TABLE = os.getenv("MYSQL_PERSON_TABLE", default="person")
 
 _MILVUS_HOST = os.getenv("MILVUS_HOST", default="127.0.0.1")
-_MILVUS_PORT = os.getenv("MILVUS_PORT", default="19530")
+_MILVUS_PORT = os.getenv("MILVUS_PORT", default=19530)
 _VECTOR_DIM = 128
 _METRIC_TYPE = "L2"
 _INDEX_TYPE = "IVF_FLAT"
@@ -50,8 +51,8 @@ if not utility.has_collection(COLLECTION_NAME):
                     descrition="ids", is_primary=True, auto_id=True),
         FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR,
                     descrition="embedding vectors", dim=_VECTOR_DIM),
-        FieldSchema(name="name", dtype=DataType.VARCHAR,
-                    descrition="persons name", max_length=200)
+        FieldSchema(name="person_id", dtype=DataType.INT64,
+                    descrition="persons unique id")
     ]
     schema = CollectionSchema(
         fields=fields, description='face recognition system')
@@ -79,12 +80,56 @@ else:
 collection.load()
 
 
+def get_registered_face(person_id: int) -> dict:
+    """
+    Get registered face by person_id.
+    """
+    expr = f'person_id == {person_id}'
+    try:
+        results = collection.query(
+            expr=expr,
+            offset=0,
+            limit=10,
+            output_fields=["person_id"],
+            consistency_level="Strong")
+        if not results:
+            return {"status": "failed", 
+                    "message": f"Person with id {person_id} not found in database"}
+
+        found_person_name = results[0]["person_id"]
+        print(f"Person {found_person_name} found in database.✅️")
+        return {"status": "success", 
+                "message": f"Person {found_person_name} found"}
+    except MilvusException as excep:
+        print(excep)
+        return {"status": "failed", 
+                "message": excep}
+
+
+def unregister_face(person_id: int) -> dict:
+    """
+    Deletes a registered face based on the unique person_id.
+    Must use expr with the term expression `in` for delete operations
+    """
+    expr = f'person_id in [{person_id}]'
+
+    try:
+        collection.delete(expr)
+        print(f"Person with id {person_id} unregistered from database.✅️")
+        return {"status": "success", "message": f"Person with id {person_id} unregistered"}
+    except MilvusException as excep:
+        print(excep)
+        return {"status": "failed", "message": f"Person with id {person_id} couldn't be unregistered"}
+
+
 def register_face(model_name: str,
                   file_path: str,
                   threshold: float,
-                  person_name: str) -> dict:
+                  person_data: dict) -> dict:
     """
-    Detects faces in image from the file_path and saves the face feature vector.
+    Detects faces in image from the file_path and 
+    saves the face feature vector & the related person_data dict.
+    person_data dict should be based on the init.sql table schema
     """
     pred_dict = run_inference(
         file_path,
@@ -100,33 +145,50 @@ def register_face(model_name: str,
         pred_dict["status"] = "failed"
         return pred_dict
 
+    person_id = person_data["id"]  # uniq person id from user input
+    # check if face already exists in milvus db
+    if get_registered_face(person_id)["status"] == "success":
+        return {"status": "failed", 
+                "message": f"person with id {person_id} already exists in milvus db"}
     face_vector = pred_dict["face_feats"][0].tolist()
-    data = [[face_vector], [person_name]]
+    data = [[face_vector], [person_id]]
 
-    # insert data into collection
-    collection.insert(data)
-    print(f"Vector for {person_name} inserted in.✅️")
+    # insert face_vector into milvus collection
+    try:
+        collection.insert(data)
+        print(f"Vector for {person_data['name']} inserted into milvus db.✅️")
+    except MilvusException as e:
+        print(f"milvus collection insert failed ❌. {e}")
+        return {"status": "failed", "message": "milvus insertion error"}
     # After final entity is inserted, it is best to call flush to have no growing segments left in memory
     collection.flush()
 
-    return {"status": "success", "message": "face successfully saved"}
-
-
-def unregister_face(person_name: str) -> dict:
-    """
-    Deletes a registered face based on the name.
-    Recommended to switch to using person id instead
-    Must use expr with the term expression `in` for delete operations
-    """
-    expr = f'name in ["{person_name}"]'
-
+    # insert data into mysql table
+    query = (f"INSERT INTO {_MYSQL_PERSON_TABLE}" +
+             " (id, name, birthdate, country, city, title, org)" +
+             " VALUES (%s, %s, %s, %s, %s, %s, %s)")
+    values = (person_id, person_data["name"],  person_data["birthdate"],  person_data["country"],
+              person_data["city"],  person_data["title"],  person_data["org"])
+    cursor = mysql_conn.cursor()
     try:
-        collection.delete(expr)
-        print(f"Person {person_name} unregistered from database.✅️")
-        return {"status": "success", "message": f"Person {person_name} unregistered"}
-    except MilvusException as excep:
-        print(excep)
-        return {"status": "failure", "message": f"Person {person_name} couldn't be unregistered"}
+        cursor.execute(query, values)
+        mysql_conn.commit()
+        print(f"{person_data['name']} info inserted into mysql db.✅️")
+    except pymysql.Error as e:
+        print(f"mysql insert failed ❌. {e}")
+        unregister_face(person_id)  # del person with person_id from milvus as well
+        return {"status": "failed", "message": "mysql insertion error"}
+    finally:
+        cursor.close()
+
+    # cache data in redis
+    redis_key = f"{_MYSQL_PERSON_TABLE}_{person_id}"
+    person_data["birthdate"] = str(person_data["birthdate"])
+    redis_conn.hset(redis_key, mapping=person_data)  # hash set data
+    redis_conn.expire(redis_key, 3600)  # cache for 1 hour
+
+    return {"status": "success", 
+            "message": f"Person {person_data['person_name']} successfully registered"}
 
 
 def recognize_face(model_name: str,
@@ -134,7 +196,7 @@ def recognize_face(model_name: str,
                    threshold: float,
                    face_dist_threshold: float = 0.1) -> dict:
     """
-    Detects faces in image from the file_path and finds the most similar face vector 
+    Detects faces in image from the file_path and finds the most similar face vector
     from a set of saved face vectors
     """
     pred_dict = run_inference(
@@ -159,39 +221,15 @@ def recognize_face(model_name: str,
         anns_field="embedding",
         param=search_params,
         limit=3,
-        output_fields=["name"])
+        output_fields=["person_id"])
     if not results:
-        return {"status": "failure", "message": "No saved face entries found in database"}
+        return {"status": "failed", "message": "No saved face entries found in database"}
 
     results = sorted(results, key=lambda k: k.distances)
 
     face_dist = results[0].distances[0]
-    face_name = results[0][0].entity.get("name")
+    person_id = results[0][0].entity.get("person_id")
     if face_dist > face_dist_threshold:
         return {"status": "success", "message": "No similar faces were found in the database"}
 
-    return {"status": "success", "message": f"Detected face matches {face_name}", "match_name": face_name}
-
-
-def get_registered_face(person_name: str) -> dict:
-    """
-    Get registered face by person_name.
-    """
-    failure_msg = f"Person {person_name} not found in database"
-    expr = f'name == "{person_name}"'
-    try:
-        results = collection.query(
-            expr=expr,
-            offset=0,
-            limit=10,
-            output_fields=["name"],
-            consistency_level="Strong")
-        if not results:
-            return {"status": "failure", "message": failure_msg}
-
-        found_person_name = results[0]["name"]
-        print(f"Person {found_person_name} found in database.✅️")
-        return {"status": "success", "message": f"Person {found_person_name} found"}
-    except MilvusException as excep:
-        print(excep)
-        return {"status": "failure", "message": failure_msg}
+    return {"status": "success", "message": f"Detected face matches id {person_id}", "match_id": person_id}
