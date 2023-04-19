@@ -6,15 +6,15 @@ import uuid
 import traceback
 
 from fastapi import APIRouter
-from fastapi import UploadFile, File, Form, BackgroundTasks
+from fastapi import UploadFile, File, Depends, BackgroundTasks
 
 from inference import register_face
-from models import InputModel, ModelType
+from models import InputModel, PersonModel, ModelType
 from utils import get_mode_ext, remove_file, download_url_file, cache_file_locally
 
 
 router = APIRouter()
-ROOT_DOWNLOAD_URL = os.getenv('ROOT_DOWNLOAD_URL', default="app/.data_cache")
+ROOT_DOWNLOAD_URL = os.getenv('ROOT_DOWNLOAD_URL', default="app/data")
 
 
 class RegisterFaceProcessTask():
@@ -32,13 +32,13 @@ class RegisterFaceProcessTask():
             model_name=self.input_data.model_name,
             file_path=self.input_data.file_path,
             threshold=self.input_data.threshold,
-            person_name=self.input_data.person_name)
+            person_data=self.input_data.person_data.dict())
         self.response_data = {**results}
 
 
 @router.post("/register_face_file")
 async def register_face_file(background_tasks: BackgroundTasks,
-                             person_name: str,
+                             person_data: PersonModel = Depends(),
                              file: UploadFile = File(...)):
     response_data = dict()
     model_type: ModelType = ModelType.SLOW  # default to SLOW for now
@@ -51,7 +51,8 @@ async def register_face_file(background_tasks: BackgroundTasks,
         background_tasks.add_task(remove_file, file_cache_path)
 
         input_data = InputModel(model_name=model_type.value,
-                                file_path=file_cache_path, person_name=person_name)
+                                file_path=file_cache_path,
+                                person_data=person_data)
         task = RegisterFaceProcessTask(register_face, input_data)
         task.run()
         response_data = task.response_data
@@ -66,15 +67,15 @@ async def register_face_file(background_tasks: BackgroundTasks,
 @router.post("/register_face_url")
 async def register_face_url(background_tasks: BackgroundTasks,
                             model_type: ModelType,
-                            person_name: str,
-                            url: str):
+                            url: str,
+                            person_data: PersonModel = Depends()):
     response_data = dict()
     try:
         os.makedirs(ROOT_DOWNLOAD_URL, exist_ok=True)
         file_name = str(uuid.uuid4()) + get_mode_ext("image")
         file_cache_path = os.path.join(ROOT_DOWNLOAD_URL, file_name)
 
-        download_url_file(url, file_cache_path)
+        await download_url_file(url, file_cache_path)
         background_tasks.add_task(remove_file, file_cache_path)
     except Exception as excep:
         print(excep, traceback.print_exc())
@@ -84,7 +85,8 @@ async def register_face_url(background_tasks: BackgroundTasks,
 
     try:
         input_data = InputModel(model_name=model_type.value,
-                                file_path=file_cache_path, person_name=person_name)
+                                file_path=file_cache_path, 
+                                person_data=person_data)
         task = RegisterFaceProcessTask(register_face, input_data)
         task.run()
         response_data = task.response_data

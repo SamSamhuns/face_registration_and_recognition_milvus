@@ -6,7 +6,7 @@ import uuid
 import traceback
 
 from fastapi import APIRouter
-from fastapi import UploadFile, File, Form, BackgroundTasks
+from fastapi import UploadFile, File, BackgroundTasks
 
 from models import InputModel, ModelType
 from utils import get_mode_ext, remove_file, download_url_file, cache_file_locally
@@ -14,7 +14,7 @@ from inference import recognize_face
 
 
 router = APIRouter()
-ROOT_DOWNLOAD_URL = os.getenv('ROOT_DOWNLOAD_URL', default="app/.data_cache")
+ROOT_DOWNLOAD_URL = os.getenv('ROOT_DOWNLOAD_URL', default="app/data")
 
 
 class RecognizeFaceProcessTask():
