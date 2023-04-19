@@ -2,10 +2,10 @@ version: '3.9'
 
 services:
   uvicorn_trt_server:
+    container_name: uvicorn_trt_server_cont
     build:
       context: ./
       dockerfile: ./Dockerfile
-    container_name: uvicorn_trt_server
     env_file: ./.env
     shm_size: 2gb
     ulimits:
@@ -70,6 +70,7 @@ services:
       - ${MYSQL_PORT}
     volumes:
       - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/store:/var/lib/mysql
+      - ./app/static/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
     mem_limit: 512m
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
@@ -104,8 +105,8 @@ services:
     command: /bin/bash -c 'redis-server --appendonly yes'
     sysctls:
       - net.core.somaxconn=65535
-    expose:
-      - ${REDIS_PORT}
+    ports:
+      - ${REDIS_PORT}:${REDIS_PORT}
     volumes:
       - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/redis:/data
     mem_limit: 96m

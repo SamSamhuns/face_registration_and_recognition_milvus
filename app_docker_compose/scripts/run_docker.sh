@@ -27,7 +27,6 @@ fi
 
 # Check if the container is running
 if [ "$(docker ps -q -f name=$def_cont_name)" ]; then
-    # Stop the container
     echo "Stopping docker container '$def_cont_name'"
     docker stop "$def_cont_name"
     echo "Stopped container '$def_cont_name'"
@@ -36,6 +35,6 @@ fi
 docker run \
       -ti --rm -d \
       -p "0.0.0.0:$port:8080" \
-      -v "$PWD/volumes/uvicorn_trt_server:/home/triton-server/src/.data_cache" \
+      -v "$PWD/volumes/uvicorn_trt_server:/home/triton-server/src/data" \
       --name "$def_cont_name" \
       uvicorn_trt_server
