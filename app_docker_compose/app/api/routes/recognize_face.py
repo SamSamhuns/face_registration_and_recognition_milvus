@@ -14,7 +14,7 @@ from inference import recognize_face
 
 
 router = APIRouter()
-ROOT_DOWNLOAD_URL = os.getenv('ROOT_DOWNLOAD_URL', default="app/data")
+ROOT_DOWNLOAD_PATH = os.getenv('ROOT_DOWNLOAD_PATH', default="app/data")
 
 
 class RecognizeFaceProcessTask():
@@ -43,7 +43,7 @@ async def recognize_face_file(background_tasks: BackgroundTasks,
     try:
         file_name = str(uuid.uuid4()) + get_mode_ext("image")
         file_bytes_content = file.file.read()
-        file_cache_path = os.path.join(ROOT_DOWNLOAD_URL, file_name)
+        file_cache_path = os.path.join(ROOT_DOWNLOAD_PATH, file_name)
 
         await cache_file_locally(file_cache_path, file_bytes_content)
         background_tasks.add_task(remove_file, file_cache_path)
@@ -67,9 +67,9 @@ async def recognize_face_url(background_tasks: BackgroundTasks,
     response_data = dict()
     model_type: ModelType = ModelType.SLOW  # default to SLOW for now
     try:
-        os.makedirs(ROOT_DOWNLOAD_URL, exist_ok=True)
+        os.makedirs(ROOT_DOWNLOAD_PATH, exist_ok=True)
         file_name = str(uuid.uuid4()) + get_mode_ext("image")
-        file_cache_path = os.path.join(ROOT_DOWNLOAD_URL, file_name)
+        file_cache_path = os.path.join(ROOT_DOWNLOAD_PATH, file_name)
         download_url_file(url, file_cache_path)
         background_tasks.add_task(remove_file, file_cache_path)
     except Exception as excep:

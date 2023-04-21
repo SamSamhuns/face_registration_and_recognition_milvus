@@ -14,11 +14,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.routes import face, recognize_face, register_face
 
 
-# The root is the absolute path of the __init_.py under the source
-ROOT = os.path.abspath(__file__)[:os.path.abspath(__file__).rfind(os.path.sep)]
-ROOT_DOWNLOAD_URL = os.path.join(ROOT, "data")
-os.environ["ROOT_DOWNLOAD_URL"] = ROOT_DOWNLOAD_URL
-os.makedirs(ROOT_DOWNLOAD_URL, exist_ok=True)
+# The root_path is the absolute path of the __init_.py under the source
+root_path = os.path.abspath(__file__)[:os.path.abspath(__file__).rfind(os.path.sep)]
+root_download_path = os.path.join(root_path, "data")
+os.environ["ROOT_DOWNLOAD_PATH"] = root_download_path
+os.makedirs(root_download_path, exist_ok=True)
 
 
 def get_application(title="Face Registration and Recognition"):
@@ -59,7 +59,7 @@ async def index():
 async def favicon():
     file_name = "favicon.ico"
     file_path = os.path.join(app.root_path, "app/static", file_name)
-    return FileResponse(path=file_path, headers={"Content-Disposition": "attachment; filename=" + file_name})
+    return FileResponse(path=file_path)
 
 
 if __name__ == '__main__':

@@ -14,7 +14,7 @@ from utils import get_mode_ext, remove_file, download_url_file, cache_file_local
 
 
 router = APIRouter()
-ROOT_DOWNLOAD_URL = os.getenv('ROOT_DOWNLOAD_URL', default="app/data")
+ROOT_DOWNLOAD_PATH = os.getenv('ROOT_DOWNLOAD_PATH', default="app/data")
 
 
 class RegisterFaceProcessTask():
@@ -45,7 +45,7 @@ async def register_face_file(background_tasks: BackgroundTasks,
     try:
         file_name = str(uuid.uuid4()) + get_mode_ext("image")
         file_bytes_content = file.file.read()
-        file_cache_path = os.path.join(ROOT_DOWNLOAD_URL, file_name)
+        file_cache_path = os.path.join(ROOT_DOWNLOAD_PATH, file_name)
 
         await cache_file_locally(file_cache_path, file_bytes_content)
         background_tasks.add_task(remove_file, file_cache_path)
@@ -71,9 +71,9 @@ async def register_face_url(background_tasks: BackgroundTasks,
                             person_data: PersonModel = Depends()):
     response_data = dict()
     try:
-        os.makedirs(ROOT_DOWNLOAD_URL, exist_ok=True)
+        os.makedirs(ROOT_DOWNLOAD_PATH, exist_ok=True)
         file_name = str(uuid.uuid4()) + get_mode_ext("image")
-        file_cache_path = os.path.join(ROOT_DOWNLOAD_URL, file_name)
+        file_cache_path = os.path.join(ROOT_DOWNLOAD_PATH, file_name)
 
         await download_url_file(url, file_cache_path)
         background_tasks.add_task(remove_file, file_cache_path)

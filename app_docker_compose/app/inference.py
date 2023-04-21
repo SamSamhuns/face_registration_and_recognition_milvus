@@ -163,7 +163,7 @@ def register_face(model_name: str,
     # After final entity is inserted, it is best to call flush to have no growing segments left in memory
     collection.flush()
 
-    # insert data into mysql table
+    # insert data into mysql table with param binding
     query = (f"INSERT INTO {_MYSQL_PERSON_TABLE}" +
              " (id, name, birthdate, country, city, title, org)" +
              " VALUES (%s, %s, %s, %s, %s, %s, %s)")

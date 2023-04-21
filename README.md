@@ -1,10 +1,10 @@
-# Face Registration and Recognition Backend System with uvicorn, fastapi, and milvus
+# Face Registration and Recognition Backend System with uvicorn, fastapi, milvus, redis and mysql
 
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 
 Tested with `docker-compose version 1.29.2`.
 
-Backend system for detecting and saving a face from an image into a vectorized milvus database for running facial recognition on images. (Note: currently only one face per image is supported for both face registration and lookup).
+Backend system for detecting and saving a person's face from an image into a vectorized milvus database for running facial recognition on images along with saving the person's data in a redis-cached mysql table for later retrieval. (Note: currently only one face per image is supported for both face registration and lookup).
 
 <img src="app_docker_compose/app/static/project_flow.png" width="40%" />
 
@@ -119,18 +119,20 @@ docker run -d --rm -p 0.0.0.0:8081:8081 --name uvicorn_trt_server_cont uvicorn_t
 # check trtserver status with
 docker logs uvicorn_trt_server_cont
 ```
+
 #### run uvicorn server
 
 ```shell
 python3 app/server.py -p EXPOSED_HTTP_PORT
 ```
 
-### TO-DO
+## TO-DO
 
--   Add use of mysql to store faces and redis for a cached-access of data
+-   Add use of mysql to store faces and redis for a cached-access of data ✅️
+-   Fix pytests for updated apis with redis and mysql
 -   Setup with GitHub Actions for automatic testing
 
-### Running tests
+## Running tests
 
 ```shell
 cd app_docker_compose
@@ -139,9 +141,9 @@ pip install -r tests/requirements.txt
 docker-compose up -d etcd minio standalone mysql mysql-admin redis-server
 docker run -d --rm -p 0.0.0.0:8081:8081 --name uvicorn_trt_server face_recog:latest tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
 pytest tests
-````
+```
 
-#### Notes on docker-compose yml setup
+### Notes on docker-compose yml setup
 
 Note if services other than the uvicorn web-api are to be exposed such as the milvus or minio servers, alter the `expose` options to published `ports` for access outside the docker containers.
 
@@ -162,7 +164,7 @@ For `docker-compose version <1.29.2` and `yaml version <3.9`, the following depl
         limits:
           memory: 512m
 
-#### Notes on triton-server
+### Notes on triton-server
 
 Check saved.model inputs/outputs with `$ saved_model_cli show --dir savemodel_dir --all` after installing tensorflow.
 
@@ -185,7 +187,7 @@ Options for CPU and GPU based models for tritonserver:
         }
       ]
 
-### Acknowledgements
+## Acknowledgements
 
 -   [milvus](https://milvus.io/)
 -   [triton-server](https://developer.nvidia.com/nvidia-triton-inference-server)
