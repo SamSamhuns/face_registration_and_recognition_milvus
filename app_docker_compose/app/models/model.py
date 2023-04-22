@@ -30,7 +30,7 @@ class InputModel(BaseModel):
     model_name: str
     file_path: str
     threshold: float = 0.3
-    person_data: PersonModel
+    person_data: PersonModel = None
 
 
 class ModelType(str, Enum):

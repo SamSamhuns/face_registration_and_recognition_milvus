@@ -66,9 +66,9 @@ else:
 collection.load()
 
 
-def get_registered_face(person_id: int) -> dict:
+def get_registered_person(person_id: int) -> dict:
     """
-    Get registered face by person_id.
+    Get registered person by person_id.
     """
     expr = f'person_id == {person_id}'
     try:
@@ -92,9 +92,9 @@ def get_registered_face(person_id: int) -> dict:
                 "message": excep}
 
 
-def unregister_face(person_id: int) -> dict:
+def unregister_person(person_id: int) -> dict:
     """
-    Deletes a registered face based on the unique person_id.
+    Deletes a registered persno based on the unique person_id.
     Must use expr with the term expression `in` for delete operations
     """
     expr = f'person_id in [{person_id}]'
@@ -110,10 +110,10 @@ def unregister_face(person_id: int) -> dict:
                 "message": f"Person with id {person_id} couldn't be unregistered"}
 
 
-def register_face(model_name: str,
-                  file_path: str,
-                  threshold: float,
-                  person_data: dict) -> dict:
+def register_person(model_name: str,
+                    file_path: str,
+                    threshold: float,
+                    person_data: dict) -> dict:
     """
     Detects faces in image from the file_path and 
     saves the face feature vector & the related person_data dict.
@@ -136,7 +136,7 @@ def register_face(model_name: str,
 
     person_id = person_data["id"]  # uniq person id from user input
     # check if face already exists in milvus db
-    if get_registered_face(person_id)["status"] == "success":
+    if get_registered_person(person_id)["status"] == "success":
         return {"status": "failed",
                 "message": f"person with id {person_id} already exists in milvus db"}
     face_vector = pred_dict["face_feats"][0].tolist()
@@ -167,7 +167,7 @@ def register_face(model_name: str,
     except pymysql.Error as e:
         print(f"mysql insert failed ❌. {e}")
         # del person with person_id from milvus as well
-        unregister_face(person_id)
+        unregister_person(person_id)
         return {"status": "failed",
                 "message": "mysql insertion error"}
     finally:
@@ -180,13 +180,13 @@ def register_face(model_name: str,
     redis_conn.expire(redis_key, 3600)  # cache for 1 hour
 
     return {"status": "success",
-            "message": f"Person {person_data['person_name']} successfully registered"}
+            "message": f"Person with id {person_id} successfully registered"}
 
 
-def recognize_face(model_name: str,
-                   file_path: str,
-                   threshold: float,
-                   face_dist_threshold: float = 0.1) -> dict:
+def recognize_person(model_name: str,
+                     file_path: str,
+                     threshold: float,
+                     face_dist_threshold: float = 0.1) -> dict:
     """
     Detects faces in image from the file_path and finds the most similar face vector
     from a set of saved face vectors
@@ -228,4 +228,5 @@ def recognize_face(model_name: str,
                 "message": "No similar faces were found in the database"}
 
     return {"status": "success", 
-            "message": f"Detected face matches id {person_id}", "match_id": person_id}
+            "message": f"Detected face matches id {person_id}", 
+            "match_id": person_id}

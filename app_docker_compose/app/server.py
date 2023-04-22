@@ -11,7 +11,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from routes import face, recognize_face, register_face
+from routes import person, recognize_person, register_person
 
 
 # The root_path is the absolute path of the __init_.py under the source
@@ -35,9 +35,9 @@ def get_application(title="Face Registration and Recognition"):
 
 
 app = get_application()
-app.include_router(face.router)
-app.include_router(recognize_face.router)
-app.include_router(register_face.router)
+app.include_router(person.router)
+app.include_router(recognize_person.router)
+app.include_router(register_person.router)
 
 
 # api call time middleware
