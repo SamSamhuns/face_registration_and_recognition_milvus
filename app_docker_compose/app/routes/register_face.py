@@ -1,43 +1,45 @@
 """
-Face Recogntion fastapi file
+Face Registration fastapi file
 """
 import os
 import uuid
 import traceback
 
 from fastapi import APIRouter
-from fastapi import UploadFile, File, BackgroundTasks
+from fastapi import UploadFile, File, Depends, BackgroundTasks
 
-from models import InputModel, ModelType
+from inference import register_face
+from models import InputModel, PersonModel, ModelType
 from utils import get_mode_ext, remove_file, download_url_file, cache_file_locally
-from inference import recognize_face
+from config import ROOT_DOWNLOAD_PATH
 
 
 router = APIRouter()
-ROOT_DOWNLOAD_PATH = os.getenv('ROOT_DOWNLOAD_PATH', default="app/data")
 
 
-class RecognizeFaceProcessTask():
+class RegisterFaceProcessTask():
     __slots__ = ["func", "input_data", "response_data"]
 
     def __init__(self, func, input_data):
-        super(RecognizeFaceProcessTask, self).__init__()
+        super(RegisterFaceProcessTask, self).__init__()
         self.func = func
         self.input_data = input_data
         self.response_data = dict()
 
     def run(self):
-        # run func and get results as dict
+        """run func and get results as dict"""
         results = self.func(
             model_name=self.input_data.model_name,
             file_path=self.input_data.file_path,
-            threshold=self.input_data.threshold)
+            threshold=self.input_data.threshold,
+            person_data=self.input_data.person_data.dict())
         self.response_data = {**results}
 
 
-@router.post("/recognize_face_file")
-async def recognize_face_file(background_tasks: BackgroundTasks,
-                              file: UploadFile = File(...)):
+@router.post("/register_face_file")
+async def register_face_file(background_tasks: BackgroundTasks,
+                             person_data: PersonModel = Depends(),
+                             file: UploadFile = File(...)):
     response_data = dict()
     model_type: ModelType = ModelType.SLOW  # default to SLOW for now
     try:
@@ -48,46 +50,49 @@ async def recognize_face_file(background_tasks: BackgroundTasks,
         await cache_file_locally(file_cache_path, file_bytes_content)
         background_tasks.add_task(remove_file, file_cache_path)
 
-        input_data = InputModel(
-            model_name=model_type.value, file_path=file_cache_path, person_name="")
-        task = RecognizeFaceProcessTask(recognize_face, input_data)
+        input_data = InputModel(model_name=model_type.value,
+                                file_path=file_cache_path,
+                                person_data=person_data)
+        task = RegisterFaceProcessTask(register_face, input_data)
         task.run()
         response_data = task.response_data
     except Exception as excep:
         print(excep, traceback.print_exc())
         response_data["status"] = "failed"
-        response_data["message"] = "failed to recognize face from image"
+        response_data["message"] = "failed to register uploaded image to server"
 
     return response_data
 
 
-@router.post("/recognize_face_url")
-async def recognize_face_url(background_tasks: BackgroundTasks,
-                             url: str):
+@router.post("/register_face_url")
+async def register_face_url(background_tasks: BackgroundTasks,
+                            model_type: ModelType,
+                            url: str,
+                            person_data: PersonModel = Depends()):
     response_data = dict()
-    model_type: ModelType = ModelType.SLOW  # default to SLOW for now
     try:
         os.makedirs(ROOT_DOWNLOAD_PATH, exist_ok=True)
         file_name = str(uuid.uuid4()) + get_mode_ext("image")
         file_cache_path = os.path.join(ROOT_DOWNLOAD_PATH, file_name)
-        download_url_file(url, file_cache_path)
+
+        await download_url_file(url, file_cache_path)
         background_tasks.add_task(remove_file, file_cache_path)
     except Exception as excep:
         print(excep, traceback.print_exc())
         response_data["status"] = "failed"
-        response_data['message'] = f"couldn't download image from \'{url}\'. Not a valid link."
+        response_data["message"] = f"couldn't download image from \'{url}\'. Not a valid link."
         return response_data
 
     try:
-        input_data = InputModel(
-            model_name=model_type.value, file_path=file_cache_path)
-        task = RecognizeFaceProcessTask(recognize_face, input_data)
+        input_data = InputModel(model_name=model_type.value,
+                                file_path=file_cache_path, 
+                                person_data=person_data)
+        task = RegisterFaceProcessTask(register_face, input_data)
         task.run()
         response_data = task.response_data
     except Exception as excep:
         print(excep, traceback.print_exc())
         response_data["status"] = "failed"
-        response_data[
-            "message"] = f"failed to recognize face  from image downloaded from {url}"
+        response_data["message"] = f"failed to register url image from {url} to server"
 
     return response_data

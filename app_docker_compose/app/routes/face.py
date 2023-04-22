@@ -2,6 +2,7 @@
 Basic operations for faces
 """
 from fastapi import APIRouter
+
 from inference import get_registered_face as get_registered_face_api
 from inference import unregister_face as unregister_face_api
 

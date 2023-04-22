@@ -11,7 +11,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes import face, recognize_face, register_face
+from routes import face, recognize_face, register_face
 
 
 # The root_path is the absolute path of the __init_.py under the source
