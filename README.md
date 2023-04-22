@@ -1,10 +1,10 @@
-# Face Registration and Recognition Backend System with uvicorn, fastapi, milvus, redis and mysql
+# Person Face Registration and Recognition Backend System with uvicorn, fastapi, milvus, redis and mysql
 
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 
 Tested with `docker-compose version 1.29.2`.
 
-Backend system for detecting and saving a person's face from an image into a vectorized milvus database for running facial recognition on images along with saving the person's data in a redis-cached mysql table for later retrieval. (Note: currently only one face per image is supported for both face registration and lookup).
+Backend system for detecting and saving a person's face from images into a vectorized milvus database to run facial recognition on images along with saving the person's data in a redis-cached mysql table for later retrieval. (Note: The system currently only supports one face per image for both face registration and lookup).
 
 <img src="app_docker_compose/app/static/project_flow.png" width="40%" />
 
