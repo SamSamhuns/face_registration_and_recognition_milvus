@@ -139,7 +139,7 @@ cd app_docker_compose
 pip install -r requirements.txt
 pip install -r tests/requirements.txt
 docker-compose up -d etcd minio standalone mysql mysql-admin redis-server
-docker run -d --rm -p 0.0.0.0:8081:8081 --name uvicorn_trt_server face_recog:latest tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
+docker run -d --rm -p 0.0.0.0:8081:8081 --name uvicorn_trt_server_cont uvicorn_trt_server:latest tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
 pytest tests
 ```
 
