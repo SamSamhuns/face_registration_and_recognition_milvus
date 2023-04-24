@@ -4,7 +4,7 @@ USE `default`;
 
 -- create PERSON table
 CREATE TABLE IF NOT EXISTS person (
-    ID VARCHAR(255) NOT NULL,
+    ID INT NOT NULL,
 
     name VARCHAR(255) NOT NULL,
     birthdate DATE NOT NULL,

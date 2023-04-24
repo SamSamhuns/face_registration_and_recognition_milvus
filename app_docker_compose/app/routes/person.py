@@ -9,11 +9,7 @@ from inference import unregister_person as unregister_person_api
 
 router = APIRouter()
 
-
-@router.get("/person")
-def get_all_registered_person():
-    return {"TODO: Should return all registered faces and corresponding assigned name"}
-
+# note: person insert/post is done with person_registration route instead
 
 @router.get("/person/{person_id}")
 def get_registered_person(person_id: int):

@@ -6,7 +6,7 @@ from pydantic import BaseModel
 class PersonModel(BaseModel):
     """
     Person data model. Based on the person table schema
-    id: int = must be q unique int in the database, required
+    id: int = must be a unique id in the database, required
     name: str = name of person, required
     birthdate: str = date with format YYYY-MM-DD, required
     country: str = country, required

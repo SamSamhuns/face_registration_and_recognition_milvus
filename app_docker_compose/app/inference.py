@@ -3,10 +3,16 @@ Inference functions for registering and recognizing face with trtserver models a
 """
 import redis
 import pymysql
-from pymilvus import connections, MilvusException
+from pymysql.cursors import DictCursor
+from pymilvus import MilvusException
+from pymilvus import connections
 from pymilvus import Collection, CollectionSchema, FieldSchema, DataType, utility
 
 from triton_server.inference_trtserver import run_inference
+from api.milvus import get_milvus_connec
+from api.mysql import (insert_person_data_into_sql,
+                       select_person_data_from_sql_with_id,
+                       delete_person_data_from_sql_with_id)
 from config import (REDIS_HOST, REDIS_PORT,
                     MYSQL_HOST, MYSQL_PORT,
                     MYSQL_USER, MYSQL_PASSWORD,
@@ -15,7 +21,10 @@ from config import (REDIS_HOST, REDIS_PORT,
                     FACE_VECTOR_DIM, FACE_METRIC_TYPE, FACE_INDEX_TYPE, FACE_COLLECTION_NAME)
 
 # connect to Redis
-redis_conn = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
+redis_conn = redis.Redis(
+    host=REDIS_HOST,
+    port=REDIS_PORT,
+    decode_responses=True)
 
 # Connect to MySQL
 mysql_conn = pymysql.connect(
@@ -23,91 +32,80 @@ mysql_conn = pymysql.connect(
     port=MYSQL_PORT,
     user=MYSQL_USER,
     password=MYSQL_PASSWORD,
-    db=MYSQL_DATABASE
-)
+    db=MYSQL_DATABASE,
+    cursorclass=DictCursor)
 
-# connect to milvus server
-connections.connect(alias="default", host=MILVUS_HOST, port=MILVUS_PORT)
-
-# load collection
-# if collection is not present create one
-if not utility.has_collection(FACE_COLLECTION_NAME):
-    fields = [
-        FieldSchema(name="id", dtype=DataType.INT64,
-                    descrition="ids", is_primary=True, auto_id=True),
-        FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR,
-                    descrition="embedding vectors", dim=FACE_VECTOR_DIM),
-        FieldSchema(name="person_id", dtype=DataType.INT64,
-                    descrition="persons unique id")
-    ]
-    schema = CollectionSchema(
-        fields=fields, description='face recognition system')
-    collection = Collection(name=FACE_COLLECTION_NAME,
-                            consistency_level="Strong",
-                            schema=schema, using='default')
-    print(f"Collection {FACE_COLLECTION_NAME} created.✅️")
-
-    # Indexing the collection
-    print("Indexing the Collection...🔢️")
-    # create IVF_FLAT index for collection.
-    index_params = {
-        'metric_type': FACE_METRIC_TYPE,
-        'index_type': FACE_INDEX_TYPE,
-        'params': {"nlist": 4096}
-    }
-    collection.create_index(field_name="embedding", index_params=index_params)
-    print(f"Collection {FACE_COLLECTION_NAME} indexed.✅️")
-else:
-    print(f"Collection {FACE_COLLECTION_NAME} present already.✅️")
-    collection = Collection(FACE_COLLECTION_NAME)
-
-
-# load collection into memory
-collection.load()
+# connect to milvus connec
+milvus_conn = get_milvus_connec(
+    collection_name=FACE_COLLECTION_NAME,
+    milvus_host=MILVUS_HOST,
+    milvus_port=MILVUS_PORT,
+    vector_dim=FACE_VECTOR_DIM,
+    metric_type=FACE_METRIC_TYPE,
+    index_type=FACE_INDEX_TYPE)
+# load milvus_conn into memory
+milvus_conn.load()
 
 
 def get_registered_person(person_id: int) -> dict:
     """
     Get registered person by person_id.
+    Checks redis cache, otherwise query mysql
     """
-    expr = f'person_id == {person_id}'
-    try:
-        results = collection.query(
-            expr=expr,
-            offset=0,
-            limit=10,
-            output_fields=["person_id"],
-            consistency_level="Strong")
-        if not results:
-            return {"status": "failed",
-                    "message": f"Person with id {person_id} not found in database"}
-
-        found_person_name = results[0]["person_id"]
-        print(f"Person {found_person_name} found in database.✅️")
+    # try cached redis data
+    redis_key = f"{MYSQL_PERSON_TABLE}_{person_id}"
+    cached_person_dict = redis_conn.hgetall(name=redis_key)
+    if cached_person_dict:
         return {"status": "success",
-                "message": f"Person {found_person_name} found"}
-    except MilvusException as excep:
-        print(excep)
-        return {"status": "failed",
-                "message": excep}
+                "message": f"record matching id: {person_id} retrieved from redis cache",
+                "person_data": cached_person_dict}
+
+    # if cache is not found, query mysql
+    return select_person_data_from_sql_with_id(
+        mysql_conn, MYSQL_PERSON_TABLE, person_id)
 
 
 def unregister_person(person_id: int) -> dict:
     """
     Deletes a registered persno based on the unique person_id.
     Must use expr with the term expression `in` for delete operations
+    Operation is atomic, if one delete op fails, all ops fail
     """
-    expr = f'person_id in [{person_id}]'
-
     try:
-        collection.delete(expr)
-        print(f"Person with id {person_id} unregistered from database.✅️")
-        return {"status": "success",
-                "message": f"Person with id {person_id} unregistered"}
-    except MilvusException as excep:
-        print(excep)
+        # unregister from mysql
+        # commit is set to False so that the op is atomic with milvus & redis
+        mysql_del_resp = delete_person_data_from_sql_with_id(
+            mysql_conn, MYSQL_PERSON_TABLE, person_id, commit=False)
+        if mysql_del_resp["status"] == "failed":
+            raise pymysql.Error
+
+        # unregister from milvus
+        expr = f'person_id in [{person_id}]'
+        milvus_conn.delete(expr)
+        print(
+            f"Vector for person with id: {person_id} deleted from milvus db.✅️")
+
+        # clear redis cache
+        redis_key = f"{MYSQL_PERSON_TABLE}_{person_id}"
+        redis_conn.delete(redis_key)
+        
+        # commit mysql record delete
+        mysql_conn.commit()
+    except pymysql.Error as pymysql_excep:
+        print(f"{pymysql_excep}. ❌")
         return {"status": "failed",
-                "message": f"Person with id {person_id} couldn't be unregistered"}
+                "message": f"Person with id {person_id} couldn't be unregistered from mysql"}
+    except MilvusException as milvus_excep:
+        print(f"{milvus_excep}. ❌")
+        return {"status": "failed",
+                "message": f"Person with id {person_id} couldn't be unregistered from milvus"}
+    except redis.RedisError as redis_excep:
+        print(f"{redis_excep}. ❌")
+        return {"status": "failed",
+                "message": f"Person with id {person_id} couldn't be unregistered from redis"}
+    print(f"Person with id {person_id} unregistered from database.✅️")
+    return {"status": "success",
+            "message": f"Person record with id {person_id} unregistered from database"}
 
 
 def register_person(model_name: str,
@@ -118,7 +116,14 @@ def register_person(model_name: str,
     Detects faces in image from the file_path and 
     saves the face feature vector & the related person_data dict.
     person_data dict should be based on the init.sql table schema
+    Operation is atomic, if one insert op fails, all ops fail
     """
+    person_id = person_data["id"]  # uniq person id from user input
+    # check if face already exists in redis/mysql
+    if get_registered_person(person_id)["status"] == "success":
+        return {"status": "failed",
+                "message": f"person with id {person_id} already exists in milvus db"}
+
     pred_dict = run_inference(
         file_path,
         face_feat_model=model_name,
@@ -134,53 +139,46 @@ def register_person(model_name: str,
         pred_dict["status"] = "failed"
         return pred_dict
 
-    person_id = person_data["id"]  # uniq person id from user input
-    # check if face already exists in milvus db
-    if get_registered_person(person_id)["status"] == "success":
-        return {"status": "failed",
-                "message": f"person with id {person_id} already exists in milvus db"}
-    face_vector = pred_dict["face_feats"][0].tolist()
-    data = [[face_vector], [person_id]]
-
-    # insert face_vector into milvus collection
     try:
-        collection.insert(data)
-        print(f"Vector for {person_data['name']} inserted into milvus db.✅️")
-    except MilvusException as e:
-        print(f"milvus collection insert failed ❌. {e}")
-        return {"status": "failed",
-                "message": "milvus insertion error"}
-    # After final entity is inserted, it is best to call flush to have no growing segments left in memory
-    collection.flush()
+        # insert record into mysql
+        # commit is set to False so that the op is atomic with milvus & redis
+        mysql_insert_resp = insert_person_data_into_sql(
+            mysql_conn, MYSQL_PERSON_TABLE, person_data, commit=False)
+        if mysql_insert_resp["status"] == "failed":
+            raise pymysql.Error
 
-    # insert data into mysql table with param binding
-    query = (f"INSERT INTO {MYSQL_PERSON_TABLE}" +
-             " (id, name, birthdate, country, city, title, org)" +
-             " VALUES (%s, %s, %s, %s, %s, %s, %s)")
-    values = (person_id, person_data["name"],  person_data["birthdate"],  person_data["country"],
-              person_data["city"],  person_data["title"],  person_data["org"])
-    cursor = mysql_conn.cursor()
-    try:
-        cursor.execute(query, values)
+        # insert face_vector into milvus milvus_conn
+        face_vector = pred_dict["face_feats"][0].tolist()
+        data = [[face_vector], [person_id]]
+        milvus_conn.insert(data)
+        print(
+            f"Vector for person with id: {person_id} inserted into milvus db. ✅️")
+        # After final entity is inserted, it is best to call flush to have no growing segments left in memory
+        milvus_conn.flush()
+
+        # cache data in redis
+        redis_key = f"{MYSQL_PERSON_TABLE}_{person_id}"
+        person_data["birthdate"] = str(person_data["birthdate"])
+        redis_conn.hset(redis_key, mapping=person_data)  # hash set data
+        redis_conn.expire(redis_key, 3600)  # cache for 1 hour
+        
+        # commit mysql record insertion
         mysql_conn.commit()
-        print(f"{person_data['name']} info inserted into mysql db.✅️")
-    except pymysql.Error as e:
-        print(f"mysql insert failed ❌. {e}")
-        # del person with person_id from milvus as well
-        unregister_person(person_id)
+    except pymysql.Error as pymysql_excep:
+        print(f"{pymysql_excep}. ❌")
         return {"status": "failed",
-                "message": "mysql insertion error"}
-    finally:
-        cursor.close()
-
-    # cache data in redis
-    redis_key = f"{MYSQL_PERSON_TABLE}_{person_id}"
-    person_data["birthdate"] = str(person_data["birthdate"])
-    redis_conn.hset(redis_key, mapping=person_data)  # hash set data
-    redis_conn.expire(redis_key, 3600)  # cache for 1 hour
-
+                "message": f"Person with id {person_id} couldn't be unregistered from mysql"}
+    except MilvusException as milvus_excep:
+        print(f"{milvus_excep}. ❌")
+        return {"status": "failed",
+                "message": f"Person with id {person_id} couldn't be unregistered from milvus"}
+    except redis.RedisError as redis_excep:
+        print(f"{redis_excep}. ❌")
+        return {"status": "failed",
+                "message": f"Person with id {person_id} couldn't be unregistered from redis"}
+    print(f"Person with id {person_id} registered from database.✅️")
     return {"status": "success",
-            "message": f"Person with id {person_id} successfully registered"}
+            "message": "record inserted into database"}
 
 
 def recognize_person(model_name: str,
@@ -209,14 +207,14 @@ def recognize_person(model_name: str,
     face_vector = pred_dict["face_feats"]
     # run a vector search and return the closest face with the L2 metric
     search_params = {"metric_type": "L2",  "params": {"nprobe": 2056}}
-    results = collection.search(
+    results = milvus_conn.search(
         data=face_vector,
         anns_field="embedding",
         param=search_params,
         limit=3,
         output_fields=["person_id"])
     if not results:
-        return {"status": "failed", 
+        return {"status": "failed",
                 "message": "No saved face entries found in database"}
 
     results = sorted(results, key=lambda k: k.distances)
@@ -224,9 +222,12 @@ def recognize_person(model_name: str,
     face_dist = results[0].distances[0]
     person_id = results[0][0].entity.get("person_id")
     if face_dist > face_dist_threshold:
-        return {"status": "success", 
+        return {"status": "success",
                 "message": "No similar faces were found in the database"}
 
-    return {"status": "success", 
-            "message": f"Detected face matches id {person_id}", 
-            "match_id": person_id}
+    get_person_resp = get_registered_person(person_id)
+    if get_person_resp["status"] == "success":
+        return {"status": "success",
+                "message": f"Detected face matches id {person_id}",
+                "person_data": get_person_resp["person_data"]}
+    return get_person_resp

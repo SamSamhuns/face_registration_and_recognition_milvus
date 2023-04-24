@@ -52,7 +52,7 @@ async def add_process_time_header(request: Request, call_next):
 
 @app.get("/")
 async def index():
-    return {"Welcome to Face Registration & Recognition Service": "Please visit /docs for list of apis"}
+    return {"Welcome to Person Face Registration & Recognition Service": "Please visit /docs for list of apis"}
 
 
 @app.get('/favicon.ico')
@@ -76,4 +76,4 @@ if __name__ == '__main__':
     print(
         f"Uvicorn server running on {args.host_ip}:{args.port} with {args.workers} workers")
     uvicorn.run("server:app", host=args.host_ip, port=args.port,
-                workers=args.workers, reload=True)
+                workers=args.workers, reload=True, reload_dirs=['app'])
