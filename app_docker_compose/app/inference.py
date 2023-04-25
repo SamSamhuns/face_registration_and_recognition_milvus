@@ -94,18 +94,18 @@ def unregister_person(person_id: int) -> dict:
     except pymysql.Error as pymysql_excep:
         print(f"{pymysql_excep}. ❌")
         return {"status": "failed",
-                "message": f"Person with id {person_id} couldn't be unregistered from mysql"}
+                "message": f"person with id {person_id} couldn't be unregistered from mysql"}
     except MilvusException as milvus_excep:
         print(f"{milvus_excep}. ❌")
         return {"status": "failed",
-                "message": f"Person with id {person_id} couldn't be unregistered from milvus"}
+                "message": f"person with id {person_id} couldn't be unregistered from milvus"}
     except redis.RedisError as redis_excep:
         print(f"{redis_excep}. ❌")
         return {"status": "failed",
-                "message": f"Person with id {person_id} couldn't be unregistered from redis"}
-    print(f"Person with id {person_id} unregistered from database.✅️")
+                "message": f"person with id {person_id} couldn't be unregistered from redis"}
+    print(f"person record with id {person_id} unregistered from database.✅️")
     return {"status": "success",
-            "message": f"Person record with id {person_id} unregistered from database"}
+            "message": f"person record with id {person_id} unregistered from database"}
 
 
 def register_person(model_name: str,
@@ -118,11 +118,11 @@ def register_person(model_name: str,
     person_data dict should be based on the init.sql table schema
     Operation is atomic, if one insert op fails, all ops fail
     """
-    person_id = person_data["id"]  # uniq person id from user input
+    person_id = person_data["ID"]  # uniq person id from user input
     # check if face already exists in redis/mysql
     if get_registered_person(person_id)["status"] == "success":
         return {"status": "failed",
-                "message": f"person with id {person_id} already exists in milvus db"}
+                "message": f"person with id {person_id} already exists in database"}
 
     pred_dict = run_inference(
         file_path,
@@ -167,18 +167,18 @@ def register_person(model_name: str,
     except pymysql.Error as pymysql_excep:
         print(f"{pymysql_excep}. ❌")
         return {"status": "failed",
-                "message": f"Person with id {person_id} couldn't be unregistered from mysql"}
+                "message": f"person with id {person_id} couldn't be unregistered from mysql"}
     except MilvusException as milvus_excep:
         print(f"{milvus_excep}. ❌")
         return {"status": "failed",
-                "message": f"Person with id {person_id} couldn't be unregistered from milvus"}
+                "message": f"person with id {person_id} couldn't be unregistered from milvus"}
     except redis.RedisError as redis_excep:
         print(f"{redis_excep}. ❌")
         return {"status": "failed",
-                "message": f"Person with id {person_id} couldn't be unregistered from redis"}
-    print(f"Person with id {person_id} registered from database.✅️")
+                "message": f"person with id {person_id} couldn't be unregistered from redis"}
+    print(f"person record with id {person_id} registered into database.✅️")
     return {"status": "success",
-            "message": "record inserted into database"}
+            "message": f"person record with id {person_id} registered into database"}
 
 
 def recognize_person(model_name: str,
@@ -215,7 +215,7 @@ def recognize_person(model_name: str,
         output_fields=["person_id"])
     if not results:
         return {"status": "failed",
-                "message": "No saved face entries found in database"}
+                "message": "no saved face entries found in database"}
 
     results = sorted(results, key=lambda k: k.distances)
 
@@ -223,11 +223,11 @@ def recognize_person(model_name: str,
     person_id = results[0][0].entity.get("person_id")
     if face_dist > face_dist_threshold:
         return {"status": "success",
-                "message": "No similar faces were found in the database"}
+                "message": "no similar faces were found in the database"}
 
     get_person_resp = get_registered_person(person_id)
     if get_person_resp["status"] == "success":
         return {"status": "success",
-                "message": f"Detected face matches id {person_id}",
+                "message": f"detected face matches id: {person_id}",
                 "person_data": get_person_resp["person_data"]}
     return get_person_resp

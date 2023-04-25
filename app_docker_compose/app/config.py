@@ -16,6 +16,7 @@ MYSQL_USER = os.getenv("MYSQL_USER", default="user")
 MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD", default="pass")
 MYSQL_DATABASE = os.getenv("MYSQL_DATABASE", default="default")
 MYSQL_PERSON_TABLE = os.getenv("MYSQL_PERSON_TABLE", default="person")
+MYSQL_TEST_TABLE = os.getenv("MYSQL_TEST_TABLE", default="test")  # for testing only
 
 # milvus conf
 MILVUS_HOST = os.getenv("MILVUS_HOST", default="127.0.0.1")
