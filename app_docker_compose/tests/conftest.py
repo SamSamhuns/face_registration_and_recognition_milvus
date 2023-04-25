@@ -19,9 +19,10 @@ from app.api.milvus import get_milvus_connec
 from app.config import (
     REDIS_HOST, REDIS_PORT,
     MYSQL_HOST, MYSQL_PORT,
-    MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE,
+    MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PERSON_TABLE, MYSQL_TEST_TABLE,
     MILVUS_HOST, MILVUS_PORT, FACE_COLLECTION_NAME,
     FACE_VECTOR_DIM, FACE_METRIC_TYPE, FACE_INDEX_TYPE, FACE_COLLECTION_NAME)
+TEST_PERSON_ID = -1
 
 
 def _load_file_content(fpath: str) -> bytes:
@@ -57,7 +58,7 @@ def test_milvus_connec():
     connections.disconnect("default")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def test_mysql_connec():
     """Yields a mysql connection instance"""
     mysql_conn = pymysql.connect(
@@ -85,20 +86,22 @@ def test_redis_connec():
 
 
 @pytest.fixture(scope="session")
-def mock_person_data_dict(person_id: int = 0):
+def mock_person_data_dict():
     """
-    create a person_data dict for testing
+    returns a func to create a person_data dict for testing
     """
-    person_data = {
-        "ID": person_id,
-        "name": "bar",
-        "birthdate": date(1971, 1, 30),
-        "country": "foo",
-        "city": "foobar",
-        "title": "barfoo",
-        "org": "foofoobar",
-    }
-    return person_data
+    def _gen_data(person_id: int = TEST_PERSON_ID):
+        person_data = {
+            "ID": person_id,
+            "name": "bar",
+            "birthdate": date(1971, 1, 30),
+            "country": "foo",
+            "city": "foobar",
+            "title": "barfoo",
+            "org": "foofoobar",
+        }
+        return person_data
+    return _gen_data
 
 
 @pytest.fixture(scope="session")

@@ -3,12 +3,11 @@ Test redis api
 The redis server must be running in the appropriate port
 """
 import copy
-from app.config import MYSQL_PERSON_TABLE
+from tests.conftest import MYSQL_PERSON_TABLE
 
 
 def test_redis_insert_get_del_ops(test_redis_connec, mock_person_data_dict):
-
-    person_dict = copy.deepcopy(mock_person_data_dict)
+    person_dict = copy.deepcopy(mock_person_data_dict())
     person_dict = {k:str(v) for k, v in person_dict.items()}
 
     # cache data in redis
@@ -21,7 +20,7 @@ def test_redis_insert_get_del_ops(test_redis_connec, mock_person_data_dict):
     assert cached_dict == person_dict
 
     # delete cache
-    test_redis_connec.delete(redis_key)
+    assert test_redis_connec.delete(redis_key) == 1
 
     # attempt retrieval again
     cached_dict = test_redis_connec.hgetall(name=redis_key)

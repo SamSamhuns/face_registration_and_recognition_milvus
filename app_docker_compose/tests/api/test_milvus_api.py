@@ -3,20 +3,18 @@ Test milvus api
 The milvus server must be running in the appropriate port 
 """
 import numpy as np
-from app.config import FACE_VECTOR_DIM
+from tests.conftest import FACE_VECTOR_DIM, TEST_PERSON_ID
 
 
 def test_insert_person_milvus(test_milvus_connec):
-    person_id = 0
     emb_vec = [0.0] * FACE_VECTOR_DIM
-    data = [[emb_vec], [person_id]]
+    data = [[emb_vec], [TEST_PERSON_ID]]
     test_milvus_connec.insert(data)
 
 
 def test_get_person_milvus(test_milvus_connec):
-    person_id = 0
     emb_vec = [0.0] * FACE_VECTOR_DIM
-    expr = f'person_id == {person_id}'
+    expr = f'person_id == {TEST_PERSON_ID}'
     results = test_milvus_connec.query(
         expr=expr,
         offset=0,
@@ -25,11 +23,10 @@ def test_get_person_milvus(test_milvus_connec):
         consistency_level="Strong")
     
     person_id = results[0]["person_id"]
-    emb = results[0]["embedding"]
-    assert emb == emb_vec
+    embedding = results[0]["embedding"]
+    assert person_id == TEST_PERSON_ID, embedding == emb_vec
 
 
 def test_delete_person_milvus(test_milvus_connec):
-    person_id = 0
-    expr = f'person_id in [{person_id}]'
+    expr = f'person_id in [{TEST_PERSON_ID}]'
     test_milvus_connec.delete(expr)
