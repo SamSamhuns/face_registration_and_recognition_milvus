@@ -5,7 +5,7 @@ from pymilvus import Collection, CollectionSchema, FieldSchema, DataType, utilit
 def get_milvus_connec(
         collection_name: str,
         milvus_host: str = "127.0.0.1",
-        milvus_port: str = 3306,
+        milvus_port: int = 19530,
         vector_dim: int = 128,
         metric_type: str = "L2",
         index_type: str = "IVF_FLAT"):

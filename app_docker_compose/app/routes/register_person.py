@@ -38,8 +38,8 @@ class RegisterPersonProcessTask():
 
 @router.post("/register_person_file")
 async def register_person_file(background_tasks: BackgroundTasks,
-                             person_data: PersonModel = Depends(),
-                             img_file: UploadFile = File(...)):
+                               person_data: PersonModel = Depends(),
+                               img_file: UploadFile = File(...)):
     response_data = dict()
     model_type: ModelType = ModelType.SLOW  # default to SLOW for now
     try:
@@ -66,9 +66,9 @@ async def register_person_file(background_tasks: BackgroundTasks,
 
 @router.post("/register_person_url")
 async def register_person_url(background_tasks: BackgroundTasks,
-                            model_type: ModelType,
-                            img_url: str,
-                            person_data: PersonModel = Depends()):
+                              model_type: ModelType,
+                              img_url: str,
+                              person_data: PersonModel = Depends()):
     response_data = dict()
     try:
         os.makedirs(ROOT_DOWNLOAD_PATH, exist_ok=True)
@@ -85,7 +85,7 @@ async def register_person_url(background_tasks: BackgroundTasks,
 
     try:
         input_data = InputModel(model_name=model_type.value,
-                                file_path=file_cache_path, 
+                                file_path=file_cache_path,
                                 person_data=person_data)
         task = RegisterPersonProcessTask(register_person, input_data)
         task.run()

@@ -37,7 +37,7 @@ class RecognizePersonProcessTask():
 
 @router.post("/recognize_person_file")
 async def recognize_person_file(background_tasks: BackgroundTasks,
-                              img_file: UploadFile = File(...)):
+                                img_file: UploadFile = File(...)):
     response_data = dict()
     model_type: ModelType = ModelType.SLOW  # default to SLOW for now
     try:
@@ -63,7 +63,7 @@ async def recognize_person_file(background_tasks: BackgroundTasks,
 
 @router.post("/recognize_person_url")
 async def recognize_person_url(background_tasks: BackgroundTasks,
-                             img_url: str):
+                               img_url: str):
     response_data = dict()
     model_type: ModelType = ModelType.SLOW  # default to SLOW for now
     try:
@@ -87,6 +87,7 @@ async def recognize_person_url(background_tasks: BackgroundTasks,
     except Exception as excep:
         print(excep, traceback.print_exc())
         response_data["status"] = "failed"
-        response_data["message"] = f"failed to recognize face  from image downloaded from {img_url}"
+        response_data[
+            "message"] = f"failed to recognize face  from image downloaded from {img_url}"
 
     return response_data
