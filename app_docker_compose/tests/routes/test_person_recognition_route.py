@@ -10,7 +10,7 @@ from tests.conftest import TEST_PERSON_ID
 
 
 @pytest.mark.asyncio
-async def test_recognition_one_person(test_app_asyncio, mock_one_face_image, mock_person_data_dict):
+async def test_recognition_one_person(test_app_asyncio, test_mysql_connec, mock_one_face_image, mock_person_data_dict):
     fpath, fcontent = mock_one_face_image
     param_dict = copy.deepcopy(mock_person_data_dict(TEST_PERSON_ID))
     param_dict = {k:str(v) for k, v in param_dict.items()}

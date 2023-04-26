@@ -1,6 +1,7 @@
 """
 Test configurations
 """
+import os
 import sys
 sys.path.append("app")
 
@@ -14,6 +15,13 @@ import pymysql
 from pymysql.cursors import DictCursor
 from pymilvus import connections, utility
 
+# custom settings
+TEST_PERSON_ID = -1
+TEST_COLLECTION_NAME = "test"
+MYSQL_TEST_TABLE = "test"
+os.environ["MYSQL_CUR_TABLE"] = MYSQL_TEST_TABLE  # chg cur table for test duration
+
+# custom imports
 from app.server import app
 from app.api.milvus import get_milvus_connec
 from app.config import (
@@ -22,11 +30,6 @@ from app.config import (
     MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PERSON_TABLE,
     MILVUS_HOST, MILVUS_PORT,
     FACE_VECTOR_DIM, FACE_METRIC_TYPE, FACE_INDEX_TYPE)
-
-# custom settings
-TEST_PERSON_ID = -1
-TEST_COLLECTION_NAME = "test"
-MYSQL_TEST_TABLE = "test"
 
 
 def _load_file_content(fpath: str) -> bytes:

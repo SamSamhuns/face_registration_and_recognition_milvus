@@ -14,9 +14,10 @@ from api.mysql import (insert_person_data_into_sql,
 from config import (REDIS_HOST, REDIS_PORT,
                     MYSQL_HOST, MYSQL_PORT,
                     MYSQL_USER, MYSQL_PASSWORD,
-                    MYSQL_DATABASE, MYSQL_PERSON_TABLE,
+                    MYSQL_DATABASE, MYSQL_CUR_TABLE,
                     MILVUS_HOST, MILVUS_PORT,
-                    FACE_VECTOR_DIM, FACE_METRIC_TYPE, FACE_INDEX_TYPE, FACE_COLLECTION_NAME)
+                    FACE_VECTOR_DIM, FACE_METRIC_TYPE, 
+                    FACE_INDEX_TYPE, FACE_COLLECTION_NAME)
 
 # connect to Redis
 redis_conn = redis.Redis(
@@ -56,6 +57,7 @@ def get_registered_person(
     redis_key = f"{table}_{person_id}"
     cached_person_dict = redis_conn.hgetall(name=redis_key)
     if cached_person_dict:
+        print("record matching id: {person_id} retrieved from redis cache")
         return {"status": "success",
                 "message": f"record matching id: {person_id} retrieved from redis cache",
                 "person_data": cached_person_dict}
@@ -115,7 +117,7 @@ def register_person(
         file_path: str,
         threshold: float,
         person_data: dict,
-        table: str = MYSQL_PERSON_TABLE) -> dict:
+        table: str = MYSQL_CUR_TABLE) -> dict:
     """
     Detects faces in image from the file_path and 
     saves the face feature vector & the related person_data dict.
@@ -190,7 +192,7 @@ def recognize_person(
         file_path: str,
         threshold: float,
         face_dist_threshold: float = 0.1,
-        table: str = MYSQL_PERSON_TABLE) -> dict:
+        table: str = MYSQL_CUR_TABLE) -> dict:
     """
     Detects faces in image from the file_path and finds the most similar face vector
     from a set of saved face vectors
