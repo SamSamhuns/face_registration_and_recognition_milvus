@@ -3,9 +3,11 @@ Test redis api
 The redis server must be running in the appropriate port
 """
 import copy
+import pytest
 from tests.conftest import MYSQL_TEST_TABLE
 
 
+@pytest.mark.order(before="test_redis_get_ops")
 def test_redis_insert_get_del_ops(test_redis_connec, mock_person_data_dict):
     person_dict = copy.deepcopy(mock_person_data_dict())
     person_dict = {k:str(v) for k, v in person_dict.items()}
@@ -16,6 +18,7 @@ def test_redis_insert_get_del_ops(test_redis_connec, mock_person_data_dict):
     test_redis_connec.expire(redis_key, 3600)  # cache for 1 hour
 
 
+@pytest.mark.order(before="test_redis_del_ops")
 def test_redis_get_ops(test_redis_connec, mock_person_data_dict):
     person_dict = copy.deepcopy(mock_person_data_dict())
     person_dict = {k:str(v) for k, v in person_dict.items()}
