@@ -12,17 +12,21 @@ from datetime import date
 import redis
 import pymysql
 from pymysql.cursors import DictCursor
-from pymilvus import connections
+from pymilvus import connections, utility
 
 from app.server import app
 from app.api.milvus import get_milvus_connec
 from app.config import (
     REDIS_HOST, REDIS_PORT,
     MYSQL_HOST, MYSQL_PORT,
-    MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PERSON_TABLE, MYSQL_TEST_TABLE,
-    MILVUS_HOST, MILVUS_PORT, FACE_COLLECTION_NAME,
-    FACE_VECTOR_DIM, FACE_METRIC_TYPE, FACE_INDEX_TYPE, FACE_COLLECTION_NAME)
+    MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PERSON_TABLE,
+    MILVUS_HOST, MILVUS_PORT,
+    FACE_VECTOR_DIM, FACE_METRIC_TYPE, FACE_INDEX_TYPE)
+
+# custom settings
 TEST_PERSON_ID = -1
+TEST_COLLECTION_NAME = "test"
+MYSQL_TEST_TABLE = "test"
 
 
 def _load_file_content(fpath: str) -> bytes:
@@ -41,26 +45,29 @@ async def test_app_asyncio():
         yield ac  # testing happens here
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def test_milvus_connec():
     """Yields a milvus connection instance"""
+    print("Setting milvus connection")
     milvus_conn = get_milvus_connec(
-        collection_name=FACE_COLLECTION_NAME,
+        collection_name=TEST_COLLECTION_NAME,
         milvus_host=MILVUS_HOST,
         milvus_port=MILVUS_PORT,
         vector_dim=FACE_VECTOR_DIM,
         metric_type=FACE_METRIC_TYPE,
         index_type=FACE_INDEX_TYPE)
     milvus_conn.load()
-    print("Setting milvus connection")
     yield milvus_conn
+    # drop test collections in teardown
     print("Tearing milvus connection")
+    utility.drop_collection(TEST_COLLECTION_NAME)
     connections.disconnect("default")
 
 
 @pytest.fixture(scope="session")
 def test_mysql_connec():
     """Yields a mysql connection instance"""
+    print("Setting mysql connection")
     mysql_conn = pymysql.connect(
         host=MYSQL_HOST,
         port=MYSQL_PORT,
@@ -69,13 +76,21 @@ def test_mysql_connec():
         db=MYSQL_DATABASE,
         cursorclass=DictCursor
     )
-    print("Setting mysql connection")
+    # create test table if not present & purge all existing data
+    with mysql_conn.cursor() as cursor:
+        cursor.execute(f"CREATE TABLE IF NOT EXISTS {MYSQL_TEST_TABLE} LIKE {MYSQL_PERSON_TABLE};")
+        cursor.execute(f"DELETE FROM {MYSQL_TEST_TABLE}")
+    mysql_conn.commit()
     yield mysql_conn
+    # drop table in teardown
     print("Tearing mysql connection")
+    with mysql_conn.cursor() as cursor:
+        cursor.execute(f"DROP TABLE {MYSQL_TEST_TABLE}")
+    mysql_conn.commit()
     mysql_conn.close()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def test_redis_connec():
     """Yields a redis connection instance"""
     redis_conn = redis.Redis(
@@ -83,6 +98,9 @@ def test_redis_connec():
         port=REDIS_PORT, 
         decode_responses=True)
     yield redis_conn
+    # purge MYSQL_TEST_TABLE related cache in teardown
+    for key in redis_conn.keys(f"{MYSQL_TEST_TABLE}_*"):
+        redis_conn.delete(key)
 
 
 @pytest.fixture(scope="session")

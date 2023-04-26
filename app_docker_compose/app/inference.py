@@ -5,8 +5,6 @@ import redis
 import pymysql
 from pymysql.cursors import DictCursor
 from pymilvus import MilvusException
-from pymilvus import connections
-from pymilvus import Collection, CollectionSchema, FieldSchema, DataType, utility
 
 from triton_server.inference_trtserver import run_inference
 from api.milvus import get_milvus_connec
@@ -47,13 +45,15 @@ milvus_conn = get_milvus_connec(
 milvus_conn.load()
 
 
-def get_registered_person(person_id: int) -> dict:
+def get_registered_person(
+        person_id: int,
+        table: str) -> dict:
     """
     Get registered person by person_id.
     Checks redis cache, otherwise query mysql
     """
     # try cached redis data
-    redis_key = f"{MYSQL_PERSON_TABLE}_{person_id}"
+    redis_key = f"{table}_{person_id}"
     cached_person_dict = redis_conn.hgetall(name=redis_key)
     if cached_person_dict:
         return {"status": "success",
@@ -62,10 +62,12 @@ def get_registered_person(person_id: int) -> dict:
 
     # if cache is not found, query mysql
     return select_person_data_from_sql_with_id(
-        mysql_conn, MYSQL_PERSON_TABLE, person_id)
+        mysql_conn, table, person_id)
 
 
-def unregister_person(person_id: int) -> dict:
+def unregister_person(
+        person_id: int,
+        table: str) -> dict:
     """
     Deletes a registered persno based on the unique person_id.
     Must use expr with the term expression `in` for delete operations
@@ -75,7 +77,7 @@ def unregister_person(person_id: int) -> dict:
         # unregister from mysql
         # commit is set to False so that the op is atomic with milvus & redis
         mysql_del_resp = delete_person_data_from_sql_with_id(
-            mysql_conn, MYSQL_PERSON_TABLE, person_id, commit=False)
+            mysql_conn, table, person_id, commit=False)
         if mysql_del_resp["status"] == "failed":
             raise pymysql.Error
 
@@ -86,9 +88,9 @@ def unregister_person(person_id: int) -> dict:
             f"Vector for person with id: {person_id} deleted from milvus db.✅️")
 
         # clear redis cache
-        redis_key = f"{MYSQL_PERSON_TABLE}_{person_id}"
+        redis_key = f"{table}_{person_id}"
         redis_conn.delete(redis_key)
-        
+
         # commit mysql record delete
         mysql_conn.commit()
     except pymysql.Error as pymysql_excep:
@@ -108,10 +110,12 @@ def unregister_person(person_id: int) -> dict:
             "message": f"person record with id {person_id} unregistered from database"}
 
 
-def register_person(model_name: str,
-                    file_path: str,
-                    threshold: float,
-                    person_data: dict) -> dict:
+def register_person(
+        model_name: str,
+        file_path: str,
+        threshold: float,
+        person_data: dict,
+        table: str = MYSQL_PERSON_TABLE) -> dict:
     """
     Detects faces in image from the file_path and 
     saves the face feature vector & the related person_data dict.
@@ -120,7 +124,7 @@ def register_person(model_name: str,
     """
     person_id = person_data["ID"]  # uniq person id from user input
     # check if face already exists in redis/mysql
-    if get_registered_person(person_id)["status"] == "success":
+    if get_registered_person(person_id, table)["status"] == "success":
         return {"status": "failed",
                 "message": f"person with id {person_id} already exists in database"}
 
@@ -143,7 +147,7 @@ def register_person(model_name: str,
         # insert record into mysql
         # commit is set to False so that the op is atomic with milvus & redis
         mysql_insert_resp = insert_person_data_into_sql(
-            mysql_conn, MYSQL_PERSON_TABLE, person_data, commit=False)
+            mysql_conn, table, person_data, commit=False)
         if mysql_insert_resp["status"] == "failed":
             raise pymysql.Error
 
@@ -157,11 +161,11 @@ def register_person(model_name: str,
         milvus_conn.flush()
 
         # cache data in redis
-        redis_key = f"{MYSQL_PERSON_TABLE}_{person_id}"
+        redis_key = f"{table}_{person_id}"
         person_data["birthdate"] = str(person_data["birthdate"])
         redis_conn.hset(redis_key, mapping=person_data)  # hash set data
         redis_conn.expire(redis_key, 3600)  # cache for 1 hour
-        
+
         # commit mysql record insertion
         mysql_conn.commit()
     except pymysql.Error as pymysql_excep:
@@ -181,10 +185,12 @@ def register_person(model_name: str,
             "message": f"person record with id {person_id} registered into database"}
 
 
-def recognize_person(model_name: str,
-                     file_path: str,
-                     threshold: float,
-                     face_dist_threshold: float = 0.1) -> dict:
+def recognize_person(
+        model_name: str,
+        file_path: str,
+        threshold: float,
+        face_dist_threshold: float = 0.1,
+        table: str = MYSQL_PERSON_TABLE) -> dict:
     """
     Detects faces in image from the file_path and finds the most similar face vector
     from a set of saved face vectors
@@ -225,7 +231,7 @@ def recognize_person(model_name: str,
         return {"status": "success",
                 "message": "no similar faces were found in the database"}
 
-    get_person_resp = get_registered_person(person_id)
+    get_person_resp = get_registered_person(person_id, table)
     if get_person_resp["status"] == "success":
         return {"status": "success",
                 "message": f"detected face matches id: {person_id}",
