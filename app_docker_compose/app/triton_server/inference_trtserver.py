@@ -123,8 +123,8 @@ def run_inference(media_filename: str,
         return {"status": -1, "message": err_msg}
     triton_client, model_metadata, model_config = model_info
 
-    # input_name, output_name, format, dtype are all lists
-    max_batch_size, input_name, output_name, c, model_h, model_w, format, dtype = parse_model_grpc(
+    # input_name, output_name, format/_, dtype are all lists
+    max_batch_size, input_name, output_name, c, model_h, model_w, _, dtype = parse_model_grpc(
         model_metadata, model_config.config)
 
     # check for dynamic input shapes

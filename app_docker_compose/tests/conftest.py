@@ -81,7 +81,8 @@ def test_mysql_connec():
     )
     # create test table if not present & purge all existing data
     with mysql_conn.cursor() as cursor:
-        cursor.execute(f"CREATE TABLE IF NOT EXISTS {MYSQL_TEST_TABLE} LIKE {MYSQL_PERSON_TABLE};")
+        cursor.execute(
+            f"CREATE TABLE IF NOT EXISTS {MYSQL_TEST_TABLE} LIKE {MYSQL_PERSON_TABLE};")
         cursor.execute(f"DELETE FROM {MYSQL_TEST_TABLE}")
     mysql_conn.commit()
     yield mysql_conn
@@ -97,8 +98,8 @@ def test_mysql_connec():
 def test_redis_connec():
     """Yields a redis connection instance"""
     redis_conn = redis.Redis(
-        host=REDIS_HOST, 
-        port=REDIS_PORT, 
+        host=REDIS_HOST,
+        port=REDIS_PORT,
         decode_responses=True)
     yield redis_conn
     # purge MYSQL_TEST_TABLE related cache in teardown

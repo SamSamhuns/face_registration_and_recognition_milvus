@@ -18,13 +18,16 @@ router = APIRouter()
 
 
 class RegisterPersonProcessTask():
+    """
+    Stores input data and api funcs
+    """
     __slots__ = ["func", "input_data", "response_data"]
 
     def __init__(self, func, input_data):
-        super(RegisterPersonProcessTask, self).__init__()
+        super().__init__()
         self.func = func
         self.input_data = input_data
-        self.response_data = dict()
+        self.response_data = {}
 
     def run(self):
         """run func and get results as dict"""
@@ -40,7 +43,10 @@ class RegisterPersonProcessTask():
 async def register_person_file(background_tasks: BackgroundTasks,
                                person_data: PersonModel = Depends(),
                                img_file: UploadFile = File(...)):
-    response_data = dict()
+    """
+    registers person face and info with the face uploaded as an image file
+    """
+    response_data = {}
     model_type: ModelType = ModelType.SLOW  # default to SLOW for now
     try:
         file_name = str(uuid.uuid4()) + get_mode_ext("image")
@@ -69,7 +75,10 @@ async def register_person_url(background_tasks: BackgroundTasks,
                               model_type: ModelType,
                               img_url: str,
                               person_data: PersonModel = Depends()):
-    response_data = dict()
+    """
+    registers person face and info with the face image file provided as a url
+    """
+    response_data = {}
     try:
         os.makedirs(ROOT_DOWNLOAD_PATH, exist_ok=True)
         file_name = str(uuid.uuid4()) + get_mode_ext("image")

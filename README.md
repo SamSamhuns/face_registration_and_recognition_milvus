@@ -29,25 +29,27 @@ rm models.zip
 
 Create a `.env` file inside `app_docker_compose` based on the following parameters with necessary variables replaced:
 
-    # milvus
-    MILVUS_HOST=standalone
-    MILVUS_PORT=19530
-    # mysql mariadb
-    MYSQL_HOST=mysql
-    MYSQL_PORT=3306
-    MYSQL_USER=user
-    MYSQL_PASSWORD=pass
-    MYSQL_DATABASE=default
-    MYSQL_PERSON_TABLE=person
-    MYSQL_ROOT_PASSWORD=admin
-    # phpmyadmin mariadb
-    PMA_HOST=${MYSQL_HOST}
-    PMA_PORT=${MYSQL_PORT}
-    PMA_USER=${MYSQL_USER}
-    PMA_PASSWORD=${MYSQL_PASSWORD}
-    # redis
-    REDIS_HOST=redis-server
-    REDIS_PORT=6379
+```yaml
+# milvus
+MILVUS_HOST=standalone
+MILVUS_PORT=19530
+# mysql mariadb
+MYSQL_HOST=mysql
+MYSQL_PORT=3306
+MYSQL_USER=user
+MYSQL_PASSWORD=pass
+MYSQL_DATABASE=default
+MYSQL_PERSON_TABLE=person
+MYSQL_ROOT_PASSWORD=admin
+# phpmyadmin mariadb
+PMA_HOST=${MYSQL_HOST}
+PMA_PORT=${MYSQL_PORT}
+PMA_USER=${MYSQL_USER}
+PMA_PASSWORD=${MYSQL_PASSWORD}
+# redis
+REDIS_HOST=redis-server
+REDIS_PORT=6379
+```
 
 Note: Only `.env` allows docker-compose to access variables inside `.env` file during build-time. Using `env_file` or the `environment` parameters inside the docker-compose file only allows variable access inside containers and not during build time.
 
@@ -147,22 +149,28 @@ pytest tests
 
 Note if services other than the uvicorn web-api are to be exposed such as the milvus or minio servers, alter the `expose` options to published `ports` for access outside the docker containers.
 
-    expose:
-      - "9001"
+```yaml
+expose:
+  - "9001"
 
-    ports:
-      - "9001:9001"
+ports:
+  - "9001:9001"
+```
 
 For `docker-compose version 1.29.2` and `yaml version 3.9`, `mem_limit` can be used with `docker-compose up`:
 
-    mem_limit: 512m
+```yaml
+mem_limit: 512m
+```
 
 For `docker-compose version <1.29.2` and `yaml version <3.9`, the following deploy setup can be used with `docker-compose --compatibility up`:
 
-    deploy:
-      resources:
-        limits:
-          memory: 512m
+```yaml
+deploy:
+  resources:
+    limits:
+      memory: 512m
+```
 
 ### Notes on triton-server
 
@@ -170,22 +178,24 @@ Check saved.model inputs/outputs with `$ saved_model_cli show --dir savemodel_di
 
 Options for CPU and GPU based models for tritonserver:
 
-    # CPU mode
-    instance_group [
-        {
-          count: 1
-          kind: KIND_CPU
-        }
-      ]
+```yaml
+# CPU mode
+instance_group [
+    {
+      count: 1
+      kind: KIND_CPU
+    }
+  ]
 
-    # GPU mode
-    instance_group [
-        {
-          count: 1
-          kind: KIND_GPU
-          gpus: [ 0 ]
-        }
-      ]
+# GPU mode
+instance_group [
+    {
+      count: 1
+      kind: KIND_GPU
+      gpus: [ 0 ]
+    }
+  ]
+```
 
 ## Acknowledgements
 

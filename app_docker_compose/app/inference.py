@@ -16,7 +16,7 @@ from config import (REDIS_HOST, REDIS_PORT,
                     MYSQL_USER, MYSQL_PASSWORD,
                     MYSQL_DATABASE, MYSQL_CUR_TABLE,
                     MILVUS_HOST, MILVUS_PORT,
-                    FACE_VECTOR_DIM, FACE_METRIC_TYPE, 
+                    FACE_VECTOR_DIM, FACE_METRIC_TYPE,
                     FACE_INDEX_TYPE, FACE_COLLECTION_NAME)
 
 # connect to Redis

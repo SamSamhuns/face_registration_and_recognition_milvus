@@ -1,5 +1,5 @@
 import random
-from typing import Tuple, Union, List, Optional
+from typing import Tuple, Union, List
 
 import cv2
 import numpy as np
@@ -37,7 +37,9 @@ def pad_resize_image(
 
 
 def clip_coords(boxes: np.ndarray, img_shape):
-    # Clip bounding xyxy bounding boxes to image shape (height, width)
+    """
+    Clip bounding xyxy bounding boxes to image shape (height, width)
+    """
     boxes[:, 0] = np.clip(boxes[:, 0], 0, img_shape[1])  # x1
     boxes[:, 1] = np.clip(boxes[:, 1], 0, img_shape[0])  # y1
     boxes[:, 2] = np.clip(boxes[:, 2], 0, img_shape[1])  # x2
@@ -66,7 +68,9 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None):
 
 
 def xyxy2xywh(x):
-    # Convert nx4 boxes from [x1, y1, x2, y2] to [x, y, w, h] where xy1=top-left, xy2=bottom-right
+    """
+    Convert nx4 boxes from [x1, y1, x2, y2] to [x, y, w, h] where xy1=top-left, xy2=bottom-right
+    """
     y = np.zeros_like(x)
     y[:, 0] = (x[:, 0] + x[:, 2]) / 2  # x center
     y[:, 1] = (x[:, 1] + x[:, 3]) / 2  # y center
@@ -76,7 +80,9 @@ def xyxy2xywh(x):
 
 
 def xywh2xyxy(x):
-    # Convert nx4 boxes from [x, y, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
+    """
+    Convert nx4 boxes from [x, y, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
+    """
     y = np.zeros_like(x)
     y[:, 0] = x[:, 0] - x[:, 2] / 2  # top left x
     y[:, 1] = x[:, 1] - x[:, 3] / 2  # top left y
@@ -120,15 +126,15 @@ def draw_bbox_on_image(
         else:
             # Transparent text background
             alphaReserve = text_bg_alpha  # 0: opaque 1: transparent
-            BChannel, GChannel, RChannel = color
+            b, g, r = color
             xMin, yMin = int(xmin - 1), int(ymin - t_size[1] - 3)
             xMax, yMax = int(xmin + t_size[0]), int(ymin)
             cv2_img[yMin:yMax, xMin:xMax, 0] = cv2_img[
-                yMin:yMax, xMin:xMax, 0] * alphaReserve + BChannel * (1 - alphaReserve)
+                yMin:yMax, xMin:xMax, 0] * alphaReserve + b * (1 - alphaReserve)
             cv2_img[yMin:yMax, xMin:xMax, 1] = cv2_img[
-                yMin:yMax, xMin:xMax, 1] * alphaReserve + GChannel * (1 - alphaReserve)
+                yMin:yMax, xMin:xMax, 1] * alphaReserve + g * (1 - alphaReserve)
             cv2_img[yMin:yMax, xMin:xMax, 2] = cv2_img[
-                yMin:yMax, xMin:xMax, 2] * alphaReserve + RChannel * (1 - alphaReserve)
+                yMin:yMax, xMin:xMax, 2] * alphaReserve + r * (1 - alphaReserve)
         # draw label text
         cv2.putText(cv2_img, label, (xmin + 3, ymin - 4), 0, fontScale=tl / 4,
                     color=[255, 255, 255], thickness=1, lineType=cv2.LINE_AA)

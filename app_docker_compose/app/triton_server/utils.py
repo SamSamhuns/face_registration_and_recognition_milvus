@@ -135,7 +135,7 @@ def get_inference_responses(image_data_list, FLAGS, trt_inf_data):
     while not last_request:
         repeated_image_data = []
 
-        for idx in range(FLAGS.batch_size):
+        for _ in range(FLAGS.batch_size):
             repeated_image_data.append(image_data[image_idx])
             image_idx = (image_idx + 1) % len(image_data)
             if image_idx == 0:

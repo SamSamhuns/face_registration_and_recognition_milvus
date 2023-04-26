@@ -16,11 +16,11 @@ def insert_person_data_into_sql(mysql_conn, mysql_tb, person_data: dict, commit:
             cursor.execute(query, values)
             if commit:
                 mysql_conn.commit()
-                print(f"record inserted into mysql db.✅️")
+                print("record inserted into mysql db.✅️")
                 return {"status": "success",
                         "message": "record inserted into mysql db"}
             print("record insertion waiting to be commit to mysql db.🕓")
-            return {"status": "success", 
+            return {"status": "success",
                     "message": "record insertion waiting to be commit to mysql db."}
     except pymysql.Error as e:
         print(f"mysql record insert failed ❌. {e}")
@@ -33,7 +33,7 @@ def select_person_data_from_sql_with_id(mysql_conn, mysql_tb, person_id: int) ->
     Query mysql db to get full person data using the uniq person_id
     """
     query = (f"SELECT * FROM {mysql_tb} WHERE id = %s")
-    values = (person_id)
+    values = person_id
     try:
         with mysql_conn.cursor() as cursor:
             cursor.execute(query, values)
@@ -63,7 +63,8 @@ def delete_person_data_from_sql_with_id(mysql_conn, mysql_tb, person_id: int, co
             # check if record exists in db or not
             cursor.execute(select_query, (person_id))
             if not cursor.fetchone():
-                print(f"Person with id: {person_id} does not exist in mysql db.❌")
+                print(
+                    f"Person with id: {person_id} does not exist in mysql db.❌")
                 return {"status": "failed",
                         "message": f"mysql record with id: {person_id} does not exist in db"}
 
@@ -80,48 +81,3 @@ def delete_person_data_from_sql_with_id(mysql_conn, mysql_tb, person_id: int, co
         print(f"mysql record deletion failed ❌. {e}")
         return {"status": "failed",
                 "message": "mysql record deletion error"}
-
-
-if __name__ == "__main__":
-    person_id = 123
-    person_data = {
-        "id": person_id,
-        "name": "abc",
-        "birthdate": "2000-01-30",
-        "country": "abcd",
-        "city": "abcde",
-        "title": "abcdef",
-        "org": "abcdefg",
-    }
-
-    from pymysql.cursors import DictCursor
-    from app.config import (
-        MYSQL_HOST, MYSQL_PORT,
-        MYSQL_USER, MYSQL_PASSWORD,
-        MYSQL_DATABASE, MYSQL_PERSON_TABLE)
-
-    # Connect to MySQL
-    mysql_conn = pymysql.connect(
-        host=MYSQL_HOST,
-        port=MYSQL_PORT,
-        user=MYSQL_USER,
-        password=MYSQL_PASSWORD,
-        db=MYSQL_DATABASE,
-        cursorclass=DictCursor)
-
-    try:
-        mysql_insert_resp = insert_person_data_into_sql(
-            mysql_conn, MYSQL_PERSON_TABLE, person_data, commit=False)
-        print(mysql_insert_resp)
-        raise Exception("mysql data should not be inserted")
-        # Commit the transaction
-        mysql_conn.commit()
-    except Exception as e:
-        # Rollback the transaction if an exception occurs
-        # mysql_conn.rollback()
-        print("Error: ROLLBACK", e)
-    # finally:
-    #     # Close the connection
-    #     mysql_conn.close()
-
-

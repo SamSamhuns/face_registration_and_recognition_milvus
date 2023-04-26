@@ -8,6 +8,7 @@ from tests.conftest import FACE_VECTOR_DIM, TEST_PERSON_ID
 
 @pytest.mark.order(before="test_get_person_milvus")
 def test_insert_person_milvus(test_milvus_connec):
+    """Inserts a test person into Milvus."""
     emb_vec = [0.0] * FACE_VECTOR_DIM
     data = [[emb_vec], [TEST_PERSON_ID]]
     assert test_milvus_connec.insert(data).insert_count == 1
@@ -15,6 +16,7 @@ def test_insert_person_milvus(test_milvus_connec):
 
 @pytest.mark.order(before="test_delete_person_milvus")
 def test_get_person_milvus(test_milvus_connec):
+    """Queries Milvus and retrieves the test person."""
     emb_vec = [0.0] * FACE_VECTOR_DIM
     expr = f'person_id == {TEST_PERSON_ID}'
     results = test_milvus_connec.query(
@@ -29,6 +31,6 @@ def test_get_person_milvus(test_milvus_connec):
 
 
 def test_delete_person_milvus(test_milvus_connec):
+    """Deletes the test person from Milvus."""
     expr = f'person_id in [{TEST_PERSON_ID}]'
     assert test_milvus_connec.delete(expr).delete_count == 1
-

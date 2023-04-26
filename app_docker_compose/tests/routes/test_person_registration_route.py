@@ -11,7 +11,9 @@ from tests.conftest import TEST_PERSON_ID, MYSQL_TEST_TABLE
 @pytest.mark.asyncio
 @pytest.mark.order(before=["test_person_recognition_route.py::test_recognition_one_person"])
 async def test_registration_one_person(test_app_asyncio, test_mysql_connec, test_redis_connec, mock_one_face_image, mock_person_data_dict):
-    
+    """
+    Test one person registration
+    """
     # purge MYSQL_TEST_TABLE related cache first
     for key in test_redis_connec.keys(f"{MYSQL_TEST_TABLE}_*"):
         test_redis_connec.delete(key)
