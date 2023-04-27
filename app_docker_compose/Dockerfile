@@ -34,8 +34,6 @@ RUN pip cache purge \
 COPY app "/home/$UNAME/src/app"
 COPY scripts "/home/$UNAME/src/scripts"
 
-# directory to hold person images
-RUN mkdir -p "/home/$UNAME/src/app/person_images"
 # change file ownership to docker user:usergroup
 RUN chown -R "$UNAME:$UNAME" "/home/$UNAME/src"
 

@@ -4,6 +4,7 @@ configurations and env variables load
 import os
 
 DOWNLOAD_CACHE_PATH = os.getenv('DOWNLOAD_CACHE_PATH', default="app/.data")
+DOWNLOAD_IMAGE_PATH = os.getenv('DOWNLOAD_IMAGE_PATH', default="volumes/person_images")
 
 # redis conf
 REDIS_HOST = os.getenv("REDIS_HOST", default="127.0.0.1")

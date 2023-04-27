@@ -1,6 +1,9 @@
 """
 Inference functions for registering and recognizing face with trtserver models and save/search with milvus database server
 """
+import os
+import shutil
+
 import redis
 import pymysql
 from pymysql.cursors import DictCursor
@@ -11,7 +14,8 @@ from api.milvus import get_milvus_connec
 from api.mysql import (insert_person_data_into_sql,
                        select_person_data_from_sql_with_id,
                        delete_person_data_from_sql_with_id)
-from config import (REDIS_HOST, REDIS_PORT,
+from config import (DOWNLOAD_IMAGE_PATH,
+                    REDIS_HOST, REDIS_PORT,
                     MYSQL_HOST, MYSQL_PORT,
                     MYSQL_USER, MYSQL_PASSWORD,
                     MYSQL_DATABASE, MYSQL_CUR_TABLE,
@@ -182,6 +186,9 @@ def register_person(
         print(f"{redis_excep}. ❌")
         return {"status": "failed",
                 "message": f"person with id {person_id} couldn't be unregistered from redis"}
+    # save person image to volume if successfully registered
+    shutil.copy(file_path, os.path.join(DOWNLOAD_IMAGE_PATH, f"{person_id}.jpg"))
+
     print(f"person record with id {person_id} registered into database.✅️")
     return {"status": "success",
             "message": f"person record with id {person_id} registered into database"}

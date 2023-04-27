@@ -30,6 +30,9 @@ rm models.zip
 Create a `.env` file inside `app_docker_compose` based on the following parameters with necessary variables replaced:
 
 ```yaml
+# download paths
+DOWNLOAD_CACHE_PATH="app/.data"
+DOWNLOAD_IMAGE_PATH="volumes/person_images"
 # milvus
 MILVUS_HOST=standalone
 MILVUS_PORT=19530
@@ -56,6 +59,12 @@ Note: Only `.env` allows docker-compose to access variables inside `.env` file d
 ### Setup sql schema for storing person data
 
 Schema for creating person data table and the table name should be modified at: `app_docker_compose/app/static/sql/init.sql`
+
+### Create a volume directory to hold user images
+
+```shell
+mkdir -p volumes/person_images
+```
 
 ## Setup with Docker Compose for Deployment
 
@@ -131,7 +140,7 @@ python3 app/server.py -p EXPOSED_HTTP_PORT
 ## TO-DO
 
 -   Add use of mysql to store faces and redis for a cached-access of data ✅️
--   Fix pytests for updated apis with redis and mysql
+-   Fix pytests for updated apis with redis and mysql ✅️
 -   Setup with GitHub Actions for automatic testing
 
 ## Running tests
