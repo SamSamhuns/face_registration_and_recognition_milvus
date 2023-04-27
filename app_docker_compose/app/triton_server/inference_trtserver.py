@@ -49,7 +49,7 @@ def postprocess(results, orig_img_size: Tuple[int, int], input_img_size: Tuple[i
     if results_arr.any():
         for i, result in enumerate(results_arr):
             if FLAGS.face_feat_model[0].decode() == "facenet_trtserver":
-                result = result
+                pass   # result = result
             elif FLAGS.face_feat_model[0].decode() == "face-reidentification-retail-0095":
                 result = result.squeeze()
             predictions["face_feats"].append(result)
@@ -123,8 +123,9 @@ def run_inference(media_filename: str,
         return {"status": -1, "message": err_msg}
     triton_client, model_metadata, model_config = model_info
 
-    # input_name, output_name, format/_, dtype are all lists
-    max_batch_size, input_name, output_name, c, model_h, model_w, _, dtype = parse_model_grpc(
+    # input_name, output_name, format, dtype are all lists
+    # parse returns: max_batch_size, input_name, output_name, model_c, model_h, model_w, format, dtype 
+    max_batch_size, input_name, output_name, _, model_h, model_w, _, dtype = parse_model_grpc(
         model_metadata, model_config.config)
 
     # check for dynamic input shapes
@@ -193,7 +194,7 @@ def run_inference(media_filename: str,
 
 def main():
     run_inference(
-        "static/faces/one_face.jpg",
+        "static/faces/one_face_1.jpg",
         face_feat_model="facenet_trtserver",
         face_det_thres=0.55,
         face_bbox_area_thres=0.10,

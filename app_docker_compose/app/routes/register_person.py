@@ -11,7 +11,7 @@ from fastapi import UploadFile, File, Depends, BackgroundTasks
 from inference import register_person
 from models import InputModel, PersonModel, ModelType
 from utils import get_mode_ext, remove_file, download_url_file, cache_file_locally
-from config import ROOT_DOWNLOAD_PATH
+from config import DOWNLOAD_CACHE_PATH
 
 
 router = APIRouter()
@@ -51,7 +51,7 @@ async def register_person_file(background_tasks: BackgroundTasks,
     try:
         file_name = str(uuid.uuid4()) + get_mode_ext("image")
         file_bytes_content = img_file.file.read()
-        file_cache_path = os.path.join(ROOT_DOWNLOAD_PATH, file_name)
+        file_cache_path = os.path.join(DOWNLOAD_CACHE_PATH, file_name)
 
         await cache_file_locally(file_cache_path, file_bytes_content)
         background_tasks.add_task(remove_file, file_cache_path)
@@ -80,9 +80,9 @@ async def register_person_url(background_tasks: BackgroundTasks,
     """
     response_data = {}
     try:
-        os.makedirs(ROOT_DOWNLOAD_PATH, exist_ok=True)
+        os.makedirs(DOWNLOAD_CACHE_PATH, exist_ok=True)
         file_name = str(uuid.uuid4()) + get_mode_ext("image")
-        file_cache_path = os.path.join(ROOT_DOWNLOAD_PATH, file_name)
+        file_cache_path = os.path.join(DOWNLOAD_CACHE_PATH, file_name)
 
         await download_url_file(img_url, file_cache_path)
         background_tasks.add_task(remove_file, file_cache_path)

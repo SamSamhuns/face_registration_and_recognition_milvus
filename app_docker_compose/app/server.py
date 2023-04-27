@@ -12,26 +12,25 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from routes import person, recognize_person, register_person
+from config import DOWNLOAD_CACHE_PATH
 
 
-# The root_path is the absolute path of the __init_.py under the source
-root_path = os.path.abspath(__file__)[:os.path.abspath(__file__).rfind(os.path.sep)]
-root_download_path = os.path.join(root_path, "data")
-os.environ["ROOT_DOWNLOAD_PATH"] = root_download_path
-os.makedirs(root_download_path, exist_ok=True)
+os.makedirs(DOWNLOAD_CACHE_PATH, exist_ok=True)
 
 
 def get_application(title="Face Registration and Recognition"):
-    app = FastAPI(title=title, version="1.0.0")
-    app.mount("/static", StaticFiles(directory="./app/static"), name="static")
-    app.add_middleware(
+    """Gets FastAPI application object with CORS enabled."""
+    fastapi_app = FastAPI(title=title, version="1.0.0")
+    fastapi_app.mount(
+        "/static", StaticFiles(directory="./app/static"), name="static")
+    fastapi_app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    return app
+    return fastapi_app
 
 
 app = get_application()
@@ -40,9 +39,9 @@ app.include_router(recognize_person.router)
 app.include_router(register_person.router)
 
 
-# api call time middleware
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
+    """Adds an X-Process-Time header to the response indicating the api request processing time."""
     start_time = time.time()
     response = await call_next(request)
     process_time = time.time() - start_time
@@ -52,11 +51,13 @@ async def add_process_time_header(request: Request, call_next):
 
 @app.get("/")
 async def index():
+    """Root endpoint. Returns a welcome message."""
     return {"Welcome to Person Face Registration & Recognition Service": "Please visit /docs for list of apis"}
 
 
 @app.get('/favicon.ico')
 async def favicon():
+    """Favicon endpoint. Returns the favicon."""
     file_name = "favicon.ico"
     file_path = os.path.join(app.root_path, "app/static", file_name)
     return FileResponse(path=file_path)

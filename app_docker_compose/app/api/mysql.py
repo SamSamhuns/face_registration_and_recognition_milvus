@@ -22,8 +22,8 @@ def insert_person_data_into_sql(mysql_conn, mysql_tb, person_data: dict, commit:
             print("record insertion waiting to be commit to mysql db.🕓")
             return {"status": "success",
                     "message": "record insertion waiting to be commit to mysql db."}
-    except pymysql.Error as e:
-        print(f"mysql record insert failed ❌. {e}")
+    except pymysql.Error as excep:
+        print(f"mysql record insert failed ❌. {excep}")
         return {"status": "failed",
                 "message": "mysql record insertion error"}
 
@@ -46,8 +46,8 @@ def select_person_data_from_sql_with_id(mysql_conn, mysql_tb, person_id: int) ->
             return {"status": "success",
                     "message": f"record matching id: {person_id} retrieved from mysql db",
                     "person_data": person_data}
-    except pymysql.Error as e:
-        print(f"mysql record retrieval failed ❌. {e}")
+    except pymysql.Error as excep:
+        print(f"mysql record retrieval failed ❌. {excep}")
         return {"status": "failed",
                 "message": "mysql record retrieval error"}
 
@@ -77,7 +77,7 @@ def delete_person_data_from_sql_with_id(mysql_conn, mysql_tb, person_id: int, co
             print("record deletion waiting to be commited to mysql db.🕓")
             return {"status": "success",
                     "message": "record deletion waiting to be commited to mysql db."}
-    except pymysql.Error as e:
-        print(f"mysql record deletion failed ❌. {e}")
+    except pymysql.Error as excep:
+        print(f"mysql record deletion failed ❌. {excep}")
         return {"status": "failed",
                 "message": "mysql record deletion error"}
