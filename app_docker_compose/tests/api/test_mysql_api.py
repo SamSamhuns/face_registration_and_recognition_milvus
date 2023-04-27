@@ -7,7 +7,7 @@ from tests.conftest import MYSQL_TEST_TABLE
 from app.api.mysql import insert_person_data_into_sql, select_person_data_from_sql_with_id, delete_person_data_from_sql_with_id
 
 
-TEST_PERSON_ID = -2  # should use a different person_id here
+TEST_PERSON_ID = -3  # should use a different person_id than in conftest here
 
 
 @pytest.mark.order(before="test_select_person_mysql")

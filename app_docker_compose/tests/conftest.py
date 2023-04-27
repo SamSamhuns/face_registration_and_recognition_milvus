@@ -1,28 +1,28 @@
 """
 Test configurations
 """
-import os
-import sys
-sys.path.append("app")
-
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
-from datetime import date
-
 import redis
 import pymysql
 from pymysql.cursors import DictCursor
 from pymilvus import connections, utility
 
+import os
+import sys
+from datetime import date
+sys.path.append("app")
+
 # custom settings
-TEST_PERSON_ID = -1
+TEST_PERSON_FILE_ID = -1
+TEST_PERSON_URL_ID = -2
 TEST_COLLECTION_NAME = "test"
 MYSQL_TEST_TABLE = "test"
 os.environ["MYSQL_CUR_TABLE"] = MYSQL_TEST_TABLE  # chg cur table for test duration
 
 # custom imports
-from app.server import app
+from app.server import app  # must be import after changing MYSQL_CUR_TABLE env var
 from app.api.milvus import get_milvus_connec
 from app.config import (
     REDIS_HOST, REDIS_PORT,
@@ -43,7 +43,10 @@ def _load_file_content(fpath: str) -> bytes:
 
 @pytest_asyncio.fixture(scope="function")
 async def test_app_asyncio():
-    # for httpx>=20, follow_redirects=True (cf. https://github.com/encode/httpx/releases/tag/0.20.0)
+    """
+    Sets up the async server
+    for httpx>=20, follow_redirects=True (cf. https://github.com/encode/httpx/releases/tag/0.20.0)
+    """
     async with AsyncClient(app=app, base_url="http://test") as ac:
         yield ac  # testing happens here
 
@@ -112,7 +115,7 @@ def mock_person_data_dict():
     """
     returns a func to create a person_data dict for testing
     """
-    def _gen_data(person_id: int = TEST_PERSON_ID):
+    def _gen_data(person_id: int = -1):
         person_data = {
             "ID": person_id,
             "name": "bar",
@@ -127,12 +130,39 @@ def mock_person_data_dict():
 
 
 @pytest.fixture(scope="session")
-def mock_one_face_image():
+def mock_one_face_image_1_file():
     """
     load and return an image with a single face
     """
-    fpath = "app/static/faces/one_face.jpg"
+    fpath = "app/static/faces/one_face_1.jpg"
     return fpath, _load_file_content(fpath)
+
+
+@pytest.fixture(scope="session")
+def mock_one_face_image_2_file():
+    """
+    load and return an image with a single face
+    """
+    fpath = "app/static/faces/one_face_2.jpg"
+    return fpath, _load_file_content(fpath)
+
+
+@pytest.fixture(scope="session")
+def mock_one_face_image_1_url():
+    """
+    load and return an image with a single face
+    """
+    # TODO add url
+    return ""
+
+
+@pytest.fixture(scope="session")
+def mock_one_face_image_2_url():
+    """
+    load and return an image with a single face
+    """
+    # TODO add url
+    return ""
 
 
 @pytest.fixture(scope="session")

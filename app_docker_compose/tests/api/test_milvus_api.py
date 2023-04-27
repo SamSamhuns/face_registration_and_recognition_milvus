@@ -3,14 +3,14 @@ Test milvus api
 The milvus server must be running in the appropriate port 
 """
 import pytest
-from tests.conftest import FACE_VECTOR_DIM, TEST_PERSON_ID
+from tests.conftest import FACE_VECTOR_DIM, TEST_PERSON_FILE_ID
 
 
 @pytest.mark.order(before="test_get_person_milvus")
 def test_insert_person_milvus(test_milvus_connec):
     """Inserts a test person into Milvus."""
     emb_vec = [0.0] * FACE_VECTOR_DIM
-    data = [[emb_vec], [TEST_PERSON_ID]]
+    data = [[emb_vec], [TEST_PERSON_FILE_ID]]
     assert test_milvus_connec.insert(data).insert_count == 1
 
 
@@ -18,7 +18,7 @@ def test_insert_person_milvus(test_milvus_connec):
 def test_get_person_milvus(test_milvus_connec):
     """Queries Milvus and retrieves the test person."""
     emb_vec = [0.0] * FACE_VECTOR_DIM
-    expr = f'person_id == {TEST_PERSON_ID}'
+    expr = f'person_id == {TEST_PERSON_FILE_ID}'
     results = test_milvus_connec.query(
         expr=expr,
         offset=0,
@@ -27,10 +27,10 @@ def test_get_person_milvus(test_milvus_connec):
         consistency_level="Strong")
     person_id = results[0]["person_id"]
     embedding = results[0]["embedding"]
-    assert person_id == TEST_PERSON_ID, embedding == emb_vec
+    assert person_id == TEST_PERSON_FILE_ID, embedding == emb_vec
 
 
 def test_delete_person_milvus(test_milvus_connec):
     """Deletes the test person from Milvus."""
-    expr = f'person_id in [{TEST_PERSON_ID}]'
+    expr = f'person_id in [{TEST_PERSON_FILE_ID}]'
     assert test_milvus_connec.delete(expr).delete_count == 1
