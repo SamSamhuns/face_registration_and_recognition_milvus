@@ -18,8 +18,8 @@ async def test_registration_one_person_file(
         test_redis_connec.delete(key)
     fpath, fcontent = mock_one_face_image_1_file
     param_dict = mock_person_data_dict(TEST_PERSON_FILE_ID)
-
     files = [('img_file', (fpath, fcontent, 'application/jpeg'))]
+
     response = await test_app_asyncio.post(
         "/register_person_file",
         files=files,
@@ -43,10 +43,8 @@ async def test_registration_one_person_url(
         test_redis_connec.delete(key)
     furl = mock_one_face_image_2_url
     param_dict = mock_person_data_dict(TEST_PERSON_URL_ID)
-
     param_dict["img_url"] = furl
-    param_dict["model_type"]= ModelType.SLOW
-
+    param_dict["model_type"] = ModelType.SLOW.value
     response = await test_app_asyncio.post(
         "/register_person_url",
         params=param_dict)

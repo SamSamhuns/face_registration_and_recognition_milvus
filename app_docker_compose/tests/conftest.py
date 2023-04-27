@@ -17,6 +17,7 @@ sys.path.append("app")
 # custom settings
 TEST_PERSON_FILE_ID = -1
 TEST_PERSON_URL_ID = -2
+TEST_PERSON_MYSQL_ID = -3
 TEST_COLLECTION_NAME = "test"
 MYSQL_TEST_TABLE = "test"
 os.environ["MYSQL_CUR_TABLE"] = MYSQL_TEST_TABLE  # chg cur table for test duration
@@ -150,19 +151,17 @@ def mock_one_face_image_2_file():
 @pytest.fixture(scope="session")
 def mock_one_face_image_1_url():
     """
-    load and return an image with a single face
+    returns an image url with a single face
     """
-    # TODO add url
-    return ""
+    return "https://raw.githubusercontent.com/SamSamhuns/face_registration_and_recognition_milvus/master/app_docker_compose/app/static/faces/one_face_1.jpg"
 
 
 @pytest.fixture(scope="session")
 def mock_one_face_image_2_url():
     """
-    load and return an image with a single face
+    returns an image url with a single face
     """
-    # TODO add url
-    return ""
+    return "https://raw.githubusercontent.com/SamSamhuns/face_registration_and_recognition_milvus/master/app_docker_compose/app/static/faces/one_face_2.jpg"
 
 
 @pytest.fixture(scope="session")

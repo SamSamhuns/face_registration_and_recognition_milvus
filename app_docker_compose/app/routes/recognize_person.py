@@ -79,7 +79,7 @@ async def recognize_person_url(background_tasks: BackgroundTasks,
         os.makedirs(DOWNLOAD_CACHE_PATH, exist_ok=True)
         file_name = str(uuid.uuid4()) + get_mode_ext("image")
         file_cache_path = os.path.join(DOWNLOAD_CACHE_PATH, file_name)
-        download_url_file(img_url, file_cache_path)
+        await download_url_file(img_url, file_cache_path)
         background_tasks.add_task(remove_file, file_cache_path)
     except Exception as excep:
         print(excep, traceback.print_exc())
