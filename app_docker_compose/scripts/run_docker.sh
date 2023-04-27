@@ -33,8 +33,8 @@ if [ "$(docker ps -q -f name=$def_cont_name)" ]; then
 fi
 
 docker run \
-      -ti --rm -d \
+      -d \
       -p "0.0.0.0:$port:8080" \
-      -v "$PWD/volumes/uvicorn_trt_server:/home/triton-server/src/data" \
+      -v "$PWD/volumes/uvicorn_trt_server:/home/triton-server/src/app/person_images" \
       --name "$def_cont_name" \
       uvicorn_trt_server

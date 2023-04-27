@@ -30,11 +30,14 @@ RUN pip cache purge \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /root/.cache/pip
 
-# copy all files to src & exclude those in dockerignore
-COPY . "/home/$UNAME/src"
+# copy app & scripts to src & exclude those in dockerignore
+COPY app "/home/$UNAME/src/app"
+COPY scripts "/home/$UNAME/src/scripts"
 
-# change file ownership to docker user
-RUN chown -R "$UNAME" "/home/$UNAME/src"
+# directory to hold person images
+RUN mkdir -p "/home/$UNAME/src/app/person_images"
+# change file ownership to docker user:usergroup
+RUN chown -R "$UNAME:$UNAME" "/home/$UNAME/src"
 
 # make server start script executable
 RUN chmod 777 "/home/$UNAME/src/scripts/start_servers.sh"
