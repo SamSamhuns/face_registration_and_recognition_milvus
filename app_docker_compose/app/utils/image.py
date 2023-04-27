@@ -1,3 +1,6 @@
+"""
+Image utils
+"""
 import random
 from typing import Tuple, Union, List
 
@@ -125,16 +128,16 @@ def draw_bbox_on_image(
                           color, cv2.FILLED, cv2.LINE_AA)
         else:
             # Transparent text background
-            alphaReserve = text_bg_alpha  # 0: opaque 1: transparent
-            b, g, r = color
-            xMin, yMin = int(xmin - 1), int(ymin - t_size[1] - 3)
-            xMax, yMax = int(xmin + t_size[0]), int(ymin)
-            cv2_img[yMin:yMax, xMin:xMax, 0] = cv2_img[
-                yMin:yMax, xMin:xMax, 0] * alphaReserve + b * (1 - alphaReserve)
-            cv2_img[yMin:yMax, xMin:xMax, 1] = cv2_img[
-                yMin:yMax, xMin:xMax, 1] * alphaReserve + g * (1 - alphaReserve)
-            cv2_img[yMin:yMax, xMin:xMax, 2] = cv2_img[
-                yMin:yMax, xMin:xMax, 2] * alphaReserve + r * (1 - alphaReserve)
+            alpha_reserve = text_bg_alpha  # 0: opaque 1: transparent
+            b_c, g_c, r_c = color
+            x_min, y_min = int(xmin - 1), int(ymin - t_size[1] - 3)
+            x_max, y_max = int(xmin + t_size[0]), int(ymin)
+            cv2_img[y_min:y_max, x_min:x_max, 0] = cv2_img[
+                y_min:y_max, x_min:x_max, 0] * alpha_reserve + b_c * (1 - alpha_reserve)
+            cv2_img[y_min:y_max, x_min:x_max, 1] = cv2_img[
+                y_min:y_max, x_min:x_max, 1] * alpha_reserve + g_c * (1 - alpha_reserve)
+            cv2_img[y_min:y_max, x_min:x_max, 2] = cv2_img[
+                y_min:y_max, x_min:x_max, 2] * alpha_reserve + r_c * (1 - alpha_reserve)
         # draw label text
         cv2.putText(cv2_img, label, (xmin + 3, ymin - 4), 0, fontScale=tl / 4,
                     color=[255, 255, 255], thickness=1, lineType=cv2.LINE_AA)
@@ -149,19 +152,19 @@ def plot_one_box(bbox, img, wscale=1, hscale=1, color=None, label=None, line_thi
         wscale: multiplication factor for width (default 1 if no scaling required)
         hscale: multiplication factor for height (default 1 if no scaling required)
     """
-    tl = line_thickness or round(
+    tline = line_thickness or round(
         0.002 * (img.shape[0] + img.shape[1]) / 2) + 1  # line/font thickness
     color = color or [random.randint(0, 255) for _ in range(3)]
-    c1 = (int(bbox[0] * wscale), int(bbox[1] * hscale))
-    c2 = (int(bbox[2] * wscale), int(bbox[3] * hscale))
-    cv2.rectangle(img, c1, c2, color, thickness=tl, lineType=cv2.LINE_AA)
+    coord1 = (int(bbox[0] * wscale), int(bbox[1] * hscale))
+    coord2 = (int(bbox[2] * wscale), int(bbox[3] * hscale))
+    cv2.rectangle(img, coord1, coord2, color, thickness=tline, lineType=cv2.LINE_AA)
     if label:
-        tf = max(tl - 1, 1)  # font thickness
-        t_size = cv2.getTextSize(label, 0, fontScale=tl / 3, thickness=tf)[0]
-        c2 = c1[0] + t_size[0], c1[1] - t_size[1] - 3
-        cv2.rectangle(img, c1, c2, color, -1, cv2.LINE_AA)  # filled
-        cv2.putText(img, label, (c1[0], c1[1] - 2), 0, tl / 3,
-                    [225, 255, 255], thickness=tf, lineType=cv2.LINE_AA)
+        tfont = max(tline - 1, 1)  # font thickness
+        t_size = cv2.getTextSize(label, 0, fontScale=tline / 3, thickness=tfont)[0]
+        coord2 = coord1[0] + t_size[0], coord1[1] - t_size[1] - 3
+        cv2.rectangle(img, coord1, coord2, color, -1, cv2.LINE_AA)  # filled
+        cv2.putText(img, label, (coord1[0], coord1[1] - 2), 0, tline / 3,
+                    [225, 255, 255], thickness=tfont, lineType=cv2.LINE_AA)
 
 
 def resize_maintaining_aspect(img, width, height):

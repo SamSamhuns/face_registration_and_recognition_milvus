@@ -1,3 +1,6 @@
+"""
+milvus api functions
+"""
 from pymilvus import connections, MilvusException
 from pymilvus import Collection, CollectionSchema, FieldSchema, DataType, utility
 
@@ -35,7 +38,7 @@ def get_milvus_connec(
         print(f"Collection {collection_name} created.✅️")
 
         # Indexing the milvus_conn
-        print("Indexing the Collection...🔢️")
+        print("Indexing the Collection...🕓")
         # create IVF_FLAT index for milvus_conn.
         index_params = {
             'metric_type': metric_type,
@@ -65,8 +68,8 @@ def get_registered_person(milvus_conn, person_id: int) -> dict:
             consistency_level="Strong")
         if not results:
             return {"status": "failed",
-                    "message": f"Person with id {person_id} not found in database"}
+                    "message": f"person with id: {person_id} not found in milvus database"}
     except MilvusException as excep:
         print(excep)
         return {"status": "failed",
-                "message": excep}
+                "message": "error running mivlus database query"}

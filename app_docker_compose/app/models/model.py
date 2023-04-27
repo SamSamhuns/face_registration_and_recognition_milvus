@@ -1,3 +1,6 @@
+"""
+data models for fastapi+uvicorn server
+"""
 from datetime import date
 from enum import Enum
 from pydantic import BaseModel

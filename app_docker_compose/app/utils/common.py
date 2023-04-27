@@ -31,8 +31,8 @@ async def download_url_file(download_url: str, download_path: str) -> None:
         download_path (str): The local path to save the downloaded file.
     """
     response = urllib2.urlopen(download_url)
-    with open(download_path, "wb") as f:
-        f.write(response.read())
+    with open(download_path, "wb") as fwtr:
+        fwtr.write(response.read())
 
 
 async def cache_file_locally(file_cache_path: str, data: bytes) -> None:

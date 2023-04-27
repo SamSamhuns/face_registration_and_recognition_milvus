@@ -1,3 +1,6 @@
+"""
+Tests if server is running or not
+"""
 import pytest
 
 

@@ -1,3 +1,6 @@
+"""
+This module contains utility functions for inference with Triton Inference Server.
+"""
 import os
 import traceback
 from io import BytesIO
@@ -10,7 +13,7 @@ from tritonclient.utils import InferenceServerException
 
 
 class FlagConfig:
-    """stores configurations for prediction"""
+    """stores configurations for inference"""
 
     def __init__(self):
         pass
@@ -18,8 +21,15 @@ class FlagConfig:
 
 def resize_maintaining_aspect(img, width, height):
     """
-    If width and height are both None, no resize is done
-    If either width or height is None, resize maintaining aspect
+    Resizes an image while maintaining aspect ratio.
+    If width and height are both None, no resize is done. 
+    If either width or height is None, resize maintaining aspect.
+    Args:
+        img: The input image.
+        width: The desired width of the resized image. If None, aspect ratio is maintained.
+        height: The desired height of the resized image. If None, aspect ratio is maintained.
+    Returns:
+        img: resize cv2 image
     """
     old_h, old_w, _ = img.shape
 
@@ -39,6 +49,16 @@ def resize_maintaining_aspect(img, width, height):
 
 
 def get_client_and_model_metadata_config(FLAGS):
+    """
+    Creates a Triton Inference Server client and retrieves model metadata and configuration.
+    Args:
+        FLAGS: The configuration parameters.
+    Returns:
+        triton_client: The Triton Inference Server client.
+        model_metadata: The model metadata.
+        model_config: The model configuration.
+        -1: If there was an error creating the client or retrieving the metadata/config.
+    """
     try:
         triton_client = grpcclient.InferenceServerClient(
             url=FLAGS.url, verbose=FLAGS.verbose)
@@ -64,7 +84,20 @@ def get_client_and_model_metadata_config(FLAGS):
 
 
 def requestGenerator(input_data_list, input_name_list, output_name_list, input_dtype_list, FLAGS):
-
+    """
+    Generates inference requests for the Triton Inference Server.
+    Args:
+        input_data_list: The list of input data.
+        input_name_list: The list of input names.
+        output_name_list: The list of output names.
+        input_dtype_list: The list of input data types.
+        FLAGS: The configuration parameters.
+    Yields:
+        inputs: The inputs for the inference request.
+        outputs: The requested outputs for the inference request.
+        model_name: The name of the model.
+        model_version: The version of the model.
+    """
     # set inputs and outputs
     inputs = []
     for i, input_name in enumerate(input_name_list):
@@ -81,7 +114,21 @@ def requestGenerator(input_data_list, input_name_list, output_name_list, input_d
 
 
 def parse_model_grpc(model_metadata, model_config):
-
+    """
+    Parses the model metadata and configuration to extract necessary information for inference.
+    Args:
+        model_metadata: The model metadata.
+        model_config: The model configuration.
+    Returns:
+        max_batch_size: The maximum batch size for the model.
+        input_name_list: The list of input names.
+        output_name_list: The list of output names.
+        s1: The height of the input image.
+        s2: The width of the input image.
+        s3: The number of channels in the input image.
+        input_format_list: The list of input formats.
+        input_datatype_list: The list of input data types.
+    """
     input_format_list = []
     input_datatype_list = []
     input_metadata_name_list = []
@@ -93,15 +140,26 @@ def parse_model_grpc(model_metadata, model_config):
     for i in range(len(model_metadata.outputs)):
         output_metadata_name_list.append(model_metadata.outputs[i].name)
     # the first input must always be the image array
-    s1 = model_metadata.inputs[0].shape[1]
-    s2 = model_metadata.inputs[0].shape[2]
-    s3 = model_metadata.inputs[0].shape[3]
+    s_1 = model_metadata.inputs[0].shape[1]
+    s_2 = model_metadata.inputs[0].shape[2]
+    s_3 = model_metadata.inputs[0].shape[3]
     return (model_config.max_batch_size, input_metadata_name_list,
-            output_metadata_name_list, s1, s2, s3, input_format_list,
+            output_metadata_name_list, s_1, s_2, s_3, input_format_list,
             input_datatype_list)
 
 
 def extract_data_from_media(FLAGS, preprocess_func, media_filenames):
+    """
+    Extracts input data from media files for inference.
+    Args:
+        FLAGS: The configuration parameters.
+        preprocess_func: The preprocessing function to apply to the input data.
+        media_filenames: The list of media filenames.
+    Returns:
+        image_data: The list of preprocessed input data.
+        all_req_imgs_orig: The list of original input images.
+        all_req_imgs_orig_size: The list of sizes of the original input images.
+    """
     image_data = []
     all_req_imgs_orig = []
     all_req_imgs_orig_size = []
@@ -125,6 +183,21 @@ def extract_data_from_media(FLAGS, preprocess_func, media_filenames):
 
 
 def get_inference_responses(image_data_list, FLAGS, trt_inf_data):
+    """
+    Performs inference using the Triton Inference Server and returns the responses.
+    Args:
+        image_data_list: The list of input data.
+        FLAGS: The configuration parameters.
+        trt_inf_data: The Triton Inference Server data containing:
+            triton_client: The Triton Inference Server client.
+            input_name: The list of input names.
+            output_name: The list of output names.
+            input_dtype: The list of input data types.
+            max_batch_size: The maximum batch size for the model.
+    Returns:
+        responses: The list of inference responses.
+        -1: If there was an error performing inference.
+    """
     triton_client, input_name, output_name, input_dtype, max_batch_size = trt_inf_data
     responses = []
     image_idx = 0
@@ -160,10 +233,10 @@ def get_inference_responses(image_data_list, FLAGS, trt_inf_data):
                     input_image_data, input_name, output_name, input_dtype, FLAGS):
                 sent_count += 1
                 responses.append(
-                    triton_client.infer(FLAGS.model_name,
+                    triton_client.infer(model_name,
                                         inputs,
                                         request_id=str(sent_count),
-                                        model_version=FLAGS.model_version,
+                                        model_version=model_version,
                                         outputs=outputs))
 
         except InferenceServerException as excep:

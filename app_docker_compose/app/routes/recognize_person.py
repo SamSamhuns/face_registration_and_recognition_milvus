@@ -30,7 +30,7 @@ class RecognizePersonProcessTask():
         self.response_data = {}
 
     def run(self):
-        # run func and get results as dict
+        """run func and get results as dict"""
         results = self.func(
             model_name=self.input_data.model_name,
             file_path=self.input_data.file_path,

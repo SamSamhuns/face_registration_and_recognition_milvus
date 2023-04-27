@@ -48,8 +48,8 @@ async def test_app_asyncio():
     Sets up the async server
     for httpx>=20, follow_redirects=True (cf. https://github.com/encode/httpx/releases/tag/0.20.0)
     """
-    async with AsyncClient(app=app, base_url="http://test") as ac:
-        yield ac  # testing happens here
+    async with AsyncClient(app=app, base_url="http://test") as aclient:
+        yield aclient  # testing happens here
 
 
 @pytest.fixture(scope="session")

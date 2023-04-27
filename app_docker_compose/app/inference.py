@@ -99,18 +99,10 @@ def unregister_person(
 
         # commit mysql record delete
         mysql_conn.commit()
-    except pymysql.Error as pymysql_excep:
-        print(f"{pymysql_excep}. ❌")
+    except (pymysql.Error, MilvusException, redis.RedisError) as excep:
+        print(f"{excep}. ❌")
         return {"status": "failed",
-                "message": f"person with id {person_id} couldn't be unregistered from mysql"}
-    except MilvusException as milvus_excep:
-        print(f"{milvus_excep}. ❌")
-        return {"status": "failed",
-                "message": f"person with id {person_id} couldn't be unregistered from milvus"}
-    except redis.RedisError as redis_excep:
-        print(f"{redis_excep}. ❌")
-        return {"status": "failed",
-                "message": f"person with id {person_id} couldn't be unregistered from redis"}
+                "message": f"person with id {person_id} couldn't be unregistered from database"}
     print(f"person record with id {person_id} unregistered from database.✅️")
     return {"status": "success",
             "message": f"person record with id {person_id} unregistered from database"}
@@ -174,18 +166,10 @@ def register_person(
 
         # commit mysql record insertion
         mysql_conn.commit()
-    except pymysql.Error as pymysql_excep:
-        print(f"{pymysql_excep}. ❌")
+    except (pymysql.Error, MilvusException, redis.RedisError) as excep:
+        print(f"{excep}. ❌")
         return {"status": "failed",
-                "message": f"person with id {person_id} couldn't be unregistered from mysql"}
-    except MilvusException as milvus_excep:
-        print(f"{milvus_excep}. ❌")
-        return {"status": "failed",
-                "message": f"person with id {person_id} couldn't be unregistered from milvus"}
-    except redis.RedisError as redis_excep:
-        print(f"{redis_excep}. ❌")
-        return {"status": "failed",
-                "message": f"person with id {person_id} couldn't be unregistered from redis"}
+                "message": f"person with id {person_id} couldn't be registered into database"}
     # save person image to volume if successfully registered
     shutil.copy(file_path, os.path.join(DOWNLOAD_IMAGE_PATH, f"{person_id}.jpg"))
 

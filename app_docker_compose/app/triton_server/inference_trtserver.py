@@ -124,7 +124,7 @@ def run_inference(media_filename: str,
     triton_client, model_metadata, model_config = model_info
 
     # input_name, output_name, format, dtype are all lists
-    # parse returns: max_batch_size, input_name, output_name, model_c, model_h, model_w, format, dtype 
+    # parse returns: max_batch_size, input_name, output_name, model_c, model_h, model_w, format, dtype
     max_batch_size, input_name, output_name, _, model_h, model_w, _, dtype = parse_model_grpc(
         model_metadata, model_config.config)
 
@@ -145,7 +145,7 @@ def run_inference(media_filename: str,
     if len(image_data) == 0:
         err_msg = "Image data is missing. Aborting inference"
         print(err_msg)
-        return {"status": -2, "message":err_msg}
+        return {"status": -2, "message": err_msg}
 
     trt_inf_data = (triton_client, input_name,
                     output_name, dtype, max_batch_size)
@@ -162,7 +162,7 @@ def run_inference(media_filename: str,
     if responses == -1:
         err_msg = f"""Detected of faces detected might have exceeded allowed number of faces ({face_count_thres}). Or there might be other issues during inference. Check server logs"""
         print(err_msg)
-        return {"status": -3, "message":err_msg}
+        return {"status": -3, "message": err_msg}
 
     orig_h, orig_w = all_req_imgs_orig_size[0][:2]
     final_result = postprocess(
@@ -189,10 +189,13 @@ def run_inference(media_filename: str,
 
     err_msg = f"'{return_mode}' Return mode not supported"
     print(err_msg)
-    return {"status": -4, "message":err_msg}
+    return {"status": -4, "message": err_msg}
 
 
 def main():
+    """
+    Demo inference run
+    """
     run_inference(
         "static/faces/one_face_1.jpg",
         face_feat_model="facenet_trtserver",

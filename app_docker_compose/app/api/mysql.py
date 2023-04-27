@@ -1,3 +1,6 @@
+"""
+pymysql api functions
+"""
 import pymysql
 
 
