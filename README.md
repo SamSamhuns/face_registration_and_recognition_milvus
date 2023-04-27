@@ -36,6 +36,7 @@ DOWNLOAD_IMAGE_PATH="volumes/person_images"
 # milvus
 MILVUS_HOST=standalone
 MILVUS_PORT=19530
+ATTU_PORT=3000
 # mysql mariadb
 MYSQL_HOST=mysql
 MYSQL_PORT=3306
