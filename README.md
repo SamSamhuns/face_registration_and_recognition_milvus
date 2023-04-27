@@ -154,6 +154,13 @@ docker run -d --rm -p 0.0.0.0:8081:8081 --name uvicorn_trt_server_cont uvicorn_t
 pytest tests
 ```
 
+Generating coverage reports
+
+```shell
+coverage run -m pytest tests/
+coverage report -m -i
+```
+
 ### Notes on docker-compose yml setup
 
 Note if services other than the uvicorn web-api are to be exposed such as the milvus or minio servers, alter the `expose` options to published `ports` for access outside the docker containers.

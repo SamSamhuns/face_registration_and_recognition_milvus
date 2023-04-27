@@ -75,7 +75,7 @@ def unregister_person(
         person_id: int,
         table: str) -> dict:
     """
-    Deletes a registered persno based on the unique person_id.
+    Deletes a registered person based on the unique person_id.
     Must use expr with the term expression `in` for delete operations
     Operation is atomic, if one delete op fails, all ops fail
     """

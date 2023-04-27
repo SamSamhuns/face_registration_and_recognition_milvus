@@ -3,6 +3,7 @@ Test milvus api
 The milvus server must be running in the appropriate port 
 """
 import pytest
+from app.api.milvus import get_registered_person
 from tests.conftest import FACE_VECTOR_DIM, TEST_PERSON_FILE_ID
 
 
@@ -18,13 +19,10 @@ def test_insert_person_milvus(test_milvus_connec):
 def test_get_person_milvus(test_milvus_connec):
     """Queries Milvus and retrieves the test person."""
     emb_vec = [0.0] * FACE_VECTOR_DIM
-    expr = f'person_id == {TEST_PERSON_FILE_ID}'
-    results = test_milvus_connec.query(
-        expr=expr,
-        offset=0,
-        limit=10,
-        output_fields=["person_id", "embedding"],
-        consistency_level="Strong")
+    res = get_registered_person(
+        test_milvus_connec, TEST_PERSON_FILE_ID, output_fields=["person_id", "embedding"])
+    assert res["status"] == "success"
+    results = res["person_data"]
     person_id = results[0]["person_id"]
     embedding = results[0]["embedding"]
     assert person_id == TEST_PERSON_FILE_ID, embedding == emb_vec

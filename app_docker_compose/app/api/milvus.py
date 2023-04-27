@@ -1,6 +1,7 @@
 """
 milvus api functions
 """
+from typing import List
 from pymilvus import connections, MilvusException
 from pymilvus import Collection, CollectionSchema, FieldSchema, DataType, utility
 
@@ -54,9 +55,12 @@ def get_milvus_connec(
     return milvus_conn
 
 
-def get_registered_person(milvus_conn, person_id: int) -> dict:
+def get_registered_person(milvus_conn, person_id: int, output_fields: List[str]) -> dict:
     """
     Get registered data record by person_id.
+    Arguments:
+        person_id: int = number,
+        output_fields: list[str] = ["person_id", "embedding"]
     """
     expr = f'person_id == {person_id}'
     try:
@@ -64,11 +68,14 @@ def get_registered_person(milvus_conn, person_id: int) -> dict:
             expr=expr,
             offset=0,
             limit=10,
-            output_fields=["person_id"],
+            output_fields=output_fields,
             consistency_level="Strong")
         if not results:
             return {"status": "failed",
                     "message": f"person with id: {person_id} not found in milvus database"}
+        return {"status": "success",
+                "message": f"person with id: {person_id} found in milvus database",
+                "person_data": results}
     except MilvusException as excep:
         print(excep)
         return {"status": "failed",
