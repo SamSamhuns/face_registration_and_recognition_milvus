@@ -26,3 +26,7 @@ FACE_VECTOR_DIM = 128
 FACE_METRIC_TYPE = "L2"
 FACE_INDEX_TYPE = "IVF_FLAT"
 FACE_COLLECTION_NAME = 'faces'
+# num of clusters/buckets for each index specific to IVF_FLAT
+FACE_INDEX_NLIST = 4096
+# nprobe specific to IVF denotes num of closest buckets/clusters looked into per file
+FACE_SEARCH_NPROBE = 2056

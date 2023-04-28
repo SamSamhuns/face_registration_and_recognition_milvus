@@ -12,9 +12,11 @@ def get_milvus_connec(
         milvus_port: int = 19530,
         vector_dim: int = 128,
         metric_type: str = "L2",
-        index_type: str = "IVF_FLAT"):
+        index_type: str = "IVF_FLAT",
+        index_metric_params: dict = None):
     """
     Gets the milvus connection with the given collection name otherwise creates a new one
+    Note: index_metric_params: dict = {"nlist": 4096} for index_type == "IVF_FLAT"
     """
     # connect to milvus
     connections.connect(
@@ -44,7 +46,7 @@ def get_milvus_connec(
         index_params = {
             'metric_type': metric_type,
             'index_type': index_type,
-            'params': {"nlist": 4096}
+            'params': index_metric_params
         }
         milvus_conn.create_index(
             field_name="embedding", index_params=index_params)

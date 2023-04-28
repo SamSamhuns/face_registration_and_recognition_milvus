@@ -29,7 +29,7 @@ from app.config import (
     REDIS_HOST, REDIS_PORT,
     MYSQL_HOST, MYSQL_PORT,
     MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, MYSQL_PERSON_TABLE,
-    MILVUS_HOST, MILVUS_PORT,
+    MILVUS_HOST, MILVUS_PORT, FACE_INDEX_NLIST,
     FACE_VECTOR_DIM, FACE_METRIC_TYPE, FACE_INDEX_TYPE)
 
 
@@ -62,7 +62,8 @@ def test_milvus_connec():
         milvus_port=MILVUS_PORT,
         vector_dim=FACE_VECTOR_DIM,
         metric_type=FACE_METRIC_TYPE,
-        index_type=FACE_INDEX_TYPE)
+        index_type=FACE_INDEX_TYPE,
+        index_metric_params={"nlist": FACE_INDEX_NLIST})
     milvus_conn.load()
     yield milvus_conn
     # drop test collections in teardown

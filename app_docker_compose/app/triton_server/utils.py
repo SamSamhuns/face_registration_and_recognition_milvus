@@ -70,7 +70,7 @@ def get_client_and_model_metadata_config(FLAGS):
         model_metadata = triton_client.get_model_metadata(
             model_name=FLAGS.model_name, model_version=FLAGS.model_version)
     except InferenceServerException as excep:
-        print(f"failed to retrieve the metadata:{excep}")
+        print(f"failed to retrieve the metadata: {excep}")
         return -1
 
     try:

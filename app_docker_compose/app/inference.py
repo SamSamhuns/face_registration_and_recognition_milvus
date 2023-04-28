@@ -20,7 +20,8 @@ from config import (DOWNLOAD_IMAGE_PATH,
                     MYSQL_USER, MYSQL_PASSWORD,
                     MYSQL_DATABASE, MYSQL_CUR_TABLE,
                     MILVUS_HOST, MILVUS_PORT,
-                    FACE_VECTOR_DIM, FACE_METRIC_TYPE,
+                    FACE_VECTOR_DIM, FACE_METRIC_TYPE, 
+                    FACE_INDEX_NLIST, FACE_SEARCH_NPROBE,
                     FACE_INDEX_TYPE, FACE_COLLECTION_NAME)
 
 # connect to Redis
@@ -45,7 +46,8 @@ milvus_conn = get_milvus_connec(
     milvus_port=MILVUS_PORT,
     vector_dim=FACE_VECTOR_DIM,
     metric_type=FACE_METRIC_TYPE,
-    index_type=FACE_INDEX_TYPE)
+    index_type=FACE_INDEX_TYPE,
+    index_metric_params={"nlist": FACE_INDEX_NLIST})
 # load milvus_conn into memory
 milvus_conn.load()
 
@@ -156,6 +158,7 @@ def register_person(
         print(
             f"Vector for person with id: {person_id} inserted into milvus db. ✅️")
         # After final entity is inserted, it is best to call flush to have no growing segments left in memory
+        # flushes collection data from memory to storage
         milvus_conn.flush()
 
         # cache data in redis
@@ -205,7 +208,7 @@ def recognize_person(
 
     face_vector = pred_dict["face_feats"]
     # run a vector search and return the closest face with the L2 metric
-    search_params = {"metric_type": "L2",  "params": {"nprobe": 2056}}
+    search_params = {"metric_type": "L2",  "params": {"nprobe": FACE_SEARCH_NPROBE}}
     results = milvus_conn.search(
         data=face_vector,
         anns_field="embedding",
