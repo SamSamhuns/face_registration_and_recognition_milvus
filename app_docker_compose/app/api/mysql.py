@@ -35,7 +35,7 @@ def select_person_data_from_sql_with_id(mysql_conn, mysql_tb, person_id: int) ->
     """
     Query mysql db to get full person data using the uniq person_id
     """
-    query = (f"SELECT * FROM {mysql_tb} WHERE id = %s")
+    query = f"SELECT * FROM {mysql_tb} WHERE id = %s"
     values = person_id
     try:
         with mysql_conn.cursor() as cursor:
