@@ -8,9 +8,10 @@ RUN apt-get update --no-install-recommends \
 
 # set username & uid inside docker
 ARG UNAME=triton-server
+ENV WORKDIR="/home/$UNAME/src"
 
 # set work directory
-WORKDIR "/home/$UNAME/src"
+WORKDIR ${WORKDIR}
 
 # setup python env vars & virtual env
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -20,9 +21,9 @@ RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Install python dependencies
-RUN pip install --upgrade pip
-COPY requirements.txt  "/home/$UNAME/src/requirements.txt"
-RUN pip install --no-cache-dir --default-timeout=100 -r "/home/$UNAME/src/requirements.txt"
+RUN pip install pip==23.1.2
+COPY requirements.txt  "$WORKDIR/requirements.txt"
+RUN pip install --no-cache-dir --default-timeout=100 -r "$WORKDIR/requirements.txt"
 
 # remove cache
 RUN pip cache purge \
@@ -31,14 +32,14 @@ RUN pip cache purge \
     && rm -rf /root/.cache/pip
 
 # copy app & scripts to src & exclude those in dockerignore
-COPY app "/home/$UNAME/src/app"
-COPY scripts "/home/$UNAME/src/scripts"
+COPY app "$WORKDIR/app"
+COPY scripts "$WORKDIR/scripts"
 
 # change file ownership to docker user:usergroup
-RUN chown -R "$UNAME:$UNAME" "/home/$UNAME/src"
+RUN chown -R "$UNAME:$UNAME" "$WORKDIR"
 
 # make server start script executable
-RUN chmod 777 "/home/$UNAME/src/scripts/start_servers.sh"
+RUN chmod 777 "$WORKDIR/scripts/start_servers.sh"
 
 USER "$UNAME"
 CMD ["/bin/bash", "/home/triton-server/src/scripts/start_servers.sh"]

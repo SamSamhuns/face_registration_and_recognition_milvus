@@ -32,9 +32,10 @@ if [ "$(docker ps -q -f name=$def_cont_name)" ]; then
     echo "Stopped container '$def_cont_name'"
 fi
 
+mkdir -p volumes/person_images  # create shr vol with correct perms
 docker run \
       -d \
       -p "0.0.0.0:$port:8080" \
-      -v "$PWD/volumes/uvicorn_trt_server:/home/triton-server/src/app/person_images" \
+      -v "$PWD/volumes/person_images:/home/triton-server/src/app/person_images" \
       --name "$def_cont_name" \
       uvicorn_trt_server

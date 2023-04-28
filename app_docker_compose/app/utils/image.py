@@ -70,28 +70,28 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None):
     return coords
 
 
-def xyxy2xywh(x):
+def xyxy2xywh(box):
     """
-    Convert nx4 boxes from [x1, y1, x2, y2] to [x, y, w, h] where xy1=top-left, xy2=bottom-right
+    Convert nx4 boxes from [x1, y1, x2, y2] to [xc, yc, w, h] where xy1=top-left, xy2=bottom-right
     """
-    y = np.zeros_like(x)
-    y[:, 0] = (x[:, 0] + x[:, 2]) / 2  # x center
-    y[:, 1] = (x[:, 1] + x[:, 3]) / 2  # y center
-    y[:, 2] = x[:, 2] - x[:, 0]  # width
-    y[:, 3] = x[:, 3] - x[:, 1]  # height
-    return y
+    new_box = np.zeros_like(box)
+    new_box[:, 0] = (box[:, 0] + box[:, 2]) / 2  # x center
+    new_box[:, 1] = (box[:, 1] + box[:, 3]) / 2  # y center
+    new_box[:, 2] = box[:, 2] - box[:, 0]  # width
+    new_box[:, 3] = box[:, 3] - box[:, 1]  # height
+    return new_box
 
 
-def xywh2xyxy(x):
+def xywh2xyxy(box):
     """
-    Convert nx4 boxes from [x, y, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
+    Convert nx4 boxes from [xc, yc, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
     """
-    y = np.zeros_like(x)
-    y[:, 0] = x[:, 0] - x[:, 2] / 2  # top left x
-    y[:, 1] = x[:, 1] - x[:, 3] / 2  # top left y
-    y[:, 2] = x[:, 0] + x[:, 2] / 2  # bottom right x
-    y[:, 3] = x[:, 1] + x[:, 3] / 2  # bottom right y
-    return y
+    new_box = np.zeros_like(box)
+    new_box[:, 0] = box[:, 0] - box[:, 2] / 2  # top left x
+    new_box[:, 1] = box[:, 1] - box[:, 3] / 2  # top left y
+    new_box[:, 2] = box[:, 0] + box[:, 2] / 2  # bottom right x
+    new_box[:, 3] = box[:, 1] + box[:, 3] / 2  # bottom right y
+    return new_box
 
 
 def draw_bbox_on_image(
@@ -106,25 +106,25 @@ def draw_bbox_on_image(
         boxes must be 2D list/np array of coords xmin, ymin, xmax, ymax foreach bbox
         confs must be 2D list of confidences foreach corresponding bbox
     """
-    h, w = cv2_img.shape[:2]
-    tl = line_thickness or round(0.002 * (w + h) / 2) + 1
+    img_h, img_w = cv2_img.shape[:2]
+    tline = line_thickness or round(0.002 * (img_w + img_h) / 2) + 1
 
     for i, box in enumerate(boxes):
         label = f"{labels[i]}_{confs[i]:.2f}"
         xmin, ymin, xmax, ymax = map(int, box)
         xmin, ymin, xmax, ymax = (
-            max(xmin, 0), max(ymin, 0), min(xmax, w), min(ymax, h))
+            max(xmin, 0), max(ymin, 0), min(xmax,img_w), min(ymax, img_h))
         # draw bbox on image
         cv2.rectangle(cv2_img, (xmin, ymin), (xmax, ymax), (0, 0, 255), thickness=max(
-            int((w + h) / 600), 1), lineType=cv2.LINE_AA)
+            int((img_w + img_h) / 600), 1), lineType=cv2.LINE_AA)
 
         # draw rect covering text
         t_size = cv2.getTextSize(
-            label, 0, fontScale=tl / 3, thickness=1)[0]
-        c2 = xmin + t_size[0] + 3, ymin - t_size[1] - 5
+            label, 0, fontScale=tline / 3, thickness=1)[0]
+        point2 = xmin + t_size[0] + 3, ymin - t_size[1] - 5
         color = (0, 0, 0)
         if text_bg_alpha == 0.0:
-            cv2.rectangle(cv2_img, (xmin - 1, ymin), c2,
+            cv2.rectangle(cv2_img, (xmin - 1, ymin), point2,
                           color, cv2.FILLED, cv2.LINE_AA)
         else:
             # Transparent text background
@@ -139,7 +139,7 @@ def draw_bbox_on_image(
             cv2_img[y_min:y_max, x_min:x_max, 2] = cv2_img[
                 y_min:y_max, x_min:x_max, 2] * alpha_reserve + r_c * (1 - alpha_reserve)
         # draw label text
-        cv2.putText(cv2_img, label, (xmin + 3, ymin - 4), 0, fontScale=tl / 4,
+        cv2.putText(cv2_img, label, (xmin + 3, ymin - 4), 0, fontScale=tline / 4,
                     color=[255, 255, 255], thickness=1, lineType=cv2.LINE_AA)
 
 
