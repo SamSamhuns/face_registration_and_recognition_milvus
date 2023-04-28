@@ -35,7 +35,7 @@ fi
 mkdir -p volumes/person_images  # create shr vol with correct perms
 docker run \
       -d \
-      -p "0.0.0.0:$port:8080" \
+      -p "127.0.0.1:$port:8080" \
       -v "$PWD/volumes/person_images:/home/triton-server/src/app/person_images" \
       --name "$def_cont_name" \
       uvicorn_trt_server
