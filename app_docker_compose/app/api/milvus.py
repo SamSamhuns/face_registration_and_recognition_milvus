@@ -6,7 +6,7 @@ from pymilvus import connections, MilvusException
 from pymilvus import Collection, CollectionSchema, FieldSchema, DataType, utility
 
 
-def get_milvus_connec(
+def get_milvus_collec_conn(
         collection_name: str,
         milvus_host: str = "127.0.0.1",
         milvus_port: int = 19530,
@@ -15,7 +15,7 @@ def get_milvus_connec(
         index_type: str = "IVF_FLAT",
         index_metric_params: dict = None):
     """
-    Gets the milvus connection with the given collection name otherwise creates a new one
+    Gets the milvus collection connection with the given collection name otherwise creates a new one
     Note: index_metric_params: dict = {"nlist": 4096} for index_type == "IVF_FLAT"
     """
     # connect to milvus
@@ -35,29 +35,29 @@ def get_milvus_connec(
         ]
         schema = CollectionSchema(
             fields=fields, description='face recognition system')
-        milvus_conn = Collection(name=collection_name,
+        milvus_collec_conn = Collection(name=collection_name,
                                  consistency_level="Strong",
                                  schema=schema, using='default')
         print(f"Collection {collection_name} created.✅️")
 
-        # Indexing the milvus_conn
+        # Indexing the milvus_collec_conn
         print("Indexing the Collection...🕓")
-        # create IVF_FLAT index for milvus_conn.
+        # create IVF_FLAT index for milvus_collec_conn.
         index_params = {
             'metric_type': metric_type,
             'index_type': index_type,
             'params': index_metric_params
         }
-        milvus_conn.create_index(
+        milvus_collec_conn.create_index(
             field_name="embedding", index_params=index_params)
         print(f"Collection {collection_name} indexed.✅️")
     else:
         print(f"Collection {collection_name} present already.✅️")
-        milvus_conn = Collection(collection_name)
-    return milvus_conn
+        milvus_collec_conn = Collection(collection_name)
+    return milvus_collec_conn
 
 
-def get_registered_person(milvus_conn, person_id: int, output_fields: List[str]) -> dict:
+def get_registered_person(milvus_collec_conn, person_id: int, output_fields: List[str]) -> dict:
     """
     Get registered data record by person_id.
     Arguments:
@@ -66,7 +66,7 @@ def get_registered_person(milvus_conn, person_id: int, output_fields: List[str])
     """
     expr = f'person_id == {person_id}'
     try:
-        results = milvus_conn.query(
+        results = milvus_collec_conn.query(
             expr=expr,
             offset=0,
             limit=10,

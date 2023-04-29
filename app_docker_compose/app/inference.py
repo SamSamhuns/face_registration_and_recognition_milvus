@@ -10,7 +10,7 @@ from pymysql.cursors import DictCursor
 from pymilvus import MilvusException
 
 from triton_server.inference_trtserver import run_inference
-from api.milvus import get_milvus_connec
+from api.milvus import get_milvus_collec_conn
 from api.mysql import (insert_person_data_into_sql,
                        select_person_data_from_sql_with_id,
                        delete_person_data_from_sql_with_id)
@@ -40,7 +40,7 @@ mysql_conn = pymysql.connect(
     cursorclass=DictCursor)
 
 # connect to milvus connec
-milvus_conn = get_milvus_connec(
+milvus_collec_conn = get_milvus_collec_conn(
     collection_name=FACE_COLLECTION_NAME,
     milvus_host=MILVUS_HOST,
     milvus_port=MILVUS_PORT,
@@ -48,8 +48,8 @@ milvus_conn = get_milvus_connec(
     metric_type=FACE_METRIC_TYPE,
     index_type=FACE_INDEX_TYPE,
     index_metric_params={"nlist": FACE_INDEX_NLIST})
-# load milvus_conn into memory
-milvus_conn.load()
+# load milvus_collec_conn into memory
+milvus_collec_conn.load()
 
 
 def get_registered_person(
@@ -91,7 +91,7 @@ def unregister_person(
 
         # unregister from milvus
         expr = f'person_id in [{person_id}]'
-        milvus_conn.delete(expr)
+        milvus_collec_conn.delete(expr)
         print(
             f"Vector for person with id: {person_id} deleted from milvus db.✅️")
 
@@ -151,15 +151,15 @@ def register_person(
         if mysql_insert_resp["status"] == "failed":
             raise pymysql.Error
 
-        # insert face_vector into milvus milvus_conn
+        # insert face_vector into milvus milvus_collec_conn
         face_vector = pred_dict["face_feats"][0].tolist()
         data = [[face_vector], [person_id]]
-        milvus_conn.insert(data)
+        milvus_collec_conn.insert(data)
         print(
             f"Vector for person with id: {person_id} inserted into milvus db. ✅️")
         # After final entity is inserted, it is best to call flush to have no growing segments left in memory
         # flushes collection data from memory to storage
-        milvus_conn.flush()
+        milvus_collec_conn.flush()
 
         # cache data in redis
         redis_key = f"{table}_{person_id}"
@@ -209,7 +209,7 @@ def recognize_person(
     face_vector = pred_dict["face_feats"]
     # run a vector search and return the closest face with the L2 metric
     search_params = {"metric_type": "L2",  "params": {"nprobe": FACE_SEARCH_NPROBE}}
-    results = milvus_conn.search(
+    results = milvus_collec_conn.search(
         data=face_vector,
         anns_field="embedding",
         param=search_params,

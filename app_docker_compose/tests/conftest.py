@@ -24,7 +24,7 @@ os.environ["MYSQL_CUR_TABLE"] = MYSQL_TEST_TABLE  # chg cur table for test durat
 
 # custom imports
 from app.server import app  # must be import after changing MYSQL_CUR_TABLE env var
-from app.api.milvus import get_milvus_connec
+from app.api.milvus import get_milvus_collec_conn
 from app.config import (
     REDIS_HOST, REDIS_PORT,
     MYSQL_HOST, MYSQL_PORT,
@@ -54,9 +54,9 @@ async def test_app_asyncio():
 
 @pytest.fixture(scope="session")
 def test_milvus_connec():
-    """Yields a milvus connection instance"""
-    print("Setting milvus connection")
-    milvus_conn = get_milvus_connec(
+    """Yields a milvus collection connection instance"""
+    print("Setting milvus connection & creating collection if it already doesn't exist")
+    milvus_collec_conn = get_milvus_collec_conn(
         collection_name=TEST_COLLECTION_NAME,
         milvus_host=MILVUS_HOST,
         milvus_port=MILVUS_PORT,
@@ -64,8 +64,8 @@ def test_milvus_connec():
         metric_type=FACE_METRIC_TYPE,
         index_type=FACE_INDEX_TYPE,
         index_metric_params={"nlist": FACE_INDEX_NLIST})
-    milvus_conn.load()
-    yield milvus_conn
+    milvus_collec_conn.load()
+    yield milvus_collec_conn
     # drop test collections in teardown
     print("Tearing milvus connection")
     utility.drop_collection(TEST_COLLECTION_NAME)
