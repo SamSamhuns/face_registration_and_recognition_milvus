@@ -8,7 +8,7 @@ from pymilvus import Collection, CollectionSchema, FieldSchema, DataType, utilit
 
 def get_milvus_collec_conn(
         collection_name: str,
-        milvus_host: str = "127.0.0.1",
+        milvus_host: str = "0.0.0.0",
         milvus_port: int = 19530,
         vector_dim: int = 128,
         metric_type: str = "L2",
@@ -57,7 +57,7 @@ def get_milvus_collec_conn(
     return milvus_collec_conn
 
 
-def get_registered_person(milvus_collec_conn, person_id: int, output_fields: List[str]) -> dict:
+def get_registered_person_milvus(milvus_collec_conn, person_id: int, output_fields: List[str]) -> dict:
     """
     Get registered data record by person_id.
     Arguments:

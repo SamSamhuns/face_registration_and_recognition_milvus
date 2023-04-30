@@ -54,7 +54,7 @@ milvus_collec_conn.load()
 
 def get_registered_person(
         person_id: int,
-        table: str) -> dict:
+        table: str = MYSQL_CUR_TABLE) -> dict:
     """
     Get registered person by person_id.
     Checks redis cache, otherwise query mysql
@@ -75,7 +75,7 @@ def get_registered_person(
 
 def unregister_person(
         person_id: int,
-        table: str) -> dict:
+        table: str = MYSQL_CUR_TABLE) -> dict:
     """
     Deletes a registered person based on the unique person_id.
     Must use expr with the term expression `in` for delete operations
