@@ -27,15 +27,16 @@ fi
 
 # Check if the container is running
 if [ "$(docker ps -q -f name=$def_cont_name)" ]; then
-    echo "Stopping docker container '$def_cont_name'"
+    echo "Stopping & removing docker container '$def_cont_name'"
     docker stop "$def_cont_name"
+    docker rm "$def_cont_name"
     echo "Stopped container '$def_cont_name'"
 fi
 
 mkdir -p volumes/person_images  # create shr vol with correct perms
 docker run \
       -d \
-      -p "127.0.0.1:$port:8080" \
+      -p "0.0.0.0:$port:8080" \
       -v "$PWD/volumes/person_images:/home/triton-server/src/app/person_images" \
       --name "$def_cont_name" \
       uvicorn_trt_server
