@@ -12,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from routes import person, recognize_person, register_person
-from config import DOWNLOAD_CACHE_PATH
+from config import DOWNLOAD_CACHE_PATH, API_SERVER_PORT
 
 
 os.makedirs(DOWNLOAD_CACHE_PATH, exist_ok=True)
@@ -66,9 +66,9 @@ async def favicon():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         """Start FastAPI with uvicorn server hosting inference models""")
-    parser.add_argument('-ip', '--host_ip', type=str, default="127.0.0.1",
+    parser.add_argument('-ip', '--host_ip', type=str, default="0.0.0.0",
                         help='host ip address. (default: %(default)s)')
-    parser.add_argument('-p', '--port', type=int, default=8080,
+    parser.add_argument('-p', '--port', type=int, default=API_SERVER_PORT,
                         help='uvicorn port number. (default: %(default)s)')
     parser.add_argument('-w', '--workers', type=int, default=1,
                         help="number of uvicorn workers. (default: %(default)s)")

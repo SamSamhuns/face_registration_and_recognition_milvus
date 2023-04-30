@@ -33,6 +33,8 @@ Create a `.env` file inside `app_docker_compose` based on the following paramete
 # download paths
 DOWNLOAD_CACHE_PATH="app/.data"
 DOWNLOAD_IMAGE_PATH="volumes/person_images"
+# hhttp api server
+API_SERVER_PORT=8080
 # milvus
 MILVUS_HOST=standalone
 MILVUS_PORT=19530
@@ -46,6 +48,7 @@ MYSQL_DATABASE=default
 MYSQL_PERSON_TABLE=person
 MYSQL_ROOT_PASSWORD=admin
 # phpmyadmin mariadb
+PMA_GUI_PORT=8001
 PMA_HOST=${MYSQL_HOST}
 PMA_PORT=${MYSQL_PORT}
 PMA_USER=${MYSQL_USER}
