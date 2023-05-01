@@ -12,7 +12,7 @@ Backend system for detecting and saving a person's face from images into a vecto
 
 ## Setup
 
-### Download model weights
+### 1. Download model weights
 
 ```bash
 python3 -m venv venv
@@ -25,7 +25,7 @@ unzip models.zip -d app_docker_compose/app/triton_server
 rm models.zip
 ```
 
-### Create env file
+### 2, Create .env file
 
 Create a `.env` file inside `app_docker_compose` based on the following parameters with necessary variables replaced:
 
@@ -33,7 +33,7 @@ Create a `.env` file inside `app_docker_compose` based on the following paramete
 # download paths
 DOWNLOAD_CACHE_PATH="app/.data"
 DOWNLOAD_IMAGE_PATH="volumes/person_images"
-# hhttp api server
+# http api server
 API_SERVER_PORT=8080
 # milvus
 MILVUS_HOST=standalone
@@ -60,11 +60,11 @@ REDIS_PORT=6379
 
 Note: Only `.env` allows docker-compose to access variables inside `.env` file during build-time. Using `env_file` or the `environment` parameters inside the docker-compose file only allows variable access inside containers and not during build time.
 
-### Setup sql schema for storing person data
+### 3. Setup sql schema for storing person data
 
 Schema for creating person data table and the table name should be modified at: `app_docker_compose/app/static/sql/init.sql`
 
-### Create a volume directory to hold user images
+### 4. Create a volume directory to hold user images
 
 ```shell
 mkdir -p volumes/person_images
@@ -78,6 +78,8 @@ Note, an easier way to use later versions of docker-compose is to install the pi
 
 ```shell
 cd app_docker_compose
+# create shared volume directory to store imgs
+mkdir -p volumes/person_images
 # build all required containers
 docker-compose build
 # start all services
