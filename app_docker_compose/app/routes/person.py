@@ -13,12 +13,12 @@ router = APIRouter()
 
 
 @router.get("/person/{person_id}")
-def get_registered_person(person_id: int):
+async def get_registered_person(person_id: int):
     """Gets the registered person with the given ID."""
     return get_registered_person_api(person_id)
 
 
 @router.delete("/person/{person_id}")
-def unregister_person(person_id: int):
+async def unregister_person(person_id: int):
     """Unregisters the person with the given ID."""
     return unregister_person_api(person_id)
