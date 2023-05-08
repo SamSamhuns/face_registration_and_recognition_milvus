@@ -7,6 +7,7 @@ import traceback
 
 from fastapi import APIRouter
 from fastapi import UploadFile, File, Depends, BackgroundTasks
+from fastapi import status, HTTPException
 
 from inference import register_person
 from models import InputModel, PersonModel, ModelType
@@ -66,6 +67,7 @@ async def register_person_file(background_tasks: BackgroundTasks,
         print(excep, traceback.print_exc())
         response_data["status"] = "failed"
         response_data["message"] = "failed to register uploaded image to server"
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST , detail=response_data) from excep
 
     return response_data
 
@@ -90,7 +92,7 @@ async def register_person_url(background_tasks: BackgroundTasks,
         print(excep, traceback.print_exc())
         response_data["status"] = "failed"
         response_data["message"] = f"couldn't download image from \'{img_url}\'. Not a valid link."
-        return response_data
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST , detail=response_data) from excep
 
     try:
         input_data = InputModel(model_name=model_type.value,
@@ -103,5 +105,6 @@ async def register_person_url(background_tasks: BackgroundTasks,
         print(excep, traceback.print_exc())
         response_data["status"] = "failed"
         response_data["message"] = f"failed to register url image from {img_url} to server"
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST , detail=response_data) from excep
 
     return response_data
