@@ -98,13 +98,13 @@ Change into main working directory where all subsequent commands must be run.
 cd app_docker_compose
 ```
 
-### Build docker
+### 1. Build docker
 
 ```shell
 bash scripts/build_docker.sh
 ```
 
-### Local Uvicorn requirements
+### 2. Local uvicorn requirements
 
 ```bash
 # setup virtual env (conda env is fine as well)
@@ -115,9 +115,9 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### Run servers
+### 3. Run servers
 
-#### Start milvus vector database server
+#### 3a. Start all required microservices with docker-compose
 
 ```shell
 # clear all stopped containers
@@ -128,7 +128,7 @@ docker-compose up -d etcd minio standalone attu mysql mysql-admin redis-server
 docker-compose ps
 ```
 
-#### Start face model triton=server
+#### 3b. Start face model triton=server
 
 ```shell
 # start triton-server in a docker container exposed onport 8081
@@ -137,17 +137,11 @@ docker run -d --rm -p 127.0.0.1:8081:8081 --name uvicorn_trt_server_cont uvicorn
 docker logs uvicorn_trt_server_cont
 ```
 
-#### run uvicorn server
+#### 3c. Run fastapi + uvicorn server
 
 ```shell
 python3 app/server.py -p EXPOSED_HTTP_PORT
 ```
-
-## TO-DO
-
--   Add use of mysql to store faces and redis for a cached-access of data ✅️
--   Fix pytests for updated apis with redis and mysql ✅️
--   Setup with GitHub Actions for automatic testing
 
 ## Running tests
 
@@ -155,8 +149,11 @@ python3 app/server.py -p EXPOSED_HTTP_PORT
 cd app_docker_compose
 pip install -r requirements.txt
 pip install -r tests/requirements.txt
+# set up all microservices
 docker-compose up -d etcd minio standalone attu mysql mysql-admin redis-server
+# start face model triton server
 docker run -d --rm -p 127.0.0.1:8081:8081 --name uvicorn_trt_server_cont uvicorn_trt_server:latest tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
+# run tests
 pytest tests
 ```
 
