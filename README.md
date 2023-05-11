@@ -86,7 +86,7 @@ docker-compose build
 docker-compose up -d
 ```
 
-Face registration and recognition fastapi will be available at <http://localhost:8080>.
+Face registration and recognition fastapi will be available at <http://localhost:8080>. The exposed port can be changed with the `API_SERVER_PORT` env variable.
 
 ## Setup with Docker and local python envs for Development
 
@@ -143,10 +143,14 @@ docker logs uvicorn_trt_server_cont
 python3 app/server.py -p EXPOSED_HTTP_PORT
 ```
 
+Face registration and recognition fastapi will be available at <http://localhost:EXPOSED_HTTP_PORT>.
+
+
 ## Running tests
 
 ```shell
 cd app_docker_compose
+mkdir -p volumes/person_images
 pip install -r requirements.txt
 pip install -r tests/requirements.txt
 # set up all microservices

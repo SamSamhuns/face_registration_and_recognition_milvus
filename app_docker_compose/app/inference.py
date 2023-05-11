@@ -48,7 +48,7 @@ milvus_collec_conn = get_milvus_collec_conn(
     metric_type=FACE_METRIC_TYPE,
     index_type=FACE_INDEX_TYPE,
     index_metric_params={"nlist": FACE_INDEX_NLIST})
-# load milvus_collec_conn into memory
+# load milvus_collec_conn into memory for faster searches
 milvus_collec_conn.load()
 
 
