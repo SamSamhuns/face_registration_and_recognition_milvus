@@ -163,7 +163,7 @@ def register_person(
 
         # cache data in redis
         redis_key = f"{table}_{person_id}"
-        person_data["birthdate"] = str(person_data["birthdate"])
+        person_data["birthdate"] = str(person_data["birthdate"])  # redis can't ingest type date
         redis_conn.hset(redis_key, mapping=person_data)  # hash set data
         redis_conn.expire(redis_key, 3600)  # cache for 1 hour
 
