@@ -1,0 +1,89 @@
+name: Python Face Registration & Recognition Test CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  download_models:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download models
+        id: download-models
+        run: |
+          pip install gdown
+          gdown 18dH0l6ESMaHJo3tFMySt0I8LsKcCss3o
+          unzip models.zip -d app_docker_compose/app/triton_server
+          rm models.zip
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+
+      - name: Build Docker Compose services
+        run: docker-compose -f app_docker_compose/docker-compose.yml build
+
+  cache:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Cache models
+        uses: actions/cache@v2
+        with:
+          path: app_docker_compose/app/triton_server/models
+          key: ${{ runner.os }}-models-${{ hashFiles('app_docker_compose/app/triton_server/models/*') }}
+          restore-keys: ${{ runner.os }}-models-
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: |
+            app_docker_compose/Dockerfile
+            app_docker_compose/docker-compose.yml
+          key: ${{ runner.os }}-build-${{ hashFiles('**/app_docker_compose/Dockerfile') }}-${{ hashFiles('**/app_docker_compose/docker-compose.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+
+  test:
+    needs: [build, cache]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Start Docker Compose & trt server services
+        run: |
+          docker-compose -f app_docker_compose/docker-compose.yml up -d etcd minio standalone attu mysql mysql-admin redis-server
+          docker run -d --rm -p 127.0.0.1:8081:8081 --name uvicorn_trt_server_cont app_docker_compose_uvicorn_trt_server:latest tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
+          sleep 5
+
+      - name: Install python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r app_docker_compose/requirements.txt
+          pip install -r app_docker_compose/tests/requirements.txt
+
+      - name: Run PyTest
+        working-directory: app_docker_compose
+        run: |
+          pytest tests
+
+      - name: Stop Docker Compose services
+        run: docker-compose -f app_docker_compose/docker-compose.yml down
