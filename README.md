@@ -1,5 +1,7 @@
 # Person Face Registration and Recognition Backend System with uvicorn, fastapi, milvus, redis and mysql
 
+[![tests](https://github.com/SamSamhuns/face_registration_and_recognition_milvus/actions/workflows/main_test.yml/badge.svg)](https://github.com/SamSamhuns/face_registration_and_recognition_milvus/actions/workflows/main_test.yml)
+
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 
 Tested with `docker-compose version 1.29.2`.
