@@ -3,82 +3,92 @@ name: Python Face Registration & Recognition Test CI
 on:
   push:
     branches:
-      - main
+      - master
   pull_request:
     branches:
-      - main
+      - master
 
 jobs:
-  download_models:
+  test:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set models cache
+        id: models-cache
+        uses: actions/cache@v2
+        with:
+          path: app_docker_compose/app/triton_server/models
+          key: ${{ runner.os }}-models-${{ hashFiles('app_docker_compose/app/triton_server/models') }}
+            
       - name: Download models
         id: download-models
+        # if: ${{ steps.models-cache.outputs.cache-hit != 'true' }}
         run: |
           pip install gdown
           gdown 18dH0l6ESMaHJo3tFMySt0I8LsKcCss3o
           unzip models.zip -d app_docker_compose/app/triton_server
           rm models.zip
 
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - name: Verify cached models present
+        run: ls app_docker_compose/app/triton_server/models
 
       - name: Set up Docker Compose
         run: |
           sudo apt-get update
           sudo apt-get install -y docker-compose
 
-      - name: Build Docker Compose services
-        run: docker-compose -f app_docker_compose/docker-compose.yml build
-
-  cache:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Cache models
+      - name: Cache python modules
         uses: actions/cache@v2
         with:
-          path: app_docker_compose/app/triton_server/models
-          key: ${{ runner.os }}-models-${{ hashFiles('app_docker_compose/app/triton_server/models/*') }}
-          restore-keys: ${{ runner.os }}-models-
-
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        with:
-          path: |
-            app_docker_compose/Dockerfile
-            app_docker_compose/docker-compose.yml
-          key: ${{ runner.os }}-build-${{ hashFiles('**/app_docker_compose/Dockerfile') }}-${{ hashFiles('**/app_docker_compose/docker-compose.yml') }}
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pkg-deps-${{ hashFiles('app_docker_compose/requirements.txt') }}-${{ hashFiles('app_docker_compose/tests/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-build-
-
-  test:
-    needs: [build, cache]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Start Docker Compose & trt server services
-        run: |
-          docker-compose -f app_docker_compose/docker-compose.yml up -d etcd minio standalone attu mysql mysql-admin redis-server
-          docker run -d --rm -p 127.0.0.1:8081:8081 --name uvicorn_trt_server_cont app_docker_compose_uvicorn_trt_server:latest tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
-          sleep 5
+            ${{ runner.os }}-pkg-deps
 
       - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r app_docker_compose/requirements.txt
           pip install -r app_docker_compose/tests/requirements.txt
+
+      - name: Create .env file
+        working-directory: app_docker_compose
+        run: |
+          touch .env
+          echo DOWNLOAD_CACHE_PATH="app/.data" >> .env
+          echo DOWNLOAD_IMAGE_PATH="volumes/person_images" >> .env
+          echo API_SERVER_PORT=8080 >> .env
+          echo MILVUS_HOST=standalone >> .env
+          echo MILVUS_PORT=19530 >> .env
+          echo ATTU_PORT=3000 >> .env
+          echo MYSQL_HOST=mysql >> .env
+          echo MYSQL_PORT=3306 >> .env
+          echo MYSQL_USER=user >> .env
+          echo MYSQL_PASSWORD=pass >> .env
+          echo MYSQL_DATABASE=default >> .env
+          echo MYSQL_PERSON_TABLE=person >> .env
+          echo MYSQL_ROOT_PASSWORD=admin >> .env
+          echo PMA_GUI_PORT=8001 >> .env
+          echo PMA_HOST=mysql >> .env
+          echo PMA_PORT=3306 >> .env
+          echo PMA_USER=user >> .env
+          echo PMA_PASSWORD=pass >> .env
+          echo REDIS_HOST=redis-server >> .env
+          echo REDIS_PORT=6379 >> .env
+
+      - name: Build Docker Compose services
+        run: docker-compose -f app_docker_compose/docker-compose.yml build
+
+      - name: Start Docker Compose & trt server services
+        run: |
+          mkdir -p app_docker_compose/volumes/person_images
+          set -o allexport && source app_docker_compose/.env && set +o allexport
+          docker-compose -f app_docker_compose/docker-compose.yml up -d etcd minio standalone attu mysql mysql-admin redis-server
+          docker run -d --rm -p 8081:8081 --name uvicorn_trt_server_cont app_docker_compose_uvicorn_trt_server:latest tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
+          sleep 5
 
       - name: Run PyTest
         working-directory: app_docker_compose
