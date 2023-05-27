@@ -8,7 +8,7 @@ Tested with `docker-compose version 1.29.2`.
 
 Backend system for detecting and saving a person's face from images into a vectorized milvus database to run facial recognition on images along with saving the person's data in a redis-cached mysql table for later retrieval. (Note: The system currently only supports one face per image for both face registration and lookup).
 
-<img src="app_docker_compose/app/static/project_flow.png" width="40%" />
+<img src="app_docker_compose/app/static/project_flow.png" width="60%" />
 
 -   [milvus official setup reference](https://milvus.io/docs/install_standalone-docker.md)
 
@@ -147,7 +147,6 @@ python3 app/server.py -p EXPOSED_HTTP_PORT
 
 Face registration and recognition fastapi will be available at <http://localhost:EXPOSED_HTTP_PORT>.
 
-
 ## Running tests
 
 ```shell
@@ -169,6 +168,42 @@ Generating coverage reports
 coverage run -m pytest tests/
 coverage report -m -i
 ```
+
+## References
+
+### Encryption of faces
+
+The [Pyfhel](https://pyfhel.readthedocs.io/en/latest/index.html) library supports FHE schemes with BGV/BFV/CKKS to homomorphically encrypt face vectors so that operations like addition, multiplication, exponentiation or scalar product can be run on the encrypted vectors so that the results are same if the operations were run on non-encrypted vectors. This allows the vectors to be stored in a zero-trust database or untrusted vendor given that only the client has the private key to decrypt the vectors but the server can still run arithmetic operations on the vectors without compromising thier security. [See faces can be generated from inversing the face-embeddigns from facenet](chrome-extension://oemmndcbldboiebfnladdacbdfmadadm/https://edwardv.com/cs230_project.pdf).
+
+### Attacks on facial recognition systems
+
+Presentation Attacks (Performed in the physical domain while the faces are presented to the system)
+
+-   2D Spoofing (Printout of the victim's face on paper, Using a mobile device or screen with the victims face, video of the victims face on a screen)
+-   3D Spoofing (A crafted 3D face mask)
+
+Indirect Attacks (Performed in the database level after the face image have already been ingested into the digital domain. Standard cybersecurity measures can counter these attacks)
+
+### Countermeasures against face recognition attacks
+
+-   Stereo camera depth amp reading / 3D face structure reading / 3D face landmark detection
+-   Liveliness detection (eye blink detection)
+-   Face movement detection & challenge response: nod, smile, head rotation
+-   Contextual information techniques (looking for hand)
+-   Algorithms:
+   -   Texture analysis: Detect artifacts caused by imaging the screen (Moiré patterns) or Local Binary Patterns (LBPs)
+   -   Specular feature projections: Train SVM models on specular feature space projctions of genuine and spoofed face images for impersonation detection
+   -   Frequency analysis: Examine the Fourier domain of the face
+   -   Optical flow algorithms: Examine the differences and properties of optical flow generated from 3D objects and 2D planes.
+   -   Image quality assessment: Detect spoofs with an ensemble of image quality measures
+   -   Depth feature fusion: Deep feature fusion network structure with CNNs & SENet using facial image color features
+   -   DNNs: Face classifiers trained on large dataset of real & spoofed images 
+
+Datasets for real vs fake face classification
+
+-   NUAA Photograph Imposter Database
+-   [Small set of real & fake face images](https://github.com/SkyThonk/real-and-fake-face-detection)
+-   [Kaggle Real and Fake Face Detection Data](https://www.kaggle.com/datasets/ciplab/real-and-fake-face-detection)
 
 ### Notes on docker-compose yml setup
 
@@ -230,3 +265,5 @@ instance_group [
 -   [redis](https://redis.io/)
 -   [uvicorn](https://www.uvicorn.org/)
 -   [fastapi](https://fastapi.tiangolo.com/)
+-   [Pyfhel](https://pyfhel.readthedocs.io/en/latest/index.html)
+-   [Spoofing facial recognition](https://towardsdatascience.com/facial-recognition-types-of-attacks-and-anti-spoofing-techniques-9d732080f91e)

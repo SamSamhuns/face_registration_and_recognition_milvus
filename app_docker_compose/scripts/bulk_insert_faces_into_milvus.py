@@ -13,7 +13,11 @@ Faces and related data must be inserted directly into milvus and mysql to reduce
 First extract embeddings from faces and insert into milvus
 Second insert related face data into mysql database
 
-pip install towhee==1.0.0rc1
+Run script as a module:
+    python -m scripts.bulk_insert_faces_into_milvus
+
+requirements:
+	pip install towhee==1.0.0rc1
 """
 import os.path as osp
 import glob
@@ -67,7 +71,7 @@ def insert_embeddings_into_milvus_towhee(img_dir: str):
             yield item
 
     @register
-    def gen_int_id(x = None):
+    def gen_int_id(x=None):
         """Get a unique int uuid"""
         return uuid.uuid1().int >> 64
 
@@ -107,9 +111,9 @@ def insert_embeddings_into_milvus_towhee(img_dir: str):
     print('Number of data inserted:', milvus_collec_conn.num_entities)
 
 
-def insert_embeddings_into_milvus_trt_sever(img_dir: str):
+def face_embedding_extractor_iter(img_dir: str):
     """
-    Inserts embeddings data in bulk into milvus
+    function that yields face_vectors as an iterator from an img_dir
     """
     import sys
     sys.path.append("app")
@@ -127,9 +131,18 @@ def insert_embeddings_into_milvus_trt_sever(img_dir: str):
             face_count_thres=1,
             return_mode="json")
 
-        person_id = ""
         # insert face_vector into milvus milvus_collec_conn
         face_vector = pred_dict["face_feats"][0].tolist()
+        yield face_vector
+
+
+def insert_embeddings_into_milvus_trt_sever(img_dir: str):
+    """
+    Inserts embeddings data in bulk into milvus
+    """
+    for face_vector in face_embedding_extractor_iter(img_dir):
+        person_id = ""
+        # insert face_vector into milvus milvus_collec_conn
         data = [[face_vector], [person_id]]
         milvus_collec_conn.insert(data)
 
@@ -162,10 +175,10 @@ def main():
     """
     Main function
     """
-    insert_embeddings_into_milvus_towhee(
-        "/home/mluser/sam/face_registration_and_recognition_milvus/app_docker_compose/volumes/img_align_celeba_unique")
-    # insert_data_into_mysql(
+    # insert_embeddings_into_milvus_towhee(
     #     "/home/mluser/sam/face_registration_and_recognition_milvus/app_docker_compose/volumes/img_align_celeba_unique")
+    insert_data_into_mysql(
+        "/home/mluser/sam/face_registration_and_recognition_milvus/app_docker_compose/volumes/img_align_celeba_unique")
 
 
 if __name__ == "__main__":

@@ -167,8 +167,8 @@ def run_inference(media_filename: str,
     orig_h, orig_w = all_req_imgs_orig_size[0][:2]
     final_result = postprocess(
         responses[0], (orig_w, orig_h), (model_w, model_h))
-
-    print(f"Triton-server inference time {time.time() - start_time:.2f}s")
+    if debug:
+        print(f"Triton-server inference time {time.time() - start_time:.2f}s")
     if return_mode == "json":
         return {"status": 0, "message": "inference_complete", **final_result}
     if return_mode == "image":
