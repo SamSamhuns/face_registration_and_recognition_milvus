@@ -65,7 +65,6 @@ async def register_person_file(background_tasks: BackgroundTasks,
         response_data = task.response_data
     except Exception as excep:
         print(excep, traceback.print_exc())
-        response_data["status"] = "failed"
         response_data["message"] = "failed to register uploaded image to server"
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST , detail=response_data) from excep
 
@@ -90,7 +89,6 @@ async def register_person_url(background_tasks: BackgroundTasks,
         background_tasks.add_task(remove_file, file_cache_path)
     except Exception as excep:
         print(excep, traceback.print_exc())
-        response_data["status"] = "failed"
         response_data["message"] = f"couldn't download image from \'{img_url}\'. Not a valid link."
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST , detail=response_data) from excep
 
@@ -103,7 +101,6 @@ async def register_person_url(background_tasks: BackgroundTasks,
         response_data = task.response_data
     except Exception as excep:
         print(excep, traceback.print_exc())
-        response_data["status"] = "failed"
         response_data["message"] = f"failed to register url image from {img_url} to server"
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST , detail=response_data) from excep
 

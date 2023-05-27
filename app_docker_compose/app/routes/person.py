@@ -16,18 +16,22 @@ router = APIRouter()
 @router.get("/person/{person_id}")
 async def get_registered_person(person_id: int):
     """Gets the registered person with the given ID."""
+    response_data = {}
     try:
-        response = get_registered_person_api(person_id)
+        response_data = get_registered_person_api(person_id)
     except Exception as excep:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST , detail=response) from excep
-    return response
+        response_data["message"] = f"failed to get the registered person with id {person_id}"
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST , detail=response_data) from excep
+    return response_data
 
 
 @router.delete("/person/{person_id}")
 async def unregister_person(person_id: int):
     """Unregisters the person with the given ID."""
+    response_data = {}
     try:
-        response = unregister_person_api(person_id)
+        response_data = unregister_person_api(person_id)
     except Exception as excep:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST , detail=response) from excep
-    return response
+        response_data["message"] = f"failed to unregistered person with id {person_id}"
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST , detail=response_data) from excep
+    return response_data
