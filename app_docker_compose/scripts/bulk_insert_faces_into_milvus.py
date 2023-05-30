@@ -76,7 +76,7 @@ def insert_embeddings_into_milvus_towhee(img_dir: str):
         return uuid.uuid1().int >> 64
 
     @register
-    def get_facenet_emb(vec):
+    def get_facenet_emb(vec=None):
         """Get the embedding vector from a facenet model output"""
         return [list(map(float, vec[0]["embedding"]))]
 
