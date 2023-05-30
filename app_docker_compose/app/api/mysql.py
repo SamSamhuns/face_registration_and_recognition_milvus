@@ -1,7 +1,10 @@
 """
 pymysql api functions
 """
+import logging
 import pymysql
+
+logger = logging.getLogger('mysql_api')
 
 
 def insert_person_data_into_sql(mysql_conn, mysql_tb, person_data: dict, commit: bool = True) -> dict:
@@ -19,14 +22,14 @@ def insert_person_data_into_sql(mysql_conn, mysql_tb, person_data: dict, commit:
             cursor.execute(query, values)
             if commit:
                 mysql_conn.commit()
-                print("record inserted into mysql db.✅️")
+                logger.info("record inserted into mysql db.✅️")
                 return {"status": "success",
                         "message": "record inserted into mysql db"}
-            print("record insertion waiting to be commit to mysql db.🕓")
+            logger.info("record insertion waiting to be commit to mysql db.🕓")
             return {"status": "success",
                     "message": "record insertion waiting to be commit to mysql db."}
     except pymysql.Error as excep:
-        print(f"mysql record insert failed ❌. {excep}")
+        logger.error("%s: mysql record insert failed ❌", excep)
         return {"status": "failed",
                 "message": "mysql record insertion error"}
 
@@ -42,15 +45,15 @@ def select_person_data_from_sql_with_id(mysql_conn, mysql_tb, person_id: int) ->
             cursor.execute(query, values)
             person_data = cursor.fetchone()
             if person_data is None:
-                print(f"mysql record with id: {person_id} does not exist ❌.")
+                logger.error("mysql record with id: %s does not exist ❌.", person_id)
                 return {"status": "failed",
                         "message": "mysql record with id: {person_id} does not exist"}
-            print(f"Person with id: {person_id} retrieved from mysql db.✅️")
+            logger.info("Person with id: %s retrieved from mysql db.✅️", person_id)
             return {"status": "success",
                     "message": f"record matching id: {person_id} retrieved from mysql db",
                     "person_data": person_data}
     except pymysql.Error as excep:
-        print(f"mysql record retrieval failed ❌. {excep}")
+        logger.error("%s: mysql record retrieval failed ❌", excep)
         return {"status": "failed",
                 "message": "mysql record retrieval error"}
 
@@ -66,21 +69,20 @@ def delete_person_data_from_sql_with_id(mysql_conn, mysql_tb, person_id: int, co
             # check if record exists in db or not
             cursor.execute(select_query, (person_id))
             if not cursor.fetchone():
-                print(
-                    f"Person with id: {person_id} does not exist in mysql db.❌")
+                logger.error("Person with id: %s does not exist in mysql db.❌", person_id)
                 return {"status": "failed",
                         "message": f"mysql record with id: {person_id} does not exist in db"}
 
             cursor.execute(del_query, (person_id))
             if commit:
                 mysql_conn.commit()
-                print(f"Person with id: {person_id} deleted from mysql db.✅️")
+                logger.info("Person with id: %s deleted from mysql db.✅️", person_id)
                 return {"status": "success",
                         "message": "record deleted from mysql db"}
-            print("record deletion waiting to be commited to mysql db.🕓")
+            logger.info("record deletion waiting to be commited to mysql db.🕓")
             return {"status": "success",
                     "message": "record deletion waiting to be commited to mysql db."}
     except pymysql.Error as excep:
-        print(f"mysql record deletion failed ❌. {excep}")
+        logger.error("%s: mysql record deletion failed ❌", excep)
         return {"status": "failed",
                 "message": "mysql record deletion error"}

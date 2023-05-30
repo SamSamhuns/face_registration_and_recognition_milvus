@@ -3,6 +3,7 @@ Face Recogntion fastapi file
 """
 import os
 import uuid
+import logging
 import traceback
 
 from fastapi import APIRouter
@@ -16,6 +17,7 @@ from config import DOWNLOAD_CACHE_PATH
 
 
 router = APIRouter()
+logger = logging.getLogger('recognize_person_route')
 
 
 class RecognizePersonProcessTask():
@@ -61,7 +63,7 @@ async def recognize_person_file(background_tasks: BackgroundTasks,
         task.run()
         response_data = task.response_data
     except Exception as excep:
-        print(excep, traceback.print_exc())
+        logger.error("%s: %s", excep, traceback.print_exc())
         response_data["message"] = "failed to recognize face from image"
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST , detail=response_data) from excep
 
@@ -83,7 +85,7 @@ async def recognize_person_url(background_tasks: BackgroundTasks,
         await download_url_file(img_url, file_cache_path)
         background_tasks.add_task(remove_file, file_cache_path)
     except Exception as excep:
-        print(excep, traceback.print_exc())
+        logger.error("%s: %s", excep, traceback.print_exc())
         response_data['message'] = f"couldn't download image from \'{img_url}\'. Not a valid link."
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST , detail=response_data) from excep
 
@@ -94,7 +96,7 @@ async def recognize_person_url(background_tasks: BackgroundTasks,
         task.run()
         response_data = task.response_data
     except Exception as excep:
-        print(excep, traceback.print_exc())
+        logger.error("%s: %s", excep, traceback.print_exc())
         response_data["message"] = f"failed to recognize face  from image downloaded from {img_url}"
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST , detail=response_data) from excep
 

@@ -204,6 +204,7 @@ Datasets for real vs fake face classification
 -   NUAA Photograph Imposter Database
 -   [Small set of real & fake face images](https://github.com/SkyThonk/real-and-fake-face-detection)
 -   [Kaggle Real and Fake Face Detection Data](https://www.kaggle.com/datasets/ciplab/real-and-fake-face-detection)
+-   [Deep Face Detection](https://github.com/selimsef/dfdc_deepfake_challenge)
 
 ### Notes on docker-compose yml setup
 

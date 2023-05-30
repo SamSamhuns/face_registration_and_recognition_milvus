@@ -3,6 +3,7 @@ Inference functions for registering and recognizing face with trtserver models a
 """
 import os
 import shutil
+import logging
 
 import redis
 import pymysql
@@ -23,6 +24,9 @@ from config import (DOWNLOAD_IMAGE_PATH,
                     FACE_VECTOR_DIM, FACE_METRIC_TYPE, 
                     FACE_INDEX_NLIST, FACE_SEARCH_NPROBE,
                     FACE_INDEX_TYPE, FACE_COLLECTION_NAME)
+
+
+logger = logging.getLogger('inferenc_api')
 
 # connect to Redis
 redis_conn = redis.Redis(
@@ -63,7 +67,7 @@ def get_registered_person(
     redis_key = f"{table}_{person_id}"
     cached_person_dict = redis_conn.hgetall(name=redis_key)
     if cached_person_dict:
-        print("record matching id: {person_id} retrieved from redis cache")
+        logger.info("record matching id: {person_id} retrieved from redis cache")
         return {"status": "success",
                 "message": f"record matching id: {person_id} retrieved from redis cache",
                 "person_data": cached_person_dict}
@@ -92,8 +96,8 @@ def unregister_person(
         # unregister from milvus
         expr = f'person_id in [{person_id}]'
         milvus_collec_conn.delete(expr)
-        print(
-            f"Vector for person with id: {person_id} deleted from milvus db.✅️")
+        logger.info("Vector for person with id: %s deleted from milvus db.✅️", 
+                    person_id)
 
         # clear redis cache
         redis_key = f"{table}_{person_id}"
@@ -102,10 +106,11 @@ def unregister_person(
         # commit mysql record delete
         mysql_conn.commit()
     except (pymysql.Error, MilvusException, redis.RedisError) as excep:
-        print(f"{excep}. ❌")
+        msg = f"person with id {person_id} couldn't be unregistered from database ❌"
+        logger.error("%s: %s", excep, msg)
         return {"status": "failed",
-                "message": f"person with id {person_id} couldn't be unregistered from database"}
-    print(f"person record with id {person_id} unregistered from database.✅️")
+                "message": msg}
+    logger.info("person record with id %s unregistered from database.✅️", person_id)
     return {"status": "success",
             "message": f"person record with id {person_id} unregistered from database"}
 
@@ -155,8 +160,8 @@ def register_person(
         face_vector = pred_dict["face_feats"][0].tolist()
         data = [[face_vector], [person_id]]
         milvus_collec_conn.insert(data)
-        print(
-            f"Vector for person with id: {person_id} inserted into milvus db. ✅️")
+        logger.info("Vector for person with id: %s inserted into milvus db. ✅️",
+                    person_id)
         # After final entity is inserted, it is best to call flush to have no growing segments left in memory
         # flushes collection data from memory to storage
         milvus_collec_conn.flush()
@@ -170,13 +175,14 @@ def register_person(
         # commit mysql record insertion
         mysql_conn.commit()
     except (pymysql.Error, MilvusException, redis.RedisError) as excep:
-        print(f"{excep}. ❌")
+        msg = f"person with id {person_id} couldn't be registered into database ❌"
+        logger.error("%s: %s", excep, msg)
         return {"status": "failed",
-                "message": f"person with id {person_id} couldn't be registered into database"}
+                "message": msg}
     # save person image to volume if successfully registered
     shutil.copy(file_path, os.path.join(DOWNLOAD_IMAGE_PATH, f"{person_id}.jpg"))
 
-    print(f"person record with id {person_id} registered into database.✅️")
+    logger.info("person record with id %s registered into database.✅️", person_id)
     return {"status": "success",
             "message": f"person record with id {person_id} registered into database"}
 

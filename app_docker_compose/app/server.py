@@ -3,6 +3,7 @@ Main fastapi server file
 """
 import os
 import time
+import logging
 import argparse
 
 import uvicorn
@@ -12,10 +13,11 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from routes import person, recognize_person, register_person
-from config import DOWNLOAD_CACHE_PATH, API_SERVER_PORT
+from config import API_SERVER_PORT
 
 
-os.makedirs(DOWNLOAD_CACHE_PATH, exist_ok=True)
+# logging
+logger = logging.getLogger("server")
 
 
 def get_application(title="Face Registration and Recognition"):
@@ -74,7 +76,7 @@ if __name__ == '__main__':
                         help="number of uvicorn workers. (default: %(default)s)")
     args = parser.parse_args()
 
-    print(
-        f"Uvicorn server running on {args.host_ip}:{args.port} with {args.workers} workers")
+    logger.info("Uvicorn server running on %s:%s with %s workers",
+                args.host_ip, args.port, args.workers)
     uvicorn.run("server:app", host=args.host_ip, port=args.port,
                 workers=args.workers, reload=True, reload_dirs=['app'])

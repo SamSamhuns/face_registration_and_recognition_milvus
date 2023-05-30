@@ -1,9 +1,12 @@
 """
 milvus api functions
 """
+import logging
 from typing import List
 from pymilvus import connections, MilvusException
 from pymilvus import Collection, CollectionSchema, FieldSchema, DataType, utility
+
+logger = logging.getLogger('milvus_api')
 
 
 def get_milvus_collec_conn(
@@ -38,10 +41,10 @@ def get_milvus_collec_conn(
         milvus_collec_conn = Collection(name=collection_name,
                                  consistency_level="Strong",
                                  schema=schema, using='default')
-        print(f"Collection {collection_name} created.✅️")
+        logger.info(f"Collection {collection_name} created.✅️")
 
         # Indexing the milvus_collec_conn
-        print("Indexing the Collection...🕓")
+        logger.info("Indexing the Collection...🕓")
         # create IVF_FLAT index for milvus_collec_conn.
         index_params = {
             'metric_type': metric_type,
@@ -50,9 +53,9 @@ def get_milvus_collec_conn(
         }
         milvus_collec_conn.create_index(
             field_name="embedding", index_params=index_params)
-        print(f"Collection {collection_name} indexed.✅️")
+        logger.info(f"Collection {collection_name} indexed.✅️")
     else:
-        print(f"Collection {collection_name} present already.✅️")
+        logger.info(f"Collection {collection_name} present already.✅️")
         milvus_collec_conn = Collection(collection_name)
     return milvus_collec_conn
 
@@ -79,6 +82,6 @@ def get_registered_person_milvus(milvus_collec_conn, person_id: int, output_fiel
                 "message": f"person with id: {person_id} found in milvus database",
                 "person_data": results}
     except MilvusException as excep:
-        print(excep)
+        logger.error("%s: error running mivlus database query", excep)
         return {"status": "failed",
                 "message": "error running mivlus database query"}

@@ -114,6 +114,7 @@ venv.bak/
 *.pkl.json
 *.log.json
 work_dirs/
+.data
 
 # mac os sys files
 .DS_Store

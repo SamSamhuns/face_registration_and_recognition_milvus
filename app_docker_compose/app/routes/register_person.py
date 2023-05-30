@@ -3,6 +3,7 @@ Face Registration fastapi file
 """
 import os
 import uuid
+import logging
 import traceback
 
 from fastapi import APIRouter
@@ -16,6 +17,7 @@ from config import DOWNLOAD_CACHE_PATH
 
 
 router = APIRouter()
+logger = logging.getLogger('register_person_router')
 
 
 class RegisterPersonProcessTask():
@@ -64,7 +66,7 @@ async def register_person_file(background_tasks: BackgroundTasks,
         task.run()
         response_data = task.response_data
     except Exception as excep:
-        print(excep, traceback.print_exc())
+        logger.error("%s: %s", excep, traceback.print_exc())
         response_data["message"] = "failed to register uploaded image to server"
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST , detail=response_data) from excep
 
@@ -88,7 +90,7 @@ async def register_person_url(background_tasks: BackgroundTasks,
         await download_url_file(img_url, file_cache_path)
         background_tasks.add_task(remove_file, file_cache_path)
     except Exception as excep:
-        print(excep, traceback.print_exc())
+        logger.error("%s: %s", excep, traceback.print_exc())
         response_data["message"] = f"couldn't download image from \'{img_url}\'. Not a valid link."
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST , detail=response_data) from excep
 
@@ -100,7 +102,7 @@ async def register_person_url(background_tasks: BackgroundTasks,
         task.run()
         response_data = task.response_data
     except Exception as excep:
-        print(excep, traceback.print_exc())
+        logger.error("%s: %s", excep, traceback.print_exc())
         response_data["message"] = f"failed to register url image from {img_url} to server"
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST , detail=response_data) from excep
 
