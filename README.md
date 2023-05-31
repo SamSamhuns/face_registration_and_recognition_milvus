@@ -72,6 +72,18 @@ Schema for creating person data table and the table name should be modified at: 
 mkdir -p volumes/person_images
 ```
 
+#### Note:
+
+When changing settings in `docker-compose.yml` for the different services i.e. mysql dbs creation, the existing docker and shared volumes might have to be purged. To avoid purges, manual creation/edit/deletion of databases must be done with mysql.
+
+<p style="color:red;">WARNING: This will delete all existing user, face-images, and vector records.</p> 
+
+```shell
+docker-compose down
+docker volume rm $(docker volume ls -q)
+rm -rf volumes
+```
+
 ## Setup with Docker Compose for Deployment
 
 **Start uvicorn and triton server with a milvus instance for face vector storage & search**
