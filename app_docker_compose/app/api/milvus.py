@@ -29,19 +29,17 @@ def get_milvus_collec_conn(
 
     if not utility.has_collection(collection_name):
         fields = [
-            FieldSchema(name="id", dtype=DataType.INT64,
-                        descrition="ids", is_primary=True, auto_id=True),
-            FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR,
-                        descrition="embedding vectors", dim=vector_dim),
             FieldSchema(name="person_id", dtype=DataType.INT64,
-                        descrition="persons unique id")
+                        descrition="persons unique id", is_primary=True, auto_id=False),
+            FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR,
+                        descrition="embedding vectors", dim=vector_dim)
         ]
         schema = CollectionSchema(
             fields=fields, description='face recognition system')
         milvus_collec_conn = Collection(name=collection_name,
                                  consistency_level="Strong",
                                  schema=schema, using='default')
-        logger.info(f"Collection {collection_name} created.✅️")
+        logger.info("Collection %s created.✅️", collection_name)
 
         # Indexing the milvus_collec_conn
         logger.info("Indexing the Collection...🕓")
@@ -53,9 +51,9 @@ def get_milvus_collec_conn(
         }
         milvus_collec_conn.create_index(
             field_name="embedding", index_params=index_params)
-        logger.info(f"Collection {collection_name} indexed.✅️")
+        logger.info("Collection %s indexed.✅️", collection_name)
     else:
-        logger.info(f"Collection {collection_name} present already.✅️")
+        logger.info("Collection %s present already.✅️", collection_name)
         milvus_collec_conn = Collection(collection_name)
     return milvus_collec_conn
 

@@ -11,7 +11,7 @@ from tests.conftest import FACE_VECTOR_DIM, TEST_PERSON_FILE_ID
 def test_insert_person_milvus(test_milvus_connec):
     """Inserts a test person into Milvus."""
     emb_vec = [0.0] * FACE_VECTOR_DIM
-    data = [[emb_vec], [TEST_PERSON_FILE_ID]]
+    data = [[TEST_PERSON_FILE_ID], [emb_vec]]
     assert test_milvus_connec.insert(data).insert_count == 1
 
 
