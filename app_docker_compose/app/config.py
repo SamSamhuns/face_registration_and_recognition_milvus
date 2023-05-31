@@ -19,6 +19,7 @@ os.makedirs(LOG_STORAGE_PATH, exist_ok=True)
 log_cfg = LogConfig()
 # override info & error log paths
 log_cfg.handlers["info_rotating_file_handler"]["filename"] = os.path.join(LOG_STORAGE_PATH, "info.log")
+log_cfg.handlers["warning_file_handler"]["filename"] = os.path.join(LOG_STORAGE_PATH, "error.log")
 log_cfg.handlers["error_file_handler"]["filename"] = os.path.join(LOG_STORAGE_PATH, "error.log")
 dictConfig(log_cfg.dict())
 
