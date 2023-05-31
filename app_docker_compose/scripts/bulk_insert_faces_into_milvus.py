@@ -1,6 +1,5 @@
 """
-
-Insert faces and related person information into the milvus and sql database
+Bulk insert faces and related person information into the milvus and sql database
 
 CelebA dataset website: http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html
 Aligned faces dataset: https://drive.google.com/drive/folders/0B7EVK8r0v71pWEZsZE9oNnFzTm8?resourcekey=0-5BR16BdXnb8hVj6CNHKzLg
@@ -14,17 +13,19 @@ First extract embeddings from faces and insert into milvus
 Second insert related face data into mysql database
 
 Run script as a module:
+    # note the milvus & mysql services must be running already
     python -m scripts.bulk_insert_faces_into_milvus
 
 requirements:
+    # requirements from app_docker_compose/requirements.txt must also be installed
 	pip install towhee==1.0.0rc1
 """
-import os.path as osp
+import uuid
 import glob
 import random
+import os.path as osp
 from datetime import date
 
-import uuid
 import pymysql
 from pymysql.cursors import DictCursor
 
@@ -60,8 +61,7 @@ def insert_embeddings_into_milvus_towhee(img_dir: str):
     """
     reference nb: https://github.com/towhee-io/examples/blob/main/image/reverse_image_search/1_build_image_search_engine.ipynb
     """
-    from towhee import pipe, ops, DataCollection, register
-    from pymilvus import connections, FieldSchema, CollectionSchema, DataType, Collection, utility
+    from towhee import pipe, ops, register
 
     insert_src_pat = osp.join(img_dir, "*.jpg")
 
@@ -173,12 +173,12 @@ def insert_data_into_mysql(img_dir: str):
 
 def main():
     """
-    Main function
+    Main function, the img dir containing face images should be passed into the insert_data functions
     """
     # insert_embeddings_into_milvus_towhee(
-    #     "/home/mluser/sam/face_registration_and_recognition_milvus/app_docker_compose/volumes/img_align_celeba_unique")
+    #     "../volumes/img_align_celeba_unique")
     insert_data_into_mysql(
-        "/home/mluser/sam/face_registration_and_recognition_milvus/app_docker_compose/volumes/img_align_celeba_unique")
+        "../volumes/img_align_celeba_unique")
 
 
 if __name__ == "__main__":
