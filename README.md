@@ -185,7 +185,11 @@ coverage report -m -i
 
 ### Encryption of faces
 
-The [Pyfhel](https://pyfhel.readthedocs.io/en/latest/index.html) library supports FHE schemes with BGV/BFV/CKKS to homomorphically encrypt face vectors so that operations like addition, multiplication, exponentiation or scalar product can be run on the encrypted vectors so that the results are same if the operations were run on non-encrypted vectors. This allows the vectors to be stored in a zero-trust database or untrusted vendor given that only the client has the private key to decrypt the vectors but the server can still run arithmetic operations on the vectors without compromising thier security. [See faces can be generated from inversing the face-embeddigns from facenet](chrome-extension://oemmndcbldboiebfnladdacbdfmadadm/https://edwardv.com/cs230_project.pdf).
+The [Pyfhel](https://pyfhel.readthedocs.io/en/latest/index.html) library supports FHE schemes with BGV/BFV/CKKS to homomorphically encrypt face vectors so that operations like addition, multiplication, exponentiation or scalar product can be run on the encrypted vectors so that the results are the same if the operations were run on non-encrypted vectors. 
+
+This allows the vectors to be stored in a zero-trust database or untrusted vendor given that only the client has the private key to decrypt the vectors but the server can still run arithmetic operations on the vectors without compromising their security. [See faces can be generated from reversing the face-embeddings from facenet](https://edwardv.com/cs230_project.pdf).
+
+An example script with client-server setup for finding closest embeddings with KNN is provided at [app_docker_compose/scripts/homomorphic_emb_face_search_knn.py].
 
 ### Attacks on facial recognition systems
 
@@ -196,6 +200,8 @@ Presentation Attacks (Performed in the physical domain while the faces are prese
 
 Indirect Attacks (Performed in the database level after the face image have already been ingested into the digital domain. Standard cybersecurity measures can counter these attacks)
 
+An example script with a train-test setup for training and testing the detection of real-vs-spoofed faces is provided at  [app_docker_compose/scripts/train_spoofed_face_vector_clsf.py].
+
 ### Countermeasures against face recognition attacks
 
 -   Stereo camera depth amp reading / 3D face structure reading / 3D face landmark detection
@@ -204,7 +210,7 @@ Indirect Attacks (Performed in the database level after the face image have alre
 -   Contextual information techniques (looking for hand)
 -   Algorithms:
    -   Texture analysis: Detect artifacts caused by imaging the screen (Moiré patterns) or Local Binary Patterns (LBPs)
-   -   Specular feature projections: Train SVM models on specular feature space projctions of genuine and spoofed face images for impersonation detection
+   -   Specular feature projections: Train SVM models on specular feature space projections of genuine and spoofed face images for impersonation detection
    -   Frequency analysis: Examine the Fourier domain of the face
    -   Optical flow algorithms: Examine the differences and properties of optical flow generated from 3D objects and 2D planes.
    -   Image quality assessment: Detect spoofs with an ensemble of image quality measures

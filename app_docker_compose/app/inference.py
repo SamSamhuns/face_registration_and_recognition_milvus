@@ -158,7 +158,7 @@ def register_person(
 
         # insert face_vector into milvus milvus_collec_conn
         face_vector = pred_dict["face_feats"][0].tolist()
-        data = [[face_vector], [person_id]]
+        data = [[person_id], [face_vector]]
         milvus_collec_conn.insert(data)
         logger.info("Vector for person with id: %s inserted into milvus db. ✅️",
                     person_id)
