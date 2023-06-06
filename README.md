@@ -142,7 +142,7 @@ docker-compose up -d etcd minio standalone attu mysql mysql-admin redis-server
 docker-compose ps
 ```
 
-#### 3b. Start face model triton=server
+#### 3b. Start face model triton-server
 
 ```shell
 # start triton-server in a docker container exposed onport 8081
