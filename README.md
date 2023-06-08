@@ -120,6 +120,14 @@ bash scripts/build_docker.sh
 
 ### 2. Local uvicorn requirements
 
+To properly resolve host-names in `.env`, the container service names in `docker-compose.yml` following must be added to `/etc/hosts` in the local system. This is not required when the fastapi-server is running inside a docker container.
+
+```shell
+127.0.0.1  standalone
+127.0.0.1  mysql
+127.0.0.1  redis-server
+```
+
 ```bash
 # setup virtual env (conda env is fine as well)
 python -m venv venv
@@ -226,14 +234,14 @@ Datasets for real vs fake face classification
 
 ### Notes on docker-compose yml setup
 
-Note if services other than the uvicorn web-api are to be exposed such as the milvus or minio servers, alter the `expose` options to published `ports` for access outside the docker containers.
+Note if services other than the uvicorn web-api are to be exposed such as the milvus or minio servers, alter the `expose` options to published `ports` for access outside the docker containers. When ports are exposed to all interfaces i.e. 0.0.0.0, using `ports` alone is enough to expose the inner port inside the container (`9002` below) to other containers in the same network.
 
 ```yaml
 expose:
   - "9001"
 
 ports:
-  - "9001:9001"
+  - "9001:9002"
 ```
 
 For `docker-compose version 1.29.2` and `yaml version 3.9`, `mem_limit` can be used with `docker-compose up`:

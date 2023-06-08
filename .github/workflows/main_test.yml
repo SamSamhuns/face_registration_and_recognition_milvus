@@ -79,6 +79,12 @@ jobs:
           echo REDIS_HOST=redis-server >> .env
           echo REDIS_PORT=6379 >> .env
 
+      - name: Add hosts to /etc/hosts
+        run: |
+            sudo echo "127.0.0.1  standalone" | sudo tee -a /etc/hosts
+            sudo echo "127.0.0.1  mysql" | sudo tee -a /etc/hosts
+            sudo echo "127.0.0.1  redis-server" | sudo tee -a /etc/hosts
+
       - name: Build Docker Compose services
         run: docker-compose -f app_docker_compose/docker-compose.yml build
 

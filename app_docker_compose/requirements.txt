@@ -4,7 +4,7 @@ gdown==4.7.1
 opencv-python==4.7.0.72
 Pillow==9.5.0
 python-multipart==0.0.6
-pymilvus<=2.2.7
+pymilvus==2.2.9
 PyMySQL==1.0.3
 redis==4.5.4
 requests==2.31.0
