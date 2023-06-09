@@ -30,9 +30,9 @@ def get_milvus_collec_conn(
     if not utility.has_collection(collection_name):
         fields = [
             FieldSchema(name="person_id", dtype=DataType.INT64,
-                        descrition="persons unique id", is_primary=True, auto_id=False),
+                        description="persons unique id", is_primary=True, auto_id=False),
             FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR,
-                        descrition="embedding vectors", dim=vector_dim)
+                        description="embedding vectors", dim=vector_dim)
         ]
         schema = CollectionSchema(
             fields=fields, description='face recognition system')
