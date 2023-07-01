@@ -1,12 +1,12 @@
 aiofiles==23.1.0
-fastapi==0.95.1
+fastapi==0.99.0
 gdown==4.7.1
-opencv-python==4.7.0.72
+opencv-python==4.8.0.74
 Pillow==9.5.0
 python-multipart==0.0.6
-pymilvus==2.2.9
+pymilvus==2.2.13
 PyMySQL==1.0.3
-redis==4.5.4
+redis==4.6.0
 requests==2.31.0
 tritonclient[grpc]==2.32.0
-uvicorn==0.21.1
+uvicorn==0.22.0

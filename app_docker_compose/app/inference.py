@@ -26,7 +26,7 @@ from config import (DOWNLOAD_IMAGE_PATH,
                     FACE_INDEX_TYPE, FACE_COLLECTION_NAME)
 
 
-logger = logging.getLogger('inferenc_api')
+logger = logging.getLogger('inference_api')
 
 # connect to Redis
 redis_conn = redis.Redis(
