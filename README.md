@@ -79,6 +79,7 @@ When changing settings in `docker-compose.yml` for the different services i.e. m
 <p style="color:red;">WARNING: This will delete all existing user, face-images, and vector records.</p> 
 
 ```shell
+# run inside the same directory as docker-compose.yml
 docker-compose down
 docker volume rm $(docker volume ls -q)
 rm -rf volumes
