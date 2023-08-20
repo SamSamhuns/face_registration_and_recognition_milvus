@@ -16,8 +16,8 @@ from pydantic import BaseModel
 class LogConfig(BaseModel):
     """Logging configuration to be set for the server"""
 
-    INFO_FILE_PATH = "info.log"
-    ERROR_FILE_PATH = "error.log"
+    INFO_FILE_PATH: str = "info.log"
+    ERROR_FILE_PATH: str = "error.log"
 
     # Logging config
     version = 1
