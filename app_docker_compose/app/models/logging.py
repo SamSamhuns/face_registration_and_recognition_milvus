@@ -20,9 +20,9 @@ class LogConfig(BaseModel):
     ERROR_FILE_PATH: str = "error.log"
 
     # Logging config
-    version = 1
-    disable_existing_loggers = False
-    formatters = {
+    version: int = 1
+    disable_existing_loggers: bool = False
+    formatters: dict = {
         'info': {
             "()": "uvicorn.logging.DefaultFormatter",
             "fmt": "%(levelprefix)s | %(asctime)s | %(name)s | %(message)s",
@@ -34,7 +34,7 @@ class LogConfig(BaseModel):
             "datefmt": "%Y-%m-%d %H:%M:%S",
         },
     }
-    handlers = {
+    handlers: dict = {
         'debug_console_handler': {
             'level': 'DEBUG',
             'formatter': 'info',
@@ -74,7 +74,7 @@ class LogConfig(BaseModel):
             'subject': 'Critical error with application name'
         },
     }
-    loggers = {
+    loggers: dict = {
         '': {  # root logger
             'level': 'NOTSET',
             'handlers': ['debug_console_handler', 'info_rotating_file_handler', 'error_file_handler', 'critical_mail_handler'],
