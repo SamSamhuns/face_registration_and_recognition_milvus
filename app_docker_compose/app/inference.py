@@ -13,6 +13,7 @@ from pymilvus import MilvusException
 from triton_server.inference_trtserver import run_inference
 from api.milvus import get_milvus_collec_conn
 from api.mysql import (insert_person_data_into_sql,
+                       select_all_person_data_from_sql,
                        select_person_data_from_sql_with_id,
                        delete_person_data_from_sql_with_id)
 from config import (DOWNLOAD_IMAGE_PATH,
@@ -77,6 +78,14 @@ def get_registered_person(
         mysql_conn, table, person_id)
 
 
+def get_all_registered_person(
+        table: str = MYSQL_CUR_TABLE) -> dict:
+    """
+    Get all registered persons query mysql
+    """
+    return select_all_person_data_from_sql(mysql_conn, table)
+
+
 def unregister_person(
         person_id: int,
         table: str = MYSQL_CUR_TABLE) -> dict:
@@ -118,7 +127,7 @@ def unregister_person(
 def register_person(
         model_name: str,
         file_path: str,
-        threshold: float,
+        face_det_threshold: float,
         person_data: dict,
         table: str = MYSQL_CUR_TABLE) -> dict:
     """
@@ -136,7 +145,7 @@ def register_person(
     pred_dict = run_inference(
         file_path,
         face_feat_model=model_name,
-        face_det_thres=threshold,
+        face_det_thres=face_det_threshold,
         face_bbox_area_thres=0.10,
         face_count_thres=1,
         return_mode="json")
@@ -190,7 +199,7 @@ def register_person(
 def recognize_person(
         model_name: str,
         file_path: str,
-        threshold: float,
+        face_det_threshold: float,
         face_dist_threshold: float = 0.1,
         table: str = MYSQL_CUR_TABLE) -> dict:
     """
@@ -200,7 +209,7 @@ def recognize_person(
     pred_dict = run_inference(
         file_path,
         face_feat_model=model_name,
-        face_det_thres=threshold,
+        face_det_thres=face_det_threshold,
         face_bbox_area_thres=0.10,
         face_count_thres=1,
         return_mode="json")
@@ -228,6 +237,7 @@ def recognize_person(
     results = sorted(results, key=lambda k: k.distances)
 
     face_dist = results[0].distances[0]
+
     person_id = results[0][0].entity.get("person_id")
     if face_dist > face_dist_threshold:
         return {"status": "success",

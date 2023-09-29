@@ -4,13 +4,26 @@ Basic operations for faces
 from fastapi import APIRouter
 from fastapi import status, HTTPException
 
-from inference import get_registered_person as get_registered_person_api
+from inference import (get_registered_person as get_registered_person_api, 
+                       get_all_registered_person as get_all_registered_person_api)
 from inference import unregister_person as unregister_person_api
 
 
 router = APIRouter()
 
 # note: person insert/post is done with person_registration route instead
+
+
+@router.get("/person")
+async def get_all_registered_persons():
+    """Gets all registered persons."""
+    response_data = {}
+    try:
+        response_data = get_all_registered_person_api()
+    except Exception as excep:
+        response_data["message"] = "No registered persons found"
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST , detail=response_data) from excep
+    return response_data
 
 
 @router.get("/person/{person_id}")

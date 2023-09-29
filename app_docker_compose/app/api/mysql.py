@@ -45,12 +45,35 @@ def select_person_data_from_sql_with_id(mysql_conn, mysql_tb, person_id: int) ->
             cursor.execute(query, values)
             person_data = cursor.fetchone()
             if person_data is None:
-                logger.error("mysql record with id: %s does not exist ❌.", person_id)
+                logger.warning("mysql record with id: %s does not exist ❌.", person_id)
                 return {"status": "failed",
                         "message": "mysql record with id: {person_id} does not exist"}
             logger.info("Person with id: %s retrieved from mysql db.✅️", person_id)
             return {"status": "success",
                     "message": f"record matching id: {person_id} retrieved from mysql db",
+                    "person_data": person_data}
+    except pymysql.Error as excep:
+        logger.error("%s: mysql record retrieval failed ❌", excep)
+        return {"status": "failed",
+                "message": "mysql record retrieval error"}
+
+
+def select_all_person_data_from_sql(mysql_conn, mysql_tb) -> dict:
+    """
+    Query mysql db to get all person data
+    """
+    query = f"SELECT * FROM {mysql_tb}"
+    try:
+        with mysql_conn.cursor() as cursor:
+            cursor.execute(query)
+            person_data = cursor.fetchall()
+            if person_data is None:
+                logger.warning("No mysql person records were found ❌.")
+                return {"status": "failed",
+                        "message": "No mysql person records were found."}
+            logger.info("All persons records retrieved from mysql db.✅️")
+            return {"status": "success",
+                    "message": "All person records retrieved from mysql db",
                     "person_data": person_data}
     except pymysql.Error as excep:
         logger.error("%s: mysql record retrieval failed ❌", excep)
