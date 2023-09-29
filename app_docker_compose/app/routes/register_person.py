@@ -37,7 +37,7 @@ class RegisterPersonProcessTask():
         results = self.func(
             model_name=self.input_data.model_name,
             file_path=self.input_data.file_path,
-            threshold=self.input_data.threshold,
+            face_det_threshold=self.input_data.face_det_threshold,
             person_data=self.input_data.person_data.dict())
         self.response_data = {**results}
 
@@ -83,7 +83,6 @@ async def register_person_url(background_tasks: BackgroundTasks,
     """
     response_data = {}
     try:
-        os.makedirs(DOWNLOAD_CACHE_PATH, exist_ok=True)
         file_name = str(uuid.uuid4()) + get_mode_ext("image")
         file_cache_path = os.path.join(DOWNLOAD_CACHE_PATH, file_name)
 

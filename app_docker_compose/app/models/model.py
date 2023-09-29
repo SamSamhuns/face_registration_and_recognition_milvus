@@ -32,7 +32,8 @@ class InputModel(BaseModel):
     """
     model_name: str
     file_path: str
-    threshold: float = 0.3
+    face_det_threshold: float = 0.3
+    face_dist_threshold: float = 10
     person_data: PersonModel = None
 
 
