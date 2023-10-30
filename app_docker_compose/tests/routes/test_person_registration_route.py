@@ -2,7 +2,6 @@
 Test person registration route
 """
 import pytest
-from app.models import ModelType
 from tests.conftest import MYSQL_TEST_TABLE, TEST_PERSON_FILE_ID, TEST_PERSON_URL_ID
 
 
@@ -44,7 +43,6 @@ async def test_registration_one_person_url(
     furl = mock_one_face_image_2_url
     param_dict = mock_person_data_dict(TEST_PERSON_URL_ID)
     param_dict["img_url"] = furl
-    param_dict["model_type"] = ModelType.SLOW.value
     response = await test_app_asyncio.post(
         "/register_person_url",
         params=param_dict)

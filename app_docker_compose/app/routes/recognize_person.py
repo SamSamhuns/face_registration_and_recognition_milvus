@@ -11,9 +11,9 @@ from fastapi import UploadFile, File, BackgroundTasks
 from fastapi import status, HTTPException
 
 from inference import recognize_person
-from models import InputModel, ModelType
+from models import InputModel
 from utils import get_mode_ext, remove_file, download_url_file, cache_file_locally
-from config import DOWNLOAD_CACHE_PATH
+from config import DOWNLOAD_CACHE_PATH, FACE_FEAT_MODEL_TYPE
 
 
 router = APIRouter()
@@ -49,7 +49,6 @@ async def recognize_person_file(background_tasks: BackgroundTasks,
     recognize person from the face image file uploaded as a file
     """
     response_data = {}
-    model_type: ModelType = ModelType.SLOW  # default to SLOW for now
     try:
         file_name = str(uuid.uuid4()) + get_mode_ext("image")
         file_bytes_content = img_file.file.read()
@@ -59,7 +58,7 @@ async def recognize_person_file(background_tasks: BackgroundTasks,
         background_tasks.add_task(remove_file, file_cache_path)
 
         input_data = InputModel(
-            model_name=model_type.value, file_path=file_cache_path)
+            model_name=FACE_FEAT_MODEL_TYPE.name, file_path=file_cache_path)
         task = RecognizePersonProcessTask(recognize_person, input_data)
         task.run()
         response_data = task.response_data
@@ -78,7 +77,6 @@ async def recognize_person_url(background_tasks: BackgroundTasks,
     recognize person from the face image file provided as a url
     """
     response_data = {}
-    model_type: ModelType = ModelType.SLOW  # default to SLOW for now
     try:
         file_name = str(uuid.uuid4()) + get_mode_ext("image")
         file_cache_path = os.path.join(DOWNLOAD_CACHE_PATH, file_name)
@@ -91,7 +89,7 @@ async def recognize_person_url(background_tasks: BackgroundTasks,
 
     try:
         input_data = InputModel(
-            model_name=model_type.value, file_path=file_cache_path)
+            model_name=FACE_FEAT_MODEL_TYPE.name, file_path=file_cache_path)
         task = RecognizePersonProcessTask(recognize_person, input_data)
         task.run()
         response_data = task.response_data

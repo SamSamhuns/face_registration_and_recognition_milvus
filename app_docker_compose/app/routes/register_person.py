@@ -11,9 +11,9 @@ from fastapi import UploadFile, File, Depends, BackgroundTasks
 from fastapi import status, HTTPException
 
 from inference import register_person
-from models import InputModel, PersonModel, ModelType
+from models import InputModel, PersonModel
 from utils import get_mode_ext, remove_file, download_url_file, cache_file_locally
-from config import DOWNLOAD_CACHE_PATH
+from config import DOWNLOAD_CACHE_PATH, FACE_FEAT_MODEL_TYPE
 
 
 router = APIRouter()
@@ -50,7 +50,6 @@ async def register_person_file(background_tasks: BackgroundTasks,
     registers person face and info with the face uploaded as an image file
     """
     response_data = {}
-    model_type: ModelType = ModelType.SLOW  # default to SLOW for now
     try:
         file_name = str(uuid.uuid4()) + get_mode_ext("image")
         file_bytes_content = img_file.file.read()
@@ -59,7 +58,7 @@ async def register_person_file(background_tasks: BackgroundTasks,
         await cache_file_locally(file_cache_path, file_bytes_content)
         background_tasks.add_task(remove_file, file_cache_path)
 
-        input_data = InputModel(model_name=model_type.value,
+        input_data = InputModel(model_name=FACE_FEAT_MODEL_TYPE.name,
                                 file_path=file_cache_path,
                                 person_data=person_data)
         task = RegisterPersonProcessTask(register_person, input_data)
@@ -75,7 +74,6 @@ async def register_person_file(background_tasks: BackgroundTasks,
 
 @router.post("/register_person_url")
 async def register_person_url(background_tasks: BackgroundTasks,
-                              model_type: ModelType,
                               img_url: str,
                               person_data: PersonModel = Depends()):
     """
@@ -94,7 +92,7 @@ async def register_person_url(background_tasks: BackgroundTasks,
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST , detail=response_data) from excep
 
     try:
-        input_data = InputModel(model_name=model_type.value,
+        input_data = InputModel(model_name=FACE_FEAT_MODEL_TYPE.name,
                                 file_path=file_cache_path,
                                 person_data=person_data)
         task = RegisterPersonProcessTask(register_person, input_data)

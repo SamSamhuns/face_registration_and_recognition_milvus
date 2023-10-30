@@ -125,7 +125,7 @@ def face_embedding_extractor_iter(img_dir: str):
     for file_path in imgs:
         pred_dict = run_inference(
             file_path,
-            face_feat_model=ModelType.SLOW.value,
+            face_feat_model=ModelType.FACENET.name,
             face_det_thres=0.3,
             face_bbox_area_thres=0.10,
             face_count_thres=1,

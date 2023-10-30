@@ -3,7 +3,6 @@ Test person recognition route
 """
 import copy
 import pytest
-from app.models import ModelType
 from tests.conftest import TEST_PERSON_FILE_ID, TEST_PERSON_URL_ID
 
 
