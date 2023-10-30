@@ -4,7 +4,7 @@ configurations and env variables load
 import os
 from logging.config import dictConfig
 from models.logging import LogConfig
-
+from models import ModelType
 
 # save directories
 DOWNLOAD_CACHE_PATH = os.getenv('DOWNLOAD_CACHE_PATH', default="app/.data")
@@ -43,7 +43,8 @@ MYSQL_CUR_TABLE = os.getenv("MYSQL_CUR_TABLE", default=MYSQL_PERSON_TABLE)
 # milvus conf
 MILVUS_HOST = os.getenv("MILVUS_HOST", default="0.0.0.0")
 MILVUS_PORT = int(os.getenv("MILVUS_PORT", default="19530"))
-FACE_VECTOR_DIM = 128
+FACE_FEAT_MODEL_TYPE = ModelType.FACENET
+FACE_VECTOR_DIM = FACE_FEAT_MODEL_TYPE.dim
 FACE_METRIC_TYPE = "L2"
 FACE_INDEX_TYPE = "IVF_FLAT"
 FACE_COLLECTION_NAME = 'faces'
