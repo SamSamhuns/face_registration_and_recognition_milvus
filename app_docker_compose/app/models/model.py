@@ -4,6 +4,10 @@ data models for fastapi+uvicorn server
 from datetime import date
 from enum import Enum
 from pydantic import BaseModel
+from collections import namedtuple
+
+
+Model = namedtuple('Model', ['name', 'dim'])
 
 
 class PersonModel(BaseModel):
@@ -37,9 +41,10 @@ class InputModel(BaseModel):
     person_data: PersonModel = None
 
 
-class ModelType(str, Enum):
+class ModelType(Model, Enum):
     """
-    Face feature extraction model type
+    Face feature model name and vector dimension
     """
-    FAST = "face-reidentification-retail-0095"
-    SLOW = "facenet_trtserver"
+    FACE_REID = Model("face-reidentification-retail-0095", 256)
+    FACENET = Model("facenet_trtserver", 128)
+    ARCFACE = Model("arcface_resnet18_110", 512)
