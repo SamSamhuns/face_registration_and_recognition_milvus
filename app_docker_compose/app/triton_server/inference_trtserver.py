@@ -104,6 +104,8 @@ def run_inference(media_filename: str,
         FLAGS.model_name = "ensemble_face_facenet"
     elif face_feat_model == "face-reidentification-retail-0095":
         FLAGS.model_name = "ensemble_face_face_reid"
+    elif face_feat_model == "arcface_resnet18_110":
+        FLAGS.model_name = "ensemble_face_arcface"
     else:
         raise NotImplementedError(
             f"face_feat_model {face_feat_model} is not implemented")
