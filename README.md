@@ -6,7 +6,7 @@
 
 Tested with `docker-compose version 1.29.2`.
 
-Backend system for detecting and saving a person's face from images into a vectorized milvus database to run facial recognition on images along with saving the person's data in a redis-cached mysql table for later retrieval. (Note: The system currently only supports one face per image for both face registration and lookup).
+Backend system for detecting and saving a person's face from images into a vectorized milvus database to run facial recognition on images along with saving the person's data in a redis-cached mysql table for later retrieval. (Note: The system currently only supports one face per image for both face registration and lookup). This repository currently only works with systems with Intel x86_64 cpus and does not support arm64 based systems (i.e. Apple M1 chips).
 
 <img src="app_docker_compose/app/static/project_flow.png" width="60%" />
 
@@ -69,6 +69,7 @@ Schema for creating person data table and the table name should be modified at: 
 ### 4. Create a volume directory to hold user images
 
 ```shell
+cd app_docker_compose
 mkdir -p volumes/person_images
 ```
 
@@ -89,11 +90,13 @@ rm -rf volumes
 
 **Start uvicorn and triton server with a milvus instance for face vector storage & search**
 
-Note, an easier way to use later versions of docker-compose is to install the pip package with `pip install docker-compose` in a venv
+Note, an easier way to use later versions of docker-compose is to install the pip package with `pip install docker-compose==1.29.2; pip install docker==6.1.3` in a venv.
+
+If there are GPG key errors during the build of `uvicorn_trt_server:latest` image, update docker to the latest version or check out this [nvidia blog for updating cuda linux gpg keys](https://developer.nvidia.com/blog/updating-the-cuda-linux-gpg-repository-key/)
 
 ```shell
 cd app_docker_compose
-# create shared volume directory to store imgs
+# create shared volume directory to store imgs if not already created
 mkdir -p volumes/person_images
 # build all required containers
 docker-compose build
