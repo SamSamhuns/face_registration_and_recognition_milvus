@@ -3,7 +3,7 @@ data models for fastapi+uvicorn server
 """
 from datetime import date
 from enum import Enum
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from collections import namedtuple
 
 
@@ -39,6 +39,10 @@ class InputModel(BaseModel):
     face_det_threshold: float = 0.3
     face_dist_threshold: float = 10
     person_data: PersonModel = None
+
+    model_config = ConfigDict(
+        protected_namespaces=('restricted_')
+    )
 
 
 class ModelType(Model, Enum):
