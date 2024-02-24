@@ -149,16 +149,16 @@ def test_funcs():
     Tests basic Pyfhel functions
     """
     # create vector dataset
-    dataset = [np.random.random(EMB_LENGTH) for _ in range(100)]
-    dataset = np.asarray(dataset)
+    vdataset = [np.random.random(EMB_LENGTH) for _ in range(100)]
+    vdataset = np.asarray(vdataset)
 
     # example of a multiplication operation on encrypted vectors
     HE = get_pyfhel_obj()
-    ctxt = HE.encrypt(dataset[0])
+    ctxt = HE.encrypt(vdataset[0])
     ctxt *= ctxt
     HE.relinKeyGen()  # relinearize after ctxt-ctxt mults
     dtxt = HE.decrypt(ctxt)[:EMB_LENGTH]  # len(arrs) < n filled with 0s
-    print(np.allclose(dtxt, dataset[0] * dataset[0], atol=0.0001))
+    print(np.allclose(dtxt, vdataset[0] * vdataset[0], atol=0.0001))
 
     # sub, square and cumulative sum example, i.e. square of l2 dist
     a, b = np.asarray([2.0, 4.0, 6.0]), np.asarray([1.0, 1.0, 2.0])

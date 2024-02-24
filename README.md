@@ -8,9 +8,9 @@ Tested with `docker-compose version 1.29.2`.
 
 Backend system for detecting and saving a person's face from images into a vectorized milvus database to run facial recognition on images along with saving the person's data in a redis-cached mysql table for later retrieval. (Note: The system currently only supports one face per image for both face registration and lookup). This repository currently only works with systems with Intel x86_64 cpus and does not support arm64 based systems (i.e. Apple M1 chips).
 
-<img src="app_docker_compose/app/static/project_flow.png" width="60%" />
+<img src="app_docker_compose/app/static/project_flow.png" width="60%" alt="project flow" />
 
--   [milvus official setup reference](https://milvus.io/docs/install_standalone-docker.md)
+- [milvus official setup reference](https://milvus.io/docs/install_standalone-docker.md)
 
 ## Setup
 
@@ -27,7 +27,7 @@ unzip models.zip -d app_docker_compose/app/triton_server
 rm models.zip
 ```
 
-### 2, Create .env file
+### 2. Create .env file
 
 Create a `.env` file inside `app_docker_compose` based on the following parameters with necessary variables replaced:
 
@@ -75,9 +75,10 @@ mkdir -p volumes/person_images
 
 #### Note:
 
-When changing settings in `docker-compose.yml` for the different services i.e. mysql dbs creation, the existing docker and shared volumes might have to be purged. To avoid purges, manual creation/edit/deletion of databases must be done with mysql.
+When changing settings in `docker-compose.yml` for the different services i.e. mysql dbs creation, the existing docker and shared volumes might have to be purged.
+To avoid purges, manual creation/edit/deletion of databases must be done with mysql.
 
-<p style="color:red;">WARNING: This will delete all existing user, face-images, and vector records.</p> 
+<p style="color:red;">WARNING: This will delete all existing users, face-images, and vector records.</p> 
 
 ```shell
 # run inside the same directory as docker-compose.yml
@@ -88,7 +89,7 @@ rm -rf volumes
 
 ## Setup with Docker Compose for Deployment
 
-**Start uvicorn and triton server with a milvus instance for face vector storage & search**
+### Start uvicorn and triton server with a milvus instance for face vector storage & search
 
 Note, an easier way to use later versions of docker-compose is to install the pip package with `pip install docker-compose==1.29.2; pip install docker==6.1.3` in a venv.
 
@@ -224,7 +225,7 @@ An example script with a train-test setup for training and testing the detection
    -   Texture analysis: Detect artifacts caused by imaging the screen (Moiré patterns) or Local Binary Patterns (LBPs)
    -   Specular feature projections: Train SVM models on specular feature space projections of genuine and spoofed face images for impersonation detection
    -   Frequency analysis: Examine the Fourier domain of the face
-   -   Optical flow algorithms: Examine the differences and properties of optical flow generated from 3D objects and 2D planes.
+   -   Optical flow algorithms: Examine the differences & properties of optical flow generated from 3D objects & 2D planes.
    -   Image quality assessment: Detect spoofs with an ensemble of image quality measures
    -   Depth feature fusion: Deep feature fusion network structure with CNNs & SENet using facial image color features
    -   DNNs: Face classifiers trained on large dataset of real & spoofed images 
