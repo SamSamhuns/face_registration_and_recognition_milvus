@@ -2,7 +2,7 @@
 common utils
 """
 import os
-import urllib.request as urllib2
+import requests
 
 
 def get_mode_ext(mode):
@@ -26,16 +26,24 @@ def remove_file(path: str) -> None:
         os.remove(path)
 
 
-async def download_url_file(download_url: str, download_path: str) -> None:
+async def download_url_file(download_url: str, download_path: str, timeout: int = 60) -> None:
     """
-    Downloads the file at the given URL to the local path.
+    Downloads the file at the given URL to the local path using requests library.
+    This version uses streaming to handle large files and includes basic error handling.
     Args:
         download_url (str): The URL of the file to download.
         download_path (str): The local path to save the downloaded file.
+        timeout (int): The timeout in seconds to use for the request.
     """
-    response = urllib2.urlopen(download_url)
-    with open(download_path, "wb") as fwtr:
-        fwtr.write(response.read())
+    # Stream the download to handle large files
+    with requests.get(download_url, stream=True, timeout=timeout) as response:
+        # Raise an HTTPError for bad responses
+        response.raise_for_status()
+
+        # Write the file out in chunks to avoid using too much memory
+        with open(download_path, "wb") as file:
+            for chunk in response.iter_content(chunk_size=8192):
+                file.write(chunk)
 
 
 async def cache_file_locally(file_cache_path: str, data: bytes) -> None:

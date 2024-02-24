@@ -57,6 +57,12 @@ async def index():
     return {"Welcome to Person Face Registration & Recognition Service": "Please visit /docs for list of apis"}
 
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint to verify server is running."""
+    return {"status": "healthy"}
+
+
 @app.get('/favicon.ico')
 async def favicon():
     """Favicon endpoint. Returns the favicon."""
