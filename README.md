@@ -22,7 +22,7 @@ source venv/bin/activate
 # inside venv/virtualenv/conda
 pip install gdown
 # download model weights
-gdown 1tVhogjONxExRFQ65FnEtvYYzJ2Dme9iq
+gdown 12zPEd0IgrEDJU3jcMj5EZWU0Yt7GKTRp
 unzip models.zip -d app_docker_compose/app/triton_server
 rm models.zip
 ```
