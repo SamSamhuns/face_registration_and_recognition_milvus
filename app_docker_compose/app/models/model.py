@@ -49,6 +49,6 @@ class ModelType(Model, Enum):
     """
     Face feature model name and vector dimension
     """
-    FACE_REID = Model("face-reidentification-retail-0095", 256)
-    FACENET = Model("facenet_trtserver", 128)
+    FACE_REID = Model("face_reid_retail_0095", 256)
+    FACENET = Model("facenet", 128)
     ARCFACE = Model("arcface_resnet18_110", 512)

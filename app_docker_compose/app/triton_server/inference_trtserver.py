@@ -48,9 +48,9 @@ def postprocess(results, orig_img_size: Tuple[int, int], input_img_size: Tuple[i
     results_arr = results.as_numpy("ENSEMBLE_FACE_FEAT")
     if results_arr.any():
         for i, result in enumerate(results_arr):
-            if FLAGS.face_feat_model[0].decode() == "facenet_trtserver":
+            if FLAGS.face_feat_model[0].decode() == "facenet":
                 pass   # result = result
-            elif FLAGS.face_feat_model[0].decode() == "face-reidentification-retail-0095":
+            elif FLAGS.face_feat_model[0].decode() == "face_reid_retail_0095":
                 result = result.squeeze()
             predictions["face_feats"].append(result)
 
@@ -72,7 +72,7 @@ def postprocess(results, orig_img_size: Tuple[int, int], input_img_size: Tuple[i
 
 
 def run_inference(media_filename: str,
-                  face_feat_model: str = "facenet_trtserver",
+                  face_feat_model: str = "facenet",
                   face_det_thres: float = 0.55,
                   face_bbox_area_thres: float = 0.10,
                   face_count_thres: int = 1,
@@ -100,12 +100,12 @@ def run_inference(media_filename: str,
     FLAGS.batch_size = 1
     FLAGS.fixed_input_width = None
     FLAGS.fixed_input_height = None
-    if face_feat_model == "facenet_trtserver":
+    if face_feat_model == "facenet":
         FLAGS.model_name = "ensemble_face_facenet"
-    elif face_feat_model == "face-reidentification-retail-0095":
-        FLAGS.model_name = "ensemble_face_face_reid"
+    elif face_feat_model == "face_reid_retail_0095":
+        FLAGS.model_name = "ensemble_face_face_reid_retail_0095"
     elif face_feat_model == "arcface_resnet18_110":
-        FLAGS.model_name = "ensemble_face_arcface"
+        FLAGS.model_name = "ensemble_face_arcface_resnet18_110"
     else:
         raise NotImplementedError(
             f"face_feat_model {face_feat_model} is not implemented")
@@ -200,7 +200,7 @@ def main():
     """
     run_inference(
         "static/faces/one_face_1.jpg",
-        face_feat_model="facenet_trtserver",
+        face_feat_model="facenet",
         face_det_thres=0.55,
         face_bbox_area_thres=0.10,
         face_count_thres=1,
