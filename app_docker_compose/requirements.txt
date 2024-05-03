@@ -2,7 +2,7 @@ aiofiles==23.2.1
 fastapi==0.109.2
 gdown==5.1.0
 opencv-python==4.9.0.80
-pillow==10.2.0
+pillow==10.3.0
 python-multipart==0.0.9
 pymilvus==2.3.6
 PyMySQL==1.1.0
