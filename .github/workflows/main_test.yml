@@ -78,10 +78,10 @@ jobs:
 
       - name: Free apt & pip cache
         run: |
-            apt-get clean
-            apt-get autoremove -y
-            rm -rf /var/lib/apt/lists/*
-            rm -rf /root/.cache/pip
+            sudo apt-get clean
+            sudo apt-get autoremove -y
+            sudo rm -rf /var/lib/apt/lists/*
+            sudo rm -rf /root/.cache/pip
 
       - name: Create .env file
         working-directory: app_docker_compose
