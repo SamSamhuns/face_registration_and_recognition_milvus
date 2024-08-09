@@ -5,6 +5,7 @@ import pytest
 
 
 @pytest.mark.asyncio
+@pytest.mark.timeout(10)  # Timeout in seconds
 async def test_server_root(test_app_asyncio):
     """
     Test if fastapi+uvicorn server is up
