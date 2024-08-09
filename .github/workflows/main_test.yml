@@ -46,10 +46,22 @@ jobs:
       - name: Verify cached models present
         run: ls app_docker_compose/app/triton_server/models
 
-      - name: Set up Docker Compose
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Install Docker Compose
         run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose
+          sudo curl -L "https://github.com/docker/compose/releases/download/2.29.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/do
 
       - name: Cache python modules
         uses: actions/cache@v2
