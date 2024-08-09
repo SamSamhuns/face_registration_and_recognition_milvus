@@ -4,7 +4,7 @@
 
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 
-Tested with `docker-compose version 1.29.2`.
+Tested with `docker compose version 1.29.2`.
 
 Backend system for detecting and saving a person's face from images into a vectorized milvus database to run facial recognition on images along with saving the person's data in a redis-cached mysql table for later retrieval. (Note: The system currently only supports one face per image for both face registration and lookup). This repository currently only works with systems with Intel x86_64 cpus and does not support arm64 based systems (i.e. Apple M1 chips).
 
@@ -20,15 +20,15 @@ Backend system for detecting and saving a person's face from images into a vecto
     - [2. Create .env file](#2-create-env-file)
     - [3. Setup sql schema for storing person data](#3-setup-sql-schema-for-storing-person-data)
     - [4. Create a volume directory to hold user images](#4-create-a-volume-directory-to-hold-user-images)
-      - [Note:](#note)
+      - [Notes on editing docker-compose.yml](#notes-on-editing-docker-composeyml)
   - [Setup with Docker Compose for Deployment](#setup-with-docker-compose-for-deployment)
     - [Docker Compose Setup](#docker-compose-setup)
     - [Start uvicorn and triton server with a milvus instance for face vector storage \& search](#start-uvicorn-and-triton-server-with-a-milvus-instance-for-face-vector-storage--search)
   - [Setup with Docker and local python envs for Development](#setup-with-docker-and-local-python-envs-for-development)
-    - [1. Build docker](#1-build-docker)
+    - [1. Build uvicorn\_trt\_server docker](#1-build-uvicorn_trt_server-docker)
     - [2. Local uvicorn requirements](#2-local-uvicorn-requirements)
     - [3. Run servers](#3-run-servers)
-      - [3a. Start all required microservices with docker-compose](#3a-start-all-required-microservices-with-docker-compose)
+      - [3a. Start all required microservices with docker compose](#3a-start-all-required-microservices-with-docker-compose)
       - [3b. Start face model triton-server](#3b-start-face-model-triton-server)
       - [3c. Run fastapi + uvicorn server](#3c-run-fastapi--uvicorn-server)
   - [Running tests](#running-tests)
@@ -36,7 +36,7 @@ Backend system for detecting and saving a person's face from images into a vecto
     - [Encryption of faces](#encryption-of-faces)
     - [Attacks on facial recognition systems](#attacks-on-facial-recognition-systems)
     - [Countermeasures against face recognition attacks](#countermeasures-against-face-recognition-attacks)
-    - [Notes on docker-compose yml setup](#notes-on-docker-compose-yml-setup)
+    - [Notes on docker compose yml setup](#notes-on-docker-compose-yml-setup)
     - [Notes on triton-server](#notes-on-triton-server)
   - [Acknowledgements](#acknowledgements)
 
@@ -88,7 +88,7 @@ REDIS_HOST=redis-server
 REDIS_PORT=6379
 ```
 
-Note: Only `.env` allows docker-compose to access variables inside `.env` file during build-time. Using `env_file` or the `environment` parameters inside the docker-compose file only allows variable access inside containers and not during build time.
+Note: Only `.env` allows docker compose to access variables inside `.env` file during build-time. Using `env_file` or the `environment` parameters inside the docker compose file only allows variable access inside containers and not during build time.
 
 ### 3. Setup sql schema for storing person data
 
@@ -101,7 +101,7 @@ cd app_docker_compose
 mkdir -p volumes/person_images
 ```
 
-#### Note:
+#### Notes on editing docker-compose.yml
 
 When changing settings in `docker-compose.yml` for the different services i.e. mysql dbs creation, the existing docker and shared volumes might have to be purged.
 To avoid purges, manual creation/edit/deletion of databases must be done with mysql.
@@ -109,8 +109,8 @@ To avoid purges, manual creation/edit/deletion of databases must be done with my
 <p style="color:red;">WARNING: This will delete all existing users, face-images, and vector records.</p> 
 
 ```shell
-# run inside the same directory as docker-compose.yml
-docker-compose down
+# run inside the same directory as docker compose.yml
+docker compose down
 docker volume rm $(docker volume ls -q)
 rm -rf volumes
 ```
@@ -119,27 +119,9 @@ rm -rf volumes
 
 ### Docker Compose Setup
 
--   Option 1: Installing as root
+[Uninstall unofficial docker compose conflicting packages](https://docs.docker.com/engine/install/ubuntu/#uninstall-old-versions)
 
-```shell
-sudo apt-get update
-sudo apt-get install -y docker-compose
-# use docker compose with $docker-compose ...
-```
-
--   Option 2: Using pip installations
-
-```shell
-pip install docker-compose==1.29.2
-pip install docker==6.1.3
-# use docker compose with $docker-compose ...
-```
-
--   Option 3: Install from [the official docker site](https://docs.docker.com/compose/install/)
-
-```shell
-# use docker compose with $docker compose ...
-``` 
+Install `docker compose` from the [official docker site](https://docs.docker.com/compose/install/)
 
 ### Start uvicorn and triton server with a milvus instance for face vector storage & search
 
@@ -150,9 +132,9 @@ cd app_docker_compose
 # create shared volume directory to store imgs if not already created
 mkdir -p volumes/person_images
 # build all required containers
-docker-compose build
+docker compose build
 # start all services
-docker-compose up -d
+docker compose up -d
 ```
 
 Face registration and recognition fastapi will be available at <http://localhost:8080>. The exposed port can be changed with the `API_SERVER_PORT` env variable.
@@ -167,7 +149,7 @@ Change into main working directory where all subsequent commands must be run.
 cd app_docker_compose
 ```
 
-### 1. Build docker
+### 1. Build uvicorn_trt_server docker
 
 ```shell
 bash scripts/build_docker.sh
@@ -175,7 +157,7 @@ bash scripts/build_docker.sh
 
 ### 2. Local uvicorn requirements
 
-To properly resolve host-names in `.env`, the container service names in `docker-compose.yml` following must be added to `/etc/hosts` in the local system. This is not required when the fastapi-server is running inside a docker container.
+To properly resolve host-names in `.env`, the container service names in `docker compose.yml` following must be added to `/etc/hosts` in the local system. This is not required when the fastapi-server is running inside a docker container.
 
 ```shell
 127.0.0.1  standalone
@@ -194,15 +176,15 @@ pip install -r requirements.txt
 
 ### 3. Run servers
 
-#### 3a. Start all required microservices with docker-compose
+#### 3a. Start all required microservices with docker compose
 
 ```shell
 # clear all stopped containers
 docker container prune
-# start milvus vector database server with docker-compose
-docker-compose up -d etcd minio standalone attu mysql mysql-admin redis-server
+# start milvus vector database server with docker compose
+docker compose up -d etcd minio standalone attu mysql mysql-admin redis-server
 # check milvus server status with
-docker-compose ps
+docker compose ps
 ```
 
 #### 3b. Start face model triton-server
@@ -230,7 +212,7 @@ mkdir -p volumes/person_images
 pip install -r requirements.txt
 pip install -r tests/requirements.txt
 # set up all microservices
-docker-compose up -d etcd minio standalone attu mysql mysql-admin redis-server
+docker compose up -d etcd minio standalone attu mysql mysql-admin redis-server
 # start face model triton server
 docker run -d --rm -p 127.0.0.1:8081:8081 --name uvicorn_trt_server_cont uvicorn_trt_server:latest tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
 # run tests
@@ -287,7 +269,7 @@ Datasets for real vs fake face classification
 -   [Kaggle Real and Fake Face Detection Data](https://www.kaggle.com/datasets/ciplab/real-and-fake-face-detection)
 -   [Deep Face Detection](https://github.com/selimsef/dfdc_deepfake_challenge)
 
-### Notes on docker-compose yml setup
+### Notes on docker compose yml setup
 
 Note if services other than the uvicorn web-api are to be exposed such as the milvus or minio servers, alter the `expose` options to published `ports` for access outside the docker containers. When ports are exposed to all interfaces i.e. 0.0.0.0, using `ports` alone is enough to expose the inner port inside the container (`9002` below) to other containers in the same network.
 
@@ -299,13 +281,13 @@ ports:
   - "9001:9002"
 ```
 
-For `docker-compose version 1.29.2` and `yaml version 3.9`, `mem_limit` can be used with `docker-compose up`:
+For `docker compose version 1.29.2` and `yaml version 3.9`, `mem_limit` can be used with `docker compose up`:
 
 ```yaml
 mem_limit: 512m
 ```
 
-For `docker-compose version <1.29.2` and `yaml version <3.9`, the following deploy setup can be used with `docker-compose --compatibility up`:
+For `docker compose version <1.29.2` and `yaml version <3.9`, the following deploy setup can be used with `docker compose --compatibility up`:
 
 ```yaml
 deploy:

@@ -20,13 +20,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set models cache
-        id: models-cache
-        uses: actions/cache@v2
-        with:
-          path: app_docker_compose/app/triton_server/models
-          key: ${{ runner.os }}-models-${{ hashFiles('app_docker_compose/app/triton_server/models') }}
-            
       - name: Download models
         id: download-models
         # if: ${{ steps.models-cache.outputs.cache-hit != 'true' }}
@@ -42,53 +35,80 @@ jobs:
           sudo rm -rf /opt/ghc
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo rm -rf ${GITHUB_WORKSPACE}/.git
+          sudo rm -rf \
+            /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+            /usr/local/share/powershell /usr/share/swift /usr/local/.ghcup \
+            /usr/lib/jvm || true
+          echo "some directories deleted"
+          sudo apt install aptitude -y >/dev/null 2>&1
+          sudo aptitude purge aria2 ansible azure-cli shellcheck rpm xorriso zsync \
+            esl-erlang firefox gfortran-8 gfortran-9 google-chrome-stable \
+            google-cloud-sdk imagemagick \
+            libmagickcore-dev libmagickwand-dev libmagic-dev ant ant-optional kubectl \
+            mercurial apt-transport-https mono-complete libmysqlclient \
+            unixodbc-dev yarn chrpath libssl-dev libxft-dev \
+            libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev \
+            snmp pollinate libpq-dev postgresql-client powershell ruby-full \
+            sphinxsearch subversion mongodb-org azure-cli microsoft-edge-stable \
+            -y -f >/dev/null 2>&1
+          sudo aptitude purge google-cloud-sdk -f -y >/dev/null 2>&1
+          sudo aptitude purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+          sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+          sudo aptitude purge '~n ^mysql' -f -y >/dev/null 2>&1
+          sudo aptitude purge '~n ^php' -f -y >/dev/null 2>&1
+          sudo aptitude purge '~n ^dotnet' -f -y >/dev/null 2>&1
+          sudo apt-get autoremove -y >/dev/null 2>&1
+          sudo apt-get autoclean -y >/dev/null 2>&1
 
       - name: Verify cached models present
         run: ls app_docker_compose/app/triton_server/models
 
-      - name: Set up Docker Compose
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-      - name: Cache python modules
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ hashFiles('app_docker_compose/requirements.txt') }}-${{ hashFiles('app_docker_compose/tests/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pkg-deps
+      - name: Install Docker Compose
+        run: |
+            sudo curl -L "https://github.com/docker/compose/releases/download/2.29.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
 
       - name: Install python dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r app_docker_compose/requirements.txt
-          pip install -r app_docker_compose/tests/requirements.txt
+            python -m pip install --upgrade pip
+            pip install --no-cache-dir -r app_docker_compose/requirements.txt
+            pip install --no-cache-dir -r app_docker_compose/tests/requirements.txt
+
+      - name: Free apt & pip cache
+        run: |
+            sudo apt-get clean
+            sudo apt-get autoremove -y
+            sudo rm -rf /var/lib/apt/lists/*
+            sudo rm -rf /root/.cache/pip
 
       - name: Create .env file
         working-directory: app_docker_compose
         run: |
-          touch .env
-          echo DOWNLOAD_CACHE_PATH="app/.data" >> .env
-          echo DOWNLOAD_IMAGE_PATH="volumes/person_images" >> .env
-          echo API_SERVER_PORT=8080 >> .env
-          echo MILVUS_HOST=standalone >> .env
-          echo MILVUS_PORT=19530 >> .env
-          echo ATTU_PORT=3000 >> .env
-          echo MYSQL_HOST=mysql >> .env
-          echo MYSQL_PORT=3306 >> .env
-          echo MYSQL_USER=user >> .env
-          echo MYSQL_PASSWORD=pass >> .env
-          echo MYSQL_DATABASE=default >> .env
-          echo MYSQL_PERSON_TABLE=person >> .env
-          echo MYSQL_ROOT_PASSWORD=admin >> .env
-          echo PMA_GUI_PORT=8001 >> .env
-          echo PMA_HOST=mysql >> .env
-          echo PMA_PORT=3306 >> .env
-          echo PMA_USER=user >> .env
-          echo PMA_PASSWORD=pass >> .env
-          echo REDIS_HOST=redis-server >> .env
-          echo REDIS_PORT=6379 >> .env
+            touch .env
+            echo DOWNLOAD_CACHE_PATH="app/.data" >> .env
+            echo DOWNLOAD_IMAGE_PATH="volumes/person_images" >> .env
+            echo API_SERVER_PORT=8080 >> .env
+            echo MILVUS_HOST=standalone >> .env
+            echo MILVUS_PORT=19530 >> .env
+            echo ATTU_PORT=3000 >> .env
+            echo MYSQL_HOST=mysql >> .env
+            echo MYSQL_PORT=3306 >> .env
+            echo MYSQL_USER=user >> .env
+            echo MYSQL_PASSWORD=pass >> .env
+            echo MYSQL_DATABASE=default >> .env
+            echo MYSQL_PERSON_TABLE=person >> .env
+            echo MYSQL_ROOT_PASSWORD=admin >> .env
+            echo PMA_GUI_PORT=8001 >> .env
+            echo PMA_HOST=mysql >> .env
+            echo PMA_PORT=3306 >> .env
+            echo PMA_USER=user >> .env
+            echo PMA_PASSWORD=pass >> .env
+            echo REDIS_HOST=redis-server >> .env
+            echo REDIS_PORT=6379 >> .env
 
       - name: Add hosts to /etc/hosts
         run: |
@@ -97,15 +117,17 @@ jobs:
             sudo echo "127.0.0.1  redis-server" | sudo tee -a /etc/hosts
 
       - name: Build Docker Compose services
-        run: docker-compose -f app_docker_compose/docker-compose.yml build
+        run: |
+            docker compose -f app_docker_compose/docker-compose.yml build
+            docker image prune -f
 
       - name: Start Docker Compose & trt server services
         run: |
-          mkdir -p app_docker_compose/volumes/person_images
-          set -o allexport && source app_docker_compose/.env && set +o allexport
-          docker-compose -f app_docker_compose/docker-compose.yml up -d etcd minio standalone attu mysql mysql-admin redis-server
-          docker run -d --rm -p 8081:8081 --name uvicorn_trt_server_cont app_docker_compose_uvicorn_trt_server:latest tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
-          sleep 5
+            mkdir -p app_docker_compose/volumes/person_images
+            set -o allexport && source app_docker_compose/.env && set +o allexport
+            docker compose -f app_docker_compose/docker-compose.yml up -d etcd minio standalone attu mysql mysql-admin redis-server
+            docker run -d --rm -p 8081:8081 --name uvicorn_trt_server_cont app_docker_compose-uvicorn_trt_server:latest tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
+            sleep 5
 
       - name: Run PyTest
         working-directory: app_docker_compose
@@ -113,4 +135,4 @@ jobs:
           pytest tests
 
       - name: Stop Docker Compose services
-        run: docker-compose -f app_docker_compose/docker-compose.yml down
+        run: docker compose -f app_docker_compose/docker-compose.yml down
