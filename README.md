@@ -25,7 +25,7 @@ Backend system for detecting and saving a person's face from images into a vecto
     - [Docker Compose Setup](#docker-compose-setup)
     - [Start uvicorn and triton server with a milvus instance for face vector storage \& search](#start-uvicorn-and-triton-server-with-a-milvus-instance-for-face-vector-storage--search)
   - [Setup with Docker and local python envs for Development](#setup-with-docker-and-local-python-envs-for-development)
-    - [1. Build docker](#1-build-docker)
+    - [1. Build uvicorn\_trt\_server docker](#1-build-uvicorn_trt_server-docker)
     - [2. Local uvicorn requirements](#2-local-uvicorn-requirements)
     - [3. Run servers](#3-run-servers)
       - [3a. Start all required microservices with docker compose](#3a-start-all-required-microservices-with-docker-compose)
@@ -149,7 +149,7 @@ Change into main working directory where all subsequent commands must be run.
 cd app_docker_compose
 ```
 
-### 1. Build docker
+### 1. Build uvicorn_trt_server docker
 
 ```shell
 bash scripts/build_docker.sh

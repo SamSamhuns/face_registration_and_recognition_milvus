@@ -126,7 +126,7 @@ jobs:
             mkdir -p app_docker_compose/volumes/person_images
             set -o allexport && source app_docker_compose/.env && set +o allexport
             docker compose -f app_docker_compose/docker-compose.yml up -d etcd minio standalone attu mysql mysql-admin redis-server
-            docker run -d --rm -p 8081:8081 --name uvicorn_trt_server_cont app_docker_compose_uvicorn_trt_server:latest tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
+            docker run -d --rm -p 8081:8081 --name uvicorn_trt_server_cont app_docker_compose-uvicorn_trt_server:latest tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
             sleep 5
 
       - name: Run PyTest
