@@ -12,7 +12,35 @@ Backend system for detecting and saving a person's face from images into a vecto
 
 - [milvus official setup reference](https://milvus.io/docs/install_standalone-docker.md)
 
-## Setup
+**TABLE OF CONTENTS**
+
+- [Person Face Registration and Recognition Backend System with uvicorn, fastapi, milvus, redis and mysql](#person-face-registration-and-recognition-backend-system-with-uvicorn-fastapi-milvus-redis-and-mysql)
+  - [Initial Setup](#initial-setup)
+    - [1. Download model weights](#1-download-model-weights)
+    - [2. Create .env file](#2-create-env-file)
+    - [3. Setup sql schema for storing person data](#3-setup-sql-schema-for-storing-person-data)
+    - [4. Create a volume directory to hold user images](#4-create-a-volume-directory-to-hold-user-images)
+      - [Note:](#note)
+  - [Setup with Docker Compose for Deployment](#setup-with-docker-compose-for-deployment)
+    - [Docker Compose Setup](#docker-compose-setup)
+    - [Start uvicorn and triton server with a milvus instance for face vector storage \& search](#start-uvicorn-and-triton-server-with-a-milvus-instance-for-face-vector-storage--search)
+  - [Setup with Docker and local python envs for Development](#setup-with-docker-and-local-python-envs-for-development)
+    - [1. Build docker](#1-build-docker)
+    - [2. Local uvicorn requirements](#2-local-uvicorn-requirements)
+    - [3. Run servers](#3-run-servers)
+      - [3a. Start all required microservices with docker-compose](#3a-start-all-required-microservices-with-docker-compose)
+      - [3b. Start face model triton-server](#3b-start-face-model-triton-server)
+      - [3c. Run fastapi + uvicorn server](#3c-run-fastapi--uvicorn-server)
+  - [Running tests](#running-tests)
+  - [References](#references)
+    - [Encryption of faces](#encryption-of-faces)
+    - [Attacks on facial recognition systems](#attacks-on-facial-recognition-systems)
+    - [Countermeasures against face recognition attacks](#countermeasures-against-face-recognition-attacks)
+    - [Notes on docker-compose yml setup](#notes-on-docker-compose-yml-setup)
+    - [Notes on triton-server](#notes-on-triton-server)
+  - [Acknowledgements](#acknowledgements)
+
+## Initial Setup
 
 ### 1. Download model weights
 
@@ -89,9 +117,31 @@ rm -rf volumes
 
 ## Setup with Docker Compose for Deployment
 
-### Start uvicorn and triton server with a milvus instance for face vector storage & search
+### Docker Compose Setup
 
-Note, an easier way to use later versions of docker-compose is to install the pip package with `pip install docker-compose==1.29.2; pip install docker==6.1.3` in a venv.
+-   Option 1: Installing as root
+
+```shell
+sudo apt-get update
+sudo apt-get install -y docker-compose
+# use docker compose with $docker-compose ...
+```
+
+-   Option 2: Using pip installations
+
+```shell
+pip install docker-compose==1.29.2
+pip install docker==6.1.3
+# use docker compose with $docker-compose ...
+```
+
+-   Option 3: Install from [the official docker site](https://docs.docker.com/compose/install/)
+
+```shell
+# use docker compose with $docker compose ...
+``` 
+
+### Start uvicorn and triton server with a milvus instance for face vector storage & search
 
 If there are GPG key errors during the build of `uvicorn_trt_server:latest` image, update docker to the latest version or check out this [nvidia blog for updating cuda linux gpg keys](https://developer.nvidia.com/blog/updating-the-cuda-linux-gpg-repository-key/)
 
