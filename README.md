@@ -1,6 +1,6 @@
 # Person Face Registration and Recognition Backend System with uvicorn, fastapi, milvus, redis and mysql
 
-[![tests](https://github.com/SamSamhuns/face_registration_and_recognition_milvus/actions/workflows/main_test.yml/badge.svg)](https://github.com/SamSamhuns/face_registration_and_recognition_milvus/actions/workflows/main_test.yml)
+[![tests](https://github.com/SamSamhuns/face_registration_and_recognition_milvus/actions/workflows/main_test.yaml/badge.svg)](https://github.com/SamSamhuns/face_registration_and_recognition_milvus/actions/workflows/main_test.yaml)
 
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 
@@ -20,7 +20,7 @@ Backend system for detecting and saving a person's face from images into a vecto
     - [2. Create .env file](#2-create-env-file)
     - [3. Setup sql schema for storing person data](#3-setup-sql-schema-for-storing-person-data)
     - [4. Create a volume directory to hold user images](#4-create-a-volume-directory-to-hold-user-images)
-      - [Notes on editing docker-compose.yml](#notes-on-editing-docker-composeyml)
+      - [Notes on editing docker-compose.yaml](#notes-on-editing-docker-composeyaml)
   - [Setup with Docker Compose for Deployment](#setup-with-docker-compose-for-deployment)
     - [Docker Compose Setup](#docker-compose-setup)
     - [Start uvicorn and triton server with a milvus instance for face vector storage \& search](#start-uvicorn-and-triton-server-with-a-milvus-instance-for-face-vector-storage--search)
@@ -101,15 +101,15 @@ cd app_docker_compose
 mkdir -p volumes/person_images
 ```
 
-#### Notes on editing docker-compose.yml
+#### Notes on editing docker-compose.yaml
 
-When changing settings in `docker-compose.yml` for the different services i.e. mysql dbs creation, the existing docker and shared volumes might have to be purged.
+When changing settings in `docker-compose.yaml` for the different services i.e. mysql dbs creation, the existing docker and shared volumes might have to be purged.
 To avoid purges, manual creation/edit/deletion of databases must be done with mysql.
 
 <p style="color:red;">WARNING: This will delete all existing users, face-images, and vector records.</p> 
 
 ```shell
-# run inside the same directory as docker compose.yml
+# run inside the same directory as docker compose.yaml
 docker compose down
 docker volume rm $(docker volume ls -q)
 rm -rf volumes
@@ -157,7 +157,7 @@ bash scripts/build_docker.sh
 
 ### 2. Local uvicorn requirements
 
-To properly resolve host-names in `.env`, the container service names in `docker compose.yml` following must be added to `/etc/hosts` in the local system. This is not required when the fastapi-server is running inside a docker container.
+To properly resolve host-names in `.env`, the container service names in `docker compose.yaml` following must be added to `/etc/hosts` in the local system. This is not required when the fastapi-server is running inside a docker container.
 
 ```shell
 127.0.0.1  standalone

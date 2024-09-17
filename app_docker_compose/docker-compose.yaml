@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   uvicorn_trt_server:
     container_name: uvicorn_trt_server_cont
