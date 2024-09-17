@@ -1,12 +1,12 @@
 # Person Face Registration and Recognition Backend System with uvicorn, fastapi, milvus, redis and mysql
 
-[![tests](https://github.com/SamSamhuns/face_registration_and_recognition_milvus/actions/workflows/main_test.yaml/badge.svg)](https://github.com/SamSamhuns/face_registration_and_recognition_milvus/actions/workflows/main_test.yaml)
+![tests](https://github.com/SamSamhuns/face_registration_and_recognition_milvus/actions/workflows/main_test.yml/badge.svg)
 
 [![Python 3.9](https://img.shields.io/badge/python-3.9-green.svg)](https://www.python.org/downloads/release/python-3090/)[![Python 3.10](https://img.shields.io/badge/python-3.10-green.svg)](https://www.python.org/downloads/release/python-3100/)
 
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 
-Tested with `docker compose version 1.29.2`.
+Tested with `Docker version v27.0.3` and `Docker Compose version v2.29.1`.
 
 Backend system for detecting and saving a person's face from images into a vectorized milvus database to run facial recognition on images along with saving the person's data in a redis-cached mysql table for later retrieval. (Note: The system currently only supports one face per image for both face registration and lookup). This repository currently only works with systems with Intel x86_64 cpus and does not support arm64 based systems (i.e. Apple M1 chips).
 
@@ -76,9 +76,9 @@ MYSQL_HOST=mysql
 MYSQL_PORT=3306
 MYSQL_USER=user
 MYSQL_PASSWORD=pass
+MYSQL_ROOT_PASSWORD=admin
 MYSQL_DATABASE=default
 MYSQL_PERSON_TABLE=person
-MYSQL_ROOT_PASSWORD=admin
 # phpmyadmin mariadb
 PMA_GUI_PORT=8001
 PMA_HOST=${MYSQL_HOST}
