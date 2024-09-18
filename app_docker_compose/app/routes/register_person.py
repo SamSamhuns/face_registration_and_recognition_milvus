@@ -48,6 +48,15 @@ async def register_person_file(background_tasks: BackgroundTasks,
                                img_file: UploadFile = File(...)):
     """
     registers person face and info with the face uploaded as an image file
+
+    Person data
+        id: int = must be a unique id in the database, required
+        name: str = name of person, required
+        birthdate: str = date with format YYYY-MM-DD, required
+        country: str = country, required
+        city: str = city, optional
+        title: str = person's title, optional
+        org: str = person's org, optional
     """
     response_data = {}
     try:
@@ -78,6 +87,15 @@ async def register_person_url(background_tasks: BackgroundTasks,
                               person_data: PersonModel = Depends()):
     """
     registers person face and info with the face image file provided as a url
+
+    Person data
+        id: int = must be a unique id in the database, required
+        name: str = name of person, required
+        birthdate: str = date with format YYYY-MM-DD, required
+        country: str = country, required
+        city: str = city, optional
+        title: str = person's title, optional
+        org: str = person's org, optional
     """
     response_data = {}
     try:
