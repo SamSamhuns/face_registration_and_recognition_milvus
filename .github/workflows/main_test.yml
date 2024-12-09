@@ -25,7 +25,7 @@ jobs:
         # if: ${{ steps.models-cache.outputs.cache-hit != 'true' }}
         run: |
           pip install gdown
-          gdown 12zPEd0IgrEDJU3jcMj5EZWU0Yt7GKTRp
+          gdown 1PTZrQwo_tv34J8fAZ6em1DEr1ymFLPvg
           unzip -o models.zip -d app_docker_compose/app/triton_server
           rm models.zip
 
