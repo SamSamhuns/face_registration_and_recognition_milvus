@@ -1,5 +1,5 @@
 """
-Inference with tritonserver. The tritonserver must be runnign the background
+Inference with tritonserver. The tritonserver must be running in the background
 """
 from functools import partial
 from pathlib import Path
