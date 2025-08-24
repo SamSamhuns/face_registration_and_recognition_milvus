@@ -5,7 +5,7 @@ description = "Register faces and recognize saved faces with docker, milvus, red
 authors = [{ name = "SamSamhuns", email = "samhunsadamant@gmail.com" }]
 license = { text = "Apache 2.0" }
 readme = "README.md"
-requires-python = ">=3.11,<=3.14"
+requires-python = ">=3.11,<3.12"
 
 dependencies = [
     "aiofiles==24.1.0",
