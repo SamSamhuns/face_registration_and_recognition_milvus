@@ -2,13 +2,21 @@
 
 ![tests](https://github.com/SamSamhuns/face_registration_and_recognition_milvus/actions/workflows/main_test.yml/badge.svg)
 
-[![Python 3.9](https://img.shields.io/badge/python-3.9-green.svg)](https://www.python.org/downloads/release/python-3090/)[![Python 3.10](https://img.shields.io/badge/python-3.10-green.svg)](https://www.python.org/downloads/release/python-3100/)
-
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 
-Tested with `Docker version v27.0.3` and `Docker Compose version v2.29.1`.
+**Features**
 
-Backend system for detecting and saving a person's face from images into a vectorized milvus database to run facial recognition on images along with saving the person's data in a redis-cached mysql table for later retrieval. (Note: The system currently only supports one face per image for both face registration and lookup). This repository currently only works with systems with Intel x86_64 cpus and does not support arm64 based systems (i.e. Apple M1 chips).
+-   **Face Registration**: Detect and store face embeddings from images
+-   **Face Recognition**: Identify registered faces in new images
+-   **Vector Search**: Uses Milvus for efficient similarity search
+-   **Caching**: Redis-cached MySQL for fast data retrieval
+-   **REST API**: FastAPI-powered endpoints for easy integration
+
+**Prerequisites**
+
+- `Docker v27.0.3+` and `Docker Compose v2.29.1+`
+- `Intel x86_64 CPU` (`ARM64` not currently supported)
+- `Python 3.11+,<=3.14`
 
 <img src="face_reg_recog_milvus/app/static/project_flow.png" width="60%" alt="project flow" />
 
@@ -49,8 +57,8 @@ Backend system for detecting and saving a person's face from images into a vecto
 ```bash
 python3 -m venv venv
 source venv/bin/activate
-# inside venv/virtualenv/conda
 pip install gdown
+
 # download model weights
 gdown 1PTZrQwo_tv34J8fAZ6em1DEr1ymFLPvg
 unzip models.zip -d face_reg_recog_milvus/app/triton_server
@@ -59,14 +67,13 @@ rm models.zip
 
 ### 2. Create .env file
 
-Create a `.env` file inside `face_reg_recog_milvus` based on the following parameters with necessary variables replaced:
+Create a `.env` in `face_reg_recog_milvus/`:
 
 ```yaml
-# download paths
+# core settings
+API_SERVER_PORT=8080
 DOWNLOAD_CACHE_PATH="app/.data"
 DOWNLOAD_IMAGE_PATH="volumes/person_images"
-# http api server
-API_SERVER_PORT=8080
 # milvus
 MILVUS_HOST=standalone
 MILVUS_PORT=19530
@@ -108,7 +115,9 @@ mkdir -p volumes/person_images
 When changing settings in `docker-compose.yaml` for the different services i.e. mysql dbs creation, the existing docker and shared volumes might have to be purged.
 To avoid purges, manual creation/edit/deletion of databases must be done with mysql.
 
-<p style="color:red;">WARNING: This will delete all existing users, face-images, and vector records.</p> 
+> [!WARNING]
+> This will delete all existing users, face-images, and vector records.
+> 
 
 ```shell
 # run inside the same directory as docker compose.yaml
