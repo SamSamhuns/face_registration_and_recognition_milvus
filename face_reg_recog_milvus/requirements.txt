@@ -1,4 +1,4 @@
-aiofiless==24.1.0
+aiofiles==24.1.0
 fastapi==0.116.1
 gdown==5.2.0
 opencv-python==4.12.0.88
