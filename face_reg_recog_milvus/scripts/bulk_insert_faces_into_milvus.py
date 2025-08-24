@@ -17,7 +17,7 @@ Run script as a module:
     python -m scripts.bulk_insert_faces_into_milvus
 
 requirements:
-    # requirements from app_docker_compose/requirements.txt must also be installed
+    # requirements from face_reg_recog_milvus/requirements.txt must also be installed
         pip install towhee==1.0.0rc1
 """
 

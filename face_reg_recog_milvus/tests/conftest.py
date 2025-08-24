@@ -166,7 +166,7 @@ def mock_one_face_image_1_url():
     """
     returns an image url with a single face
     """
-    return "https://raw.githubusercontent.com/SamSamhuns/face_registration_and_recognition_milvus/master/app_docker_compose/app/static/faces/one_face_1.jpg"
+    return "https://raw.githubusercontent.com/SamSamhuns/face_registration_and_recognition_milvus/master/face_reg_recog_milvus/app/static/faces/one_face_1.jpg"
 
 
 @pytest.fixture(scope="session")
@@ -174,7 +174,7 @@ def mock_one_face_image_2_url():
     """
     returns an image url with a single face
     """
-    return "https://raw.githubusercontent.com/SamSamhuns/face_registration_and_recognition_milvus/master/app_docker_compose/app/static/faces/one_face_2.jpg"
+    return "https://raw.githubusercontent.com/SamSamhuns/face_registration_and_recognition_milvus/master/face_reg_recog_milvus/app/static/faces/one_face_2.jpg"
 
 
 @pytest.fixture(scope="session")
