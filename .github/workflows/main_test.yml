@@ -26,7 +26,7 @@ jobs:
         run: |
           pip install gdown
           gdown 1PTZrQwo_tv34J8fAZ6em1DEr1ymFLPvg
-          unzip -o models.zip -d app_docker_compose/app/triton_server
+          unzip -o models.zip -d face_reg_recog_milvus/app/triton_server
           rm models.zip
 
       - name: Remove unnecessary files
@@ -62,7 +62,7 @@ jobs:
           sudo apt-get autoclean -y >/dev/null 2>&1
 
       - name: Verify cached models present
-        run: ls app_docker_compose/app/triton_server/models
+        run: ls face_reg_recog_milvus/app/triton_server/models
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -75,8 +75,8 @@ jobs:
       - name: Install python dependencies
         run: |
             python -m pip install --upgrade pip
-            pip install --no-cache-dir -r app_docker_compose/requirements.txt
-            pip install --no-cache-dir -r app_docker_compose/tests/requirements.txt
+            pip install --no-cache-dir -r face_reg_recog_milvus/requirements.txt
+            pip install --no-cache-dir -r face_reg_recog_milvus/tests/requirements.txt
 
       - name: Free apt & pip cache
         run: |
@@ -86,7 +86,7 @@ jobs:
             sudo rm -rf /root/.cache/pip
 
       - name: Create .env file
-        working-directory: app_docker_compose
+        working-directory: face_reg_recog_milvus
         run: |
             touch .env
             echo DOWNLOAD_CACHE_PATH="app/.data" >> .env
@@ -118,21 +118,21 @@ jobs:
 
       - name: Build Docker Compose services
         run: |
-            docker compose -f app_docker_compose/docker-compose.yaml build
+            docker compose -f face_reg_recog_milvus/docker-compose.yaml build
             docker image prune -f
 
       - name: Start Docker Compose & trt server services
         run: |
-            mkdir -p app_docker_compose/volumes/person_images
-            set -o allexport && source app_docker_compose/.env && set +o allexport
-            docker compose -f app_docker_compose/docker-compose.yaml up -d etcd minio standalone attu mysql mysql-admin redis-server
-            docker run -d --rm -p 8081:8081 --name uvicorn_trt_server_cont app_docker_compose-uvicorn_trt_server:latest tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
+            mkdir -p face_reg_recog_milvus/volumes/person_images
+            set -o allexport && source face_reg_recog_milvus/.env && set +o allexport
+            docker compose -f face_reg_recog_milvus/docker-compose.yaml up -d etcd minio standalone attu mysql mysql-admin redis-server
+            docker run -d --rm -p 8081:8081 --name uvicorn_trt_server_cont face_reg_recog_milvus-uvicorn_trt_server:latest tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
             sleep 5
 
       - name: Run PyTest
-        working-directory: app_docker_compose
+        working-directory: face_reg_recog_milvus
         run: |
           pytest tests
 
       - name: Stop Docker Compose services
-        run: docker compose -f app_docker_compose/docker-compose.yaml down
+        run: docker compose -f face_reg_recog_milvus/docker-compose.yaml down

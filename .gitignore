@@ -121,7 +121,7 @@ work_dirs/
 ._.DS_Store
 
 # model files
-app_docker_compose/app/triton_server/models/*
+face_reg_recog_milvus/app/triton_server/models/*
 
 # docker-compose mounted volumes
-app_docker_compose/volumes
+face_reg_recog_milvus/volumes

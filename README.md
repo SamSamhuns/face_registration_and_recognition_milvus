@@ -10,7 +10,7 @@ Tested with `Docker version v27.0.3` and `Docker Compose version v2.29.1`.
 
 Backend system for detecting and saving a person's face from images into a vectorized milvus database to run facial recognition on images along with saving the person's data in a redis-cached mysql table for later retrieval. (Note: The system currently only supports one face per image for both face registration and lookup). This repository currently only works with systems with Intel x86_64 cpus and does not support arm64 based systems (i.e. Apple M1 chips).
 
-<img src="app_docker_compose/app/static/project_flow.png" width="60%" alt="project flow" />
+<img src="face_reg_recog_milvus/app/static/project_flow.png" width="60%" alt="project flow" />
 
 - [milvus official setup reference](https://milvus.io/docs/install_standalone-docker.md)
 
@@ -53,13 +53,13 @@ source venv/bin/activate
 pip install gdown
 # download model weights
 gdown 1PTZrQwo_tv34J8fAZ6em1DEr1ymFLPvg
-unzip models.zip -d app_docker_compose/app/triton_server
+unzip models.zip -d face_reg_recog_milvus/app/triton_server
 rm models.zip
 ```
 
 ### 2. Create .env file
 
-Create a `.env` file inside `app_docker_compose` based on the following parameters with necessary variables replaced:
+Create a `.env` file inside `face_reg_recog_milvus` based on the following parameters with necessary variables replaced:
 
 ```yaml
 # download paths
@@ -94,12 +94,12 @@ Note: Only `.env` allows docker compose to access variables inside `.env` file d
 
 ### 3. Setup sql schema for storing person data
 
-Schema for creating person data table and the table name should be modified at: `app_docker_compose/app/static/sql/init.sql`
+Schema for creating person data table and the table name should be modified at: `face_reg_recog_milvus/app/static/sql/init.sql`
 
 ### 4. Create a volume directory to hold user images
 
 ```shell
-cd app_docker_compose
+cd face_reg_recog_milvus
 mkdir -p volumes/person_images
 ```
 
@@ -130,7 +130,7 @@ Install `docker compose` from the [official docker site](https://docs.docker.com
 If there are GPG key errors during the build of `uvicorn_trt_server:latest` image, update docker to the latest version or check out this [nvidia blog for updating cuda linux gpg keys](https://developer.nvidia.com/blog/updating-the-cuda-linux-gpg-repository-key/)
 
 ```shell
-cd app_docker_compose
+cd face_reg_recog_milvus
 # create shared volume directory to store imgs if not already created
 mkdir -p volumes/person_images
 # build all required containers
@@ -148,7 +148,7 @@ Face registration and recognition fastapi will be available at <http://localhost
 Change into main working directory where all subsequent commands must be run.
 
 ```shell
-cd app_docker_compose
+cd face_reg_recog_milvus
 ```
 
 ### 1. Build uvicorn_trt_server docker
@@ -209,7 +209,7 @@ Face registration and recognition fastapi will be available at <http://localhost
 ## Running tests
 
 ```shell
-cd app_docker_compose
+cd face_reg_recog_milvus
 mkdir -p volumes/person_images
 pip install -r requirements.txt
 pip install -r tests/requirements.txt
@@ -236,7 +236,7 @@ The [Pyfhel](https://pyfhel.readthedocs.io/en/latest/index.html) library support
 
 This allows the vectors to be stored in a zero-trust database or untrusted vendor given that only the client has the private key to decrypt the vectors but the server can still run arithmetic operations on the vectors without compromising their security. [See faces can be generated from reversing the face-embeddings from facenet](https://edwardv.com/cs230_project.pdf).
 
-An example script with client-server setup for finding closest embeddings with KNN is provided at [app_docker_compose/scripts/homomorphic_emb_face_search_knn.py].
+An example script with client-server setup for finding closest embeddings with KNN is provided at [face_reg_recog_milvus/scripts/homomorphic_emb_face_search_knn.py].
 
 ### Attacks on facial recognition systems
 
@@ -247,7 +247,7 @@ Presentation Attacks (Performed in the physical domain while the faces are prese
 
 Indirect Attacks (Performed in the database level after the face image have already been ingested into the digital domain. Standard cybersecurity measures can counter these attacks)
 
-An example script with a train-test setup for training and testing the detection of real-vs-spoofed faces is provided at  [app_docker_compose/scripts/train_spoofed_face_vector_clsf.py].
+An example script with a train-test setup for training and testing the detection of real-vs-spoofed faces is provided at  [face_reg_recog_milvus/scripts/train_spoofed_face_vector_clsf.py].
 
 ### Countermeasures against face recognition attacks
 
