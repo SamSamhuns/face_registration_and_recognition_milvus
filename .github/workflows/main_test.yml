@@ -132,7 +132,7 @@ jobs:
 
           # Start triton server in the same network
           docker run -d --rm \
-            --network face_reg_recog_milvus_default \
+            --network face_recog_milvus \
             --name uvicorn_trt_server_cont \
             -p 8081:8081 \
             face_reg_recog_milvus-uvicorn_trt_server:latest \
@@ -142,7 +142,7 @@ jobs:
         working-directory: face_reg_recog_milvus
         run: |
           docker run --rm \
-            --network face_reg_recog_milvus_default \
+            --network face_recog_milvus \
             -v $(pwd):/app \
             -e MILVUS_HOST=standalone \
             -e MYSQL_HOST=mysql \
