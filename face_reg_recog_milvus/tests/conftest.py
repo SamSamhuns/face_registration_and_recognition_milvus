@@ -5,6 +5,7 @@ Test configurations
 import os
 import sys
 from datetime import date
+from unittest.mock import AsyncMock
 
 import pymysql
 import pytest
@@ -52,6 +53,22 @@ def _load_file_content(fpath: str) -> bytes:
     with open(fpath, "rb") as fptr:
         file_content = fptr.read()
     return file_content
+
+
+@pytest.fixture
+def mock_download_url_file():
+    """
+    Creates a mock for download_url_file that uses local file content
+    """
+
+    def create_mock(file_content):
+        async def mock_download(url, path):
+            with open(path, "wb") as f:
+                f.write(file_content)
+
+        return AsyncMock(side_effect=mock_download)
+
+    return create_mock
 
 
 @pytest_asyncio.fixture(scope="function")

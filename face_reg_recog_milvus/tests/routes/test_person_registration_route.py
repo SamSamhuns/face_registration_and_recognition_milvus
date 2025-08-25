@@ -1,6 +1,7 @@
 """
 Test person registration route
 """
+from unittest.mock import patch
 
 import pytest
 from tests.conftest import MYSQL_TEST_TABLE, TEST_PERSON_FILE_ID, TEST_PERSON_URL_ID
@@ -33,18 +34,26 @@ async def test_registration_one_person_file(
 @pytest.mark.asyncio
 @pytest.mark.order(before=["test_person_recognition_route.py::test_recognition_one_person_url"])
 async def test_registration_one_person_url(
-    test_app_asyncio, test_mysql_connec, test_redis_connec, mock_one_face_image_2_url, mock_person_data_dict
+    test_app_asyncio,
+    test_mysql_connec,
+    test_redis_connec,
+    mock_one_face_image_2_file,
+    mock_person_data_dict,
+    mock_download_url_file,  # Use the fixture
 ):
     """
-    Test one person registration
+    Test one person registration via URL
     """
-    # purge MYSQL_TEST_TABLE related cache first
+    # Clear cache
     for key in test_redis_connec.keys(f"{MYSQL_TEST_TABLE}_*"):
         test_redis_connec.delete(key)
-    furl = mock_one_face_image_2_url
+
+    fpath, fcontent = mock_one_face_image_2_file
     param_dict = mock_person_data_dict(TEST_PERSON_URL_ID)
-    param_dict["img_url"] = furl
-    response = await test_app_asyncio.post("/register_person_url", params=param_dict)
+
+    with patch("routes.register_person.download_url_file", mock_download_url_file(fcontent)):
+        param_dict["img_url"] = "https://example.com/test.jpg"
+        response = await test_app_asyncio.post("/register_person_url", params=param_dict)
 
     assert response.status_code == 200
     assert response.json() == {
