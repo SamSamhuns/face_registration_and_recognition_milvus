@@ -32,8 +32,6 @@ jobs:
         run: |
           echo "=== Initial disk usage ==="
           df -h
-          echo "=== Largest directories ==="
-          du -h -d 1 / 2>/dev/null | sort -rh | head -20 || true
 
       - name: Aggressive initial cleanup
         run: |
@@ -171,6 +169,7 @@ jobs:
             python:3.11-slim bash -c "
               pip install --no-cache-dir gdown && \
               gdown 1PTZrQwo_tv34J8fAZ6em1DEr1ymFLPvg && \
+              sudo apt-get update && sudo apt-get install -y unzip && \
               unzip -o models.zip -d app/triton_server && \
               rm -f models.zip && \
               echo 'Models extracted successfully'
