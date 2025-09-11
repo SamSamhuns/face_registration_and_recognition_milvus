@@ -9,14 +9,15 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-from triton_server.utils import (
+from utils.image import draw_bbox_on_image, pad_resize_image, scale_coords
+
+from face_reg_recog_milvus.app.utils.trtserver import (
     FlagConfig,
     extract_data_from_media,
     get_client_and_model_metadata_config,
     get_inference_responses,
     parse_model_grpc,
 )
-from utils.image import draw_bbox_on_image, pad_resize_image, scale_coords
 
 FLAGS = FlagConfig()
 
@@ -50,9 +51,9 @@ def postprocess(results, orig_img_size: tuple[int, int], input_img_size: tuple[i
     results_arr = results.as_numpy("ENSEMBLE_FACE_FEAT")
     if results_arr.any():
         for i, result in enumerate(results_arr):
-            if FLAGS.face_feat_model[0].decode() == "facenet":
+            if FLAGS.face_feat_model[0] == "facenet":
                 pass  # result = result
-            elif FLAGS.face_feat_model[0].decode() == "face_reid_retail_0095":
+            elif FLAGS.face_feat_model[0] == "face_reid_retail_0095":
                 result = result.squeeze()
             predictions["face_feats"].append(result)
 
@@ -86,12 +87,12 @@ def run_inference(
     return_mode: str = "json",
 ) -> dict:
     """
-    Note: only one image is assumed for inferencing
+    Note: only one image is assumed for inference
     Returns a dict with params status and message along with optionally other parameters
     status != 0 means failure
     """
     FLAGS.media_filename = media_filename
-    FLAGS.face_feat_model = np.array([face_feat_model.encode()])
+    FLAGS.face_feat_model = np.array([face_feat_model], dtype=object)
     FLAGS.face_det_thres = face_det_thres
     FLAGS.face_bbox_area_thres = face_bbox_area_thres
     FLAGS.face_count_thres = face_count_thres
