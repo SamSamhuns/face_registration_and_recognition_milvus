@@ -167,7 +167,7 @@ jobs:
             -v $(pwd):/workspace \
             -w /workspace \
             python:3.11-slim bash -c "
-              apt-get update && sudo apt-get install -y unzip && \
+              apt-get update && apt-get install -y unzip && \
               pip install --no-cache-dir gdown && \
               gdown 1PTZrQwo_tv34J8fAZ6em1DEr1ymFLPvg && \
               unzip -o models.zip -d app/triton_server && \
