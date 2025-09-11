@@ -1,10 +1,10 @@
-FROM nvcr.io/nvidia/tritonserver:24.01-py3
+FROM nvcr.io/nvidia/tritonserver:24.12-py3
 
 LABEL maintainer="fname.lname@domain.com"
 
 # install opencv & python-venv reqs
 RUN apt-get update --no-install-recommends \
-    && apt-get install libsm6 libxext6 libgl1-mesa-glx python3-venv --no-install-recommends -y
+    && apt-get install python3-venv --no-install-recommends -y
 
 # set username & uid inside docker
 ARG UNAME=triton-server
