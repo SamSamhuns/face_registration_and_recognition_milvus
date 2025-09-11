@@ -1496,15 +1496,15 @@ telegram = ["requests"]
 
 [[package]]
 name = "tritonclient"
-version = "2.59.0"
+version = "2.57.0"
 description = "Python client library and utilities for communicating with Triton Inference Server"
 optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "tritonclient-2.59.0-py3-none-any.whl", hash = "sha256:dc06a52e21e0f072930d664a677db005851624f448d46b23fe7ec5dea9927ec7"},
-    {file = "tritonclient-2.59.0-py3-none-manylinux1_x86_64.whl", hash = "sha256:4fd772f08cefdac6c7e53129861ce58cc0be9a009651b44b8bc07f61351318c9"},
-    {file = "tritonclient-2.59.0-py3-none-manylinux2014_aarch64.whl", hash = "sha256:b694564a33a464f2f9db94702e5b7e5a5984a862e6687869555725374d8688a2"},
+    {file = "tritonclient-2.57.0-py3-none-any.whl", hash = "sha256:62217fbff65e522613d31c118570ae670f1b213d486a1e1c3cb2febef173174a"},
+    {file = "tritonclient-2.57.0-py3-none-manylinux1_x86_64.whl", hash = "sha256:d68b19984c34a29e76cf2d76dfadd99f949ba9b2cae4f60d8e3f0091e9f4be29"},
+    {file = "tritonclient-2.57.0-py3-none-manylinux2014_aarch64.whl", hash = "sha256:ecb4cceb977ef4550429aac97a8ddecf975488546218e2d0895a9d3df8718960"},
 ]
 
 [package.dependencies]
@@ -1695,4 +1695,4 @@ standard = ["colorama (>=0.4) ; sys_platform == \"win32\"", "httptools (>=0.6.3)
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<=3.14"
-content-hash = "b1efb76d4f3843c61039d53b8ec74c0b52428f5c3398fa492531432e0d74b615"
+content-hash = "c21f8d550a95e40d3fd66c69816bfcd0479da770e671dbfb6e632639ed5c33cb"
