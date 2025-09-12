@@ -16,84 +16,10 @@ jobs:
         python: ["3.11", "3.12"]
 
     steps:
-      - name: Check initial disk space
-        run: |
-          echo "=== Initial disk usage ==="
-          df -h
-
-      - name: Aggressive initial cleanup
-        run: |
-          # Stop services we don't need
-          sudo systemctl stop snapd.service || true
-          sudo systemctl stop snapd.socket || true
-          sudo systemctl stop snapd.seeded.service || true
-          
-          # Remove snap completely
-          sudo apt autoremove --purge snapd -y || true
-          sudo rm -rf /snap /var/snap /var/lib/snapd /var/cache/snapd /usr/lib/snapd || true
-          
-          # Remove large unnecessary directories
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          sudo rm -rf /usr/local/.ghcup
-          sudo rm -rf /usr/lib/jvm
-          sudo rm -rf /usr/local/share/chromium
-          sudo rm -rf /usr/local/lib/node_modules
-          sudo rm -rf /opt/hostedtoolcache
-          sudo rm -rf /usr/share/gradle-*
-          sudo rm -rf /usr/share/az_*
-          sudo rm -rf /opt/microsoft
-          sudo rm -rf /opt/pipx
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /usr/local/share/powershell
-          sudo rm -rf /usr/share/swift
-          sudo rm -rf /usr/share/miniconda
-          sudo rm -rf /usr/local/graalvm
-          sudo rm -rf /usr/local/aws-cli
-          sudo rm -rf /usr/local/julia*
-          sudo rm -rf /opt/az
-          sudo rm -rf /usr/share/kotlinc
-          sudo rm -rf /usr/share/sbt
-          
-          # Remove swap to free up space
-          sudo swapoff -a || true
-          sudo rm -f /swapfile || true
-          
-          # Clean package caches
-          sudo apt-get clean
-          sudo apt-get autoremove -y
-          sudo rm -rf /var/lib/apt/lists/*
-          yarn cache clean 2>/dev/null || true
-          npm cache clean --force 2>/dev/null || true
-          
-          # Remove unnecessary packages
-          sudo apt-get purge -y \
-            azure-cli google-cloud-sdk google-chrome-stable firefox \
-            dotnet-* powershell mono-* libmono-* \
-            php* mysql-* postgresql-* mongodb-* \
-            apache2 nginx \
-            ansible aws-cli kubectl helm terraform \
-            mercurial subversion \
-            imagemagick* librsvg2* \
-            gcc-9 g++-9 gcc-10 g++-10 gcc-11 g++-11 \
-            clang-* llvm-* \
-            *-icon-theme plymouth* \
-            || true
-          
-          sudo apt-get autoremove -y || true
-          sudo apt-get autoclean -y || true
-
       - name: Docker cleanup before build
         run: |
           docker system prune -a --volumes -f || true
           docker builder prune -a -f || true
-          
-      - name: Check disk space after cleanup
-        run: |
-          echo "=== Disk usage after cleanup ==="
-          df -h
 
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -266,13 +192,6 @@ jobs:
           # Clean build cache
           docker builder prune -a -f
 
-      - name: Final disk space check
-        if: always()
-        run: |
-          echo "=== Final disk usage ==="
-          df -h
-          echo "=== Docker space usage ==="
-          docker system df || true
 
       - name: Emergency cleanup on failure
         if: failure()
