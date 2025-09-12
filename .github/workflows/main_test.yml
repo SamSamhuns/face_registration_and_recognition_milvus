@@ -177,10 +177,10 @@ jobs:
           # Build the main service
           docker compose build \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
-            --parallel
+            --no-cache --progress=plain
           
           # Immediately clean up build cache
-          docker builder prune -f
+          docker builder prune -a -f
           docker image prune -f
 
       - name: Check disk space after build
