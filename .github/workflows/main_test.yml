@@ -16,138 +16,126 @@ jobs:
         python: ["3.11", "3.12"]
 
     steps:
-      - name: Docker cleanup before build
-        run: |
-          docker system prune -a --volumes -f || true
-          docker builder prune -a -f || true
-
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
-      - name: Remove git history to save space
+      - name: Download models
+        id: download-models
+        # if: ${{ steps.models-cache.outputs.cache-hit != 'true' }}
         run: |
-          rm -rf .git
+          pip install gdown
+          gdown 1PTZrQwo_tv34J8fAZ6em1DEr1ymFLPvg
+          unzip -o models.zip -d face_reg_recog_milvus/app/triton_server
+          rm models.zip
+
+      - name: Remove unnecessary files
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo rm -rf ${GITHUB_WORKSPACE}/.git
+          sudo rm -rf \
+            /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+            /usr/local/share/powershell /usr/share/swift /usr/local/.ghcup \
+            /usr/lib/jvm || true
+          echo "some directories deleted"
+          sudo apt install aptitude -y >/dev/null 2>&1
+          sudo aptitude purge aria2 ansible azure-cli shellcheck rpm xorriso zsync \
+            esl-erlang firefox gfortran-8 gfortran-9 google-chrome-stable \
+            google-cloud-sdk imagemagick \
+            libmagickcore-dev libmagickwand-dev libmagic-dev ant ant-optional kubectl \
+            mercurial apt-transport-https mono-complete libmysqlclient \
+            unixodbc-dev yarn chrpath libssl-dev libxft-dev \
+            libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev \
+            snmp pollinate libpq-dev postgresql-client powershell ruby-full \
+            sphinxsearch subversion mongodb-org azure-cli microsoft-edge-stable \
+            -y -f >/dev/null 2>&1
+          sudo aptitude purge google-cloud-sdk -f -y >/dev/null 2>&1
+          sudo aptitude purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+          sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+          sudo aptitude purge '~n ^mysql' -f -y >/dev/null 2>&1
+          sudo aptitude purge '~n ^php' -f -y >/dev/null 2>&1
+          sudo aptitude purge '~n ^dotnet' -f -y >/dev/null 2>&1
+          sudo apt-get autoremove -y >/dev/null 2>&1
+          sudo apt-get autoclean -y >/dev/null 2>&1
+
+      - name: Verify cached models present
+        run: ls face_reg_recog_milvus/app/triton_server/models
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-        with:
-          buildkitd-flags: --debug
-          driver-opts: |
-            image=moby/buildkit:latest
-            network=host
 
       - name: Install Docker Compose
         run: |
-          sudo curl -L "https://github.com/docker/compose/releases/download/2.29.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
+            sudo curl -L "https://github.com/docker/compose/releases/download/2.29.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+
+      - name: Install python dependencies
+        run: |
+            python -m pip install --upgrade pip
+            pip install --no-cache-dir -r face_reg_recog_milvus/requirements.txt
+            pip install --no-cache-dir -r face_reg_recog_milvus/tests/requirements.txt
+
+      - name: Free apt & pip cache
+        run: |
+            sudo apt-get clean
+            sudo apt-get autoremove -y
+            sudo rm -rf /var/lib/apt/lists/*
+            sudo rm -rf /root/.cache/pip
 
       - name: Create .env file
         working-directory: face_reg_recog_milvus
         run: |
-          cat > .env << EOF
-          DOWNLOAD_CACHE_PATH=app/.data
-          DOWNLOAD_IMAGE_PATH=volumes/person_images
-          API_SERVER_PORT=8080
-          MILVUS_HOST=standalone
-          MILVUS_PORT=19530
-          ATTU_PORT=3000
-          MYSQL_HOST=mysql
-          MYSQL_PORT=3306
-          MYSQL_USER=user
-          MYSQL_PASSWORD=pass
-          MYSQL_DATABASE=default
-          MYSQL_PERSON_TABLE=person
-          MYSQL_ROOT_PASSWORD=admin
-          PMA_GUI_PORT=8001
-          PMA_HOST=mysql
-          PMA_PORT=3306
-          PMA_USER=user
-          PMA_PASSWORD=pass
-          REDIS_HOST=redis-server
-          REDIS_PORT=6379
-          EOF
+            touch .env
+            echo DOWNLOAD_CACHE_PATH="app/.data" >> .env
+            echo DOWNLOAD_IMAGE_PATH="volumes/person_images" >> .env
+            echo API_SERVER_PORT=8080 >> .env
+            echo MILVUS_HOST=standalone >> .env
+            echo MILVUS_PORT=19530 >> .env
+            echo ATTU_PORT=3000 >> .env
+            echo MYSQL_HOST=mysql >> .env
+            echo MYSQL_PORT=3306 >> .env
+            echo MYSQL_USER=user >> .env
+            echo MYSQL_PASSWORD=pass >> .env
+            echo MYSQL_DATABASE=default >> .env
+            echo MYSQL_PERSON_TABLE=person >> .env
+            echo MYSQL_ROOT_PASSWORD=admin >> .env
+            echo PMA_GUI_PORT=8001 >> .env
+            echo PMA_HOST=mysql >> .env
+            echo PMA_PORT=3306 >> .env
+            echo PMA_USER=user >> .env
+            echo PMA_PASSWORD=pass >> .env
+            echo REDIS_HOST=redis-server >> .env
+            echo REDIS_PORT=6379 >> .env
 
       - name: Add hosts to /etc/hosts
         run: |
-          echo "127.0.0.1  standalone" | sudo tee -a /etc/hosts
-          echo "127.0.0.1  mysql" | sudo tee -a /etc/hosts
-          echo "127.0.0.1  redis-server" | sudo tee -a /etc/hosts
+            sudo echo "127.0.0.1  standalone" | sudo tee -a /etc/hosts
+            sudo echo "127.0.0.1  mysql" | sudo tee -a /etc/hosts
+            sudo echo "127.0.0.1  redis-server" | sudo tee -a /etc/hosts
 
-      - name: Download and extract models efficiently
-        working-directory: face_reg_recog_milvus
+      - name: Build Docker Compose services
         run: |
-          # Create a minimal Python container just for downloading
-          docker run --rm \
-            -v $(pwd):/workspace \
-            -w /workspace \
-            python:3.11-slim bash -c "
-              apt-get update && apt-get install -y unzip && \
-              pip install --no-cache-dir gdown && \
-              gdown 1PTZrQwo_tv34J8fAZ6em1DEr1ymFLPvg && \
-              unzip -o models.zip -d app/triton_server && \
-              rm -f models.zip && \
-              echo 'Models extracted successfully'
-            "
-          
-          # Verify models are present
-          ls -la app/triton_server/models
+            docker compose -f face_reg_recog_milvus/docker-compose.yaml build
+            docker image prune -f
 
-      - name: Build Docker services with optimization
-        working-directory: face_reg_recog_milvus
+      - name: Start Docker Compose & trt server services
         run: |
-          # Build with buildkit for better caching and smaller layers
-          export DOCKER_BUILDKIT=1
-          export COMPOSE_DOCKER_CLI_BUILD=1
-          
-          # Build the main service
-          docker compose build \
-            --build-arg BUILDKIT_INLINE_CACHE=1 \
-            --no-cache --progress=plain
-          
-          # Immediately clean up build cache
-          docker builder prune -a -f
-          docker image prune -f
+          mkdir -p face_reg_recog_milvus/volumes/person_images
+          set -o allexport && source face_reg_recog_milvus/.env && set +o allexport
+          docker compose -f face_reg_recog_milvus/docker-compose.yaml up -d etcd minio standalone attu mysql mysql-admin redis-server
 
-      - name: Check disk space after build
-        run: |
-          echo "=== Disk usage after build ==="
-          df -h
-          echo "=== Docker space usage ==="
-          docker system df
+          # Wait for services to be ready
+          sleep 30
 
-      - name: Start essential services only
-        working-directory: face_reg_recog_milvus
-        run: |
-          mkdir -p volumes/person_images
-          
-          # Start only essential services first
-          docker compose up -d mysql redis-server
-          
-          # Wait for database services
-          sleep 15
-          
-          # Start Milvus components
-          docker compose up -d etcd minio standalone
-          
-          # Wait for Milvus
-          sleep 20
-          
-          # Start optional services if needed
-          docker compose up -d attu mysql-admin
-          
-          # Start triton server
+          # Start triton server in the same network
           docker run -d --rm \
             --network face_recog_milvus \
             --name uvicorn_trt_server_cont \
             -p 8081:8081 \
             face_reg_recog_milvus-uvicorn_trt_server:latest \
             tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
-
-      - name: Install Python dependencies in container
-        working-directory: face_reg_recog_milvus
-        run: |
-          # Create a requirements file for testing
-          cat requirements.txt tests/requirements.txt > combined_requirements.txt
 
       - name: Run PyTest in Docker
         working-directory: face_reg_recog_milvus
@@ -159,45 +147,12 @@ jobs:
             -e MYSQL_HOST=mysql \
             -e REDIS_HOST=redis-server \
             -e MYSQL_CUR_TABLE=test \
-            python:3.11-slim bash -c "
+            python:3.11 bash -c "
               cd /app && \
-              apt-get update && apt-get install -y gcc python3-dev && \
-              pip install --no-cache-dir -r requirements.txt && \
-              pip install --no-cache-dir -r tests/requirements.txt && \
-              rm -rf /root/.cache/pip && \
-              apt-get clean && \
-              rm -rf /var/lib/apt/lists/* && \
+              pip install -r requirements.txt && \
+              pip install -r tests/requirements.txt && \
               pytest tests -v --tb=short
             "
 
-      - name: Cleanup after tests
-        if: always()
-        working-directory: face_reg_recog_milvus
-        run: |
-          # Stop all services
-          docker compose down -v || true
-          
-          # Stop triton server
-          docker stop uvicorn_trt_server_cont || true
-          
-          # Remove all containers
-          docker container prune -f
-          
-          # Remove all images created during this run
-          docker image prune -a -f
-          
-          # Clean everything
-          docker system prune -a --volumes -f
-          
-          # Clean build cache
-          docker builder prune -a -f
-
-
-      - name: Emergency cleanup on failure
-        if: failure()
-        run: |
-          # If we're still running out of space, do emergency cleanup
-          sudo rm -rf face_reg_recog_milvus/app/triton_server/models || true
-          docker system prune -a --volumes -f || true
-          sudo apt-get clean || true
-          sudo rm -rf /tmp/* || true
+      - name: Stop Docker Compose services
+        run: docker compose -f face_reg_recog_milvus/docker-compose.yaml down
