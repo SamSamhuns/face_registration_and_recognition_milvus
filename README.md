@@ -201,7 +201,7 @@ docker compose ps
 #### 3b. Start face model triton-server
 
 ```shell
-# start triton-server in a docker container exposed onport 8081
+# start triton-server in a docker container exposed on port 8081
 docker run -d --rm -p 127.0.0.1:8081:8081 --name uvicorn_trt_server_cont uvicorn_trt_server:latest tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
 # check trtserver status with
 docker logs uvicorn_trt_server_cont
