@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/tritonserver:24.12-py3
+FROM nvcr.io/nvidia/tritonserver:25.02-py3
 
 LABEL maintainer="fname.lname@domain.com"
 

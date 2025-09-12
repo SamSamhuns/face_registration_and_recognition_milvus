@@ -1,6 +1,7 @@
 services:
   uvicorn_trt_server:
     container_name: uvicorn_trt_server_cont
+    image: uvicorn_trt_server
     build:
       context: ./
       dockerfile: ./Dockerfile
