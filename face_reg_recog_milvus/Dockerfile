@@ -1,45 +1,71 @@
+# Stage 1: Builder stage
+FROM nvcr.io/nvidia/tritonserver:25.02-py3 AS builder
+
+# Install build dependencies
+RUN apt-get update --no-install-recommends \
+    && apt-get install python3-venv --no-install-recommends -y
+
+# Set build environment
+ARG UNAME=triton-server
+ENV WORKDIR="/home/$UNAME/src"
+ENV VIRTUAL_ENV="/home/$UNAME/venv"
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONBUFFERED=1
+
+# Create directories
+RUN mkdir -p ${WORKDIR} ${VIRTUAL_ENV}
+
+# Set working directory
+WORKDIR ${WORKDIR}
+
+# Create virtual environment and install dependencies
+COPY requirements.txt .
+RUN python3 -m venv $VIRTUAL_ENV \
+    && pip install --no-cache-dir pip==24.0 \
+    && pip install --no-cache-dir --default-timeout=100 -r requirements.txt
+
+# Copy application code
+COPY app ${WORKDIR}/app
+COPY scripts ${WORKDIR}/scripts
+
+# Stage 2: Runtime stage
 FROM nvcr.io/nvidia/tritonserver:25.02-py3
 
 LABEL maintainer="fname.lname@domain.com"
 
-# install opencv & python-venv reqs
+# Install runtime dependencies
 RUN apt-get update --no-install-recommends \
-    && apt-get install python3-venv --no-install-recommends -y
+    && apt-get install --no-install-recommends -y python3-venv \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# set username & uid inside docker
+# Set runtime environment
 ARG UNAME=triton-server
 ENV WORKDIR="/home/$UNAME/src"
-
-# set work directory
-WORKDIR ${WORKDIR}
-
-# setup python env vars & virtual env
+ENV VIRTUAL_ENV="/home/$UNAME/venv"
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONBUFFERED=1
-ENV VIRTUAL_ENV="/home/$UNAME/venv"
-RUN python3 -m venv $VIRTUAL_ENV
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Install python dependencies
-RUN pip install pip==24.0
-COPY requirements.txt  "$WORKDIR/requirements.txt"
-RUN pip install --no-cache-dir --default-timeout=100 -r "$WORKDIR/requirements.txt"
+# Check if user exists, if not create it
+RUN id -u $UNAME 2>/dev/null || useradd -m -s /bin/bash $UNAME
 
-# remove cache
-RUN pip cache purge \
-    && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /root/.cache/pip
+# Ensure home directory exists
+RUN mkdir -p /home/$UNAME
 
-# copy app & scripts to src & exclude those in dockerignore
-COPY app "$WORKDIR/app"
-COPY scripts "$WORKDIR/scripts"
+# Set working directory
+WORKDIR ${WORKDIR}
 
-# change file ownership to docker user:usergroup
-RUN chown -R "$UNAME:$UNAME" "$WORKDIR"
+# Copy from builder with proper ownership
+COPY --from=builder --chown=$UNAME:$UNAME ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+COPY --from=builder --chown=$UNAME:$UNAME ${WORKDIR}/app ${WORKDIR}/app
+COPY --from=builder --chown=$UNAME:$UNAME ${WORKDIR}/scripts ${WORKDIR}/scripts
 
-# make server start script executable
-RUN chmod 777 "$WORKDIR/scripts/start_servers.sh"
+# Make scripts executable
+RUN chmod 777 ${WORKDIR}/scripts/start_servers.sh
 
-USER "$UNAME"
+# Switch to user
+USER $UNAME
+
 CMD ["/bin/bash", "/home/triton-server/src/scripts/start_servers.sh"]
