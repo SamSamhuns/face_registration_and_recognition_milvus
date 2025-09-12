@@ -10,10 +10,9 @@ on:
 
 jobs:
   test:
-    runs-on: ${{ matrix.os }}
+    runs-on: self-hosted-linux
     strategy:
       matrix:
-        os: [ubuntu-22.04]
         python: ["3.11", "3.12"]
 
     steps:
