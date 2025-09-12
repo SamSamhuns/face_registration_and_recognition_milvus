@@ -11,78 +11,48 @@ on:
 jobs:
   test:
     runs-on: self-hosted-linux
+    
+    # Run the entire job inside a container
+    container:
+      image: python:3.12  # or python:3.12 depending on your matrix needs
+      options: >-
+        --privileged
+        --volume /var/run/docker.sock:/var/run/docker.sock
+        --volume /usr/bin/docker:/usr/bin/docker
+        --network host
+    
     strategy:
       matrix:
         python: ["3.11", "3.12"]
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4  # Updated to v4
+
+      - name: Install system dependencies
+        run: |
+          apt-get update
+          apt-get install -y wget unzip sudo
+          # Install docker-compose if not available
+          curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          chmod +x /usr/local/bin/docker-compose
 
       - name: Download models
         id: download-models
-        # if: ${{ steps.models-cache.outputs.cache-hit != 'true' }}
         run: |
           pip install gdown
           gdown 1PTZrQwo_tv34J8fAZ6em1DEr1ymFLPvg
           unzip -o models.zip -d face_reg_recog_milvus/app/triton_server
           rm models.zip
 
-      - name: Remove unnecessary files
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          sudo rm -rf ${GITHUB_WORKSPACE}/.git
-          sudo rm -rf \
-            /usr/share/dotnet /usr/local/lib/android /opt/ghc \
-            /usr/local/share/powershell /usr/share/swift /usr/local/.ghcup \
-            /usr/lib/jvm || true
-          echo "some directories deleted"
-          sudo apt install aptitude -y >/dev/null 2>&1
-          sudo aptitude purge aria2 ansible azure-cli shellcheck rpm xorriso zsync \
-            esl-erlang firefox gfortran-8 gfortran-9 google-chrome-stable \
-            google-cloud-sdk imagemagick \
-            libmagickcore-dev libmagickwand-dev libmagic-dev ant ant-optional kubectl \
-            mercurial apt-transport-https mono-complete libmysqlclient \
-            unixodbc-dev yarn chrpath libssl-dev libxft-dev \
-            libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev \
-            snmp pollinate libpq-dev postgresql-client powershell ruby-full \
-            sphinxsearch subversion mongodb-org azure-cli microsoft-edge-stable \
-            -y -f >/dev/null 2>&1
-          sudo aptitude purge google-cloud-sdk -f -y >/dev/null 2>&1
-          sudo aptitude purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
-          sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
-          sudo aptitude purge '~n ^mysql' -f -y >/dev/null 2>&1
-          sudo aptitude purge '~n ^php' -f -y >/dev/null 2>&1
-          sudo aptitude purge '~n ^dotnet' -f -y >/dev/null 2>&1
-          sudo apt-get autoremove -y >/dev/null 2>&1
-          sudo apt-get autoclean -y >/dev/null 2>&1
-
       - name: Verify cached models present
         run: ls face_reg_recog_milvus/app/triton_server/models
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Install Docker Compose
-        run: |
-            sudo curl -L "https://github.com/docker/compose/releases/download/2.29.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-            sudo chmod +x /usr/local/bin/docker-compose
 
       - name: Install python dependencies
         run: |
             python -m pip install --upgrade pip
             pip install --no-cache-dir -r face_reg_recog_milvus/requirements.txt
             pip install --no-cache-dir -r face_reg_recog_milvus/tests/requirements.txt
-
-      - name: Free apt & pip cache
-        run: |
-            sudo apt-get clean
-            sudo apt-get autoremove -y
-            sudo rm -rf /var/lib/apt/lists/*
-            sudo rm -rf /root/.cache/pip
 
       - name: Create .env file
         working-directory: face_reg_recog_milvus
@@ -111,9 +81,9 @@ jobs:
 
       - name: Add hosts to /etc/hosts
         run: |
-            sudo echo "127.0.0.1  standalone" | sudo tee -a /etc/hosts
-            sudo echo "127.0.0.1  mysql" | sudo tee -a /etc/hosts
-            sudo echo "127.0.0.1  redis-server" | sudo tee -a /etc/hosts
+            echo "127.0.0.1  standalone" >> /etc/hosts
+            echo "127.0.0.1  mysql" >> /etc/hosts
+            echo "127.0.0.1  redis-server" >> /etc/hosts
 
       - name: Build Docker Compose services
         run: |
@@ -147,7 +117,7 @@ jobs:
             -e MYSQL_HOST=mysql \
             -e REDIS_HOST=redis-server \
             -e MYSQL_CUR_TABLE=test \
-            python:3.11 bash -c "
+            python:${{ matrix.python }} bash -c "
               cd /app && \
               pip install -r requirements.txt && \
               pip install -r tests/requirements.txt && \
