@@ -87,6 +87,7 @@ jobs:
         run: |
           mkdir -p face_reg_recog_milvus/volumes/person_images
           set -o allexport && source face_reg_recog_milvus/.env && set +o allexport
+          docker rm -f uvicorn_trt_server_cont || true
           docker-compose -f face_reg_recog_milvus/docker-compose.yaml up -d etcd minio standalone attu mysql mysql-admin redis-server
 
           # Wait for services to be ready
