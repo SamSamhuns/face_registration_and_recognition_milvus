@@ -97,7 +97,7 @@ jobs:
             --network face_recog_milvus \
             --name uvicorn_trt_server_cont \
             -p 8081:8081 \
-            face_reg_recog_milvus-uvicorn_trt_server:latest \
+            uvicorn_trt_server:latest \
             tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
 
       - name: Run PyTest in Docker
