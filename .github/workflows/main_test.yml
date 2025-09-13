@@ -101,11 +101,6 @@ jobs:
             uvicorn_trt_server:latest \
             tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
 
-      - name: Verify app dir
-        run: |
-          ls face_reg_recog_milvus/app/
-          ls
-
       - name: Run PyTest in Docker
         working-directory: face_reg_recog_milvus
         run: |
@@ -117,8 +112,6 @@ jobs:
             -e REDIS_HOST=redis-server \
             -e MYSQL_CUR_TABLE=test \
             python:${{ matrix.python }} bash -c "
-              cd /app && \
-              ls && \
               pip install -r requirements.txt && \
               pip install -r tests/requirements.txt && \
               pytest tests -v --tb=short
