@@ -19,7 +19,6 @@ jobs:
         --privileged
         --volume /var/run/docker.sock:/var/run/docker.sock
         --volume /usr/bin/docker:/usr/bin/docker
-        --network host
     
     strategy:
       matrix:
@@ -29,13 +28,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4  # Updated to v4
 
-      # - name: Install system dependencies
-      #   run: |
-      #     apt-get update
-      #     apt-get install -y wget unzip sudo
-      #     # Install docker-compose if not available
-      #     curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-      #     chmod +x /usr/local/bin/docker-compose
+      - name: Install system dependencies
+        run: |
+          apt-get update
+          apt-get install -y wget unzip sudo
+          # Install docker-compose if not available
+          curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          chmod +x /usr/local/bin/docker-compose
 
       - name: Download models
         id: download-models
