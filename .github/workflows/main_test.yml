@@ -14,7 +14,7 @@ jobs:
     
     # Run the entire job inside a container
     container:
-      image: python:3.12  # or python:3.12 depending on your matrix needs
+      image: python:3.12
       options: >-
         --privileged
         --volume /var/run/docker.sock:/var/run/docker.sock
@@ -29,13 +29,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4  # Updated to v4
 
-      - name: Install system dependencies
-        run: |
-          apt-get update
-          apt-get install -y wget unzip sudo
-          # Install docker-compose if not available
-          curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          chmod +x /usr/local/bin/docker-compose
+      # - name: Install system dependencies
+      #   run: |
+      #     apt-get update
+      #     apt-get install -y wget unzip sudo
+      #     # Install docker-compose if not available
+      #     curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+      #     chmod +x /usr/local/bin/docker-compose
 
       - name: Download models
         id: download-models
@@ -47,12 +47,6 @@ jobs:
 
       - name: Verify cached models present
         run: ls face_reg_recog_milvus/app/triton_server/models
-
-      - name: Install python dependencies
-        run: |
-            python -m pip install --upgrade pip
-            pip install --no-cache-dir -r face_reg_recog_milvus/requirements.txt
-            pip install --no-cache-dir -r face_reg_recog_milvus/tests/requirements.txt
 
       - name: Create .env file
         working-directory: face_reg_recog_milvus
