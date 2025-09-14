@@ -99,21 +99,11 @@ jobs:
             uvicorn_trt_server:latest \
             tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
 
-      - name: Run PyTest in Docker
+      - name: Run PyTest
         run: |
-          docker run --rm \
-            --network face_recog_milvus \
-            -v ${{ github.workspace }}:/workspace \
-            -e MILVUS_HOST=standalone \
-            -e MYSQL_HOST=mysql \
-            -e REDIS_HOST=redis-server \
-            -e MYSQL_CUR_TABLE=test \
-            python:${{ matrix.python }} bash -c "
-              cd /workspace/face_reg_recog_milvus && \
-              pip install -r requirements.txt && \
-              pip install -r tests/requirements.txt && \
-              PYTHONPATH="./" pytest tests -v --tb=short
-            "
+            pip install -r requirements.txt && \
+            pip install -r tests/requirements.txt && \
+            PYTHONPATH="./" pytest tests -v --tb=short
 
       - name: Stop Docker Compose services
         run: docker-compose -f face_reg_recog_milvus/docker-compose.yaml down
