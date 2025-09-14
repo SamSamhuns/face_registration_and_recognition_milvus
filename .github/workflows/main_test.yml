@@ -106,13 +106,13 @@ jobs:
         run: |
           docker run --rm \
             --network face_recog_milvus \
-            -v $(pwd):/app \
+            -v $(pwd):/workspace \
             -e MILVUS_HOST=standalone \
             -e MYSQL_HOST=mysql \
             -e REDIS_HOST=redis-server \
             -e MYSQL_CUR_TABLE=test \
             python:${{ matrix.python }} bash -c "
-              cd /app/face_reg_recog_milvus && \
+              cd /workspace && \
               pip install -r requirements.txt && \
               pip install -r tests/requirements.txt && \
               pytest tests -v --tb=short
