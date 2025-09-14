@@ -12,7 +12,7 @@ logger = logging.getLogger("mysql_api")
 def insert_person_data_into_sql(mysql_conn, mysql_tb, person_data: dict, commit: bool = True) -> dict:
     """
     Insert person_data into mysql table with param binding
-    Note: the transaction must be commited after if commit is False
+    Note: the transaction must be committed after if commit is False
     """
     # query fmt: `INSERT INTO mysql_tb (id, col1_name, col2_name) VALUES (%s, %s, %s)`
     query = (
@@ -30,8 +30,8 @@ def insert_person_data_into_sql(mysql_conn, mysql_tb, person_data: dict, commit:
                 return {"status": "success", "message": "record inserted into mysql db"}
             logger.info("record insertion waiting to be commit to mysql db.🕓")
             return {"status": "success", "message": "record insertion waiting to be commit to mysql db."}
-    except pymysql.Error as excep:
-        logger.error("%s: mysql record insert failed ❌", excep)
+    except pymysql.Error as exception:
+        logger.error("%s: mysql record insert failed ❌", exception)
         return {"status": "failed", "message": "mysql record insertion error"}
 
 
@@ -54,8 +54,8 @@ def select_person_data_from_sql_with_id(mysql_conn, mysql_tb, person_id: int) ->
                 "message": f"record matching id: {person_id} retrieved from mysql db",
                 "person_data": person_data,
             }
-    except pymysql.Error as excep:
-        logger.error("%s: mysql record retrieval failed ❌", excep)
+    except pymysql.Error as exception:
+        logger.error("%s: mysql record retrieval failed ❌", exception)
         return {"status": "failed", "message": "mysql record retrieval error"}
 
 
@@ -77,8 +77,8 @@ def select_all_person_data_from_sql(mysql_conn, mysql_tb) -> dict:
                 "message": "All person records retrieved from mysql db",
                 "person_data": person_data,
             }
-    except pymysql.Error as excep:
-        logger.error("%s: mysql record retrieval failed ❌", excep)
+    except pymysql.Error as exception:
+        logger.error("%s: mysql record retrieval failed ❌", exception)
         return {"status": "failed", "message": "mysql record retrieval error"}
 
 
@@ -101,8 +101,8 @@ def delete_person_data_from_sql_with_id(mysql_conn, mysql_tb, person_id: int, co
                 mysql_conn.commit()
                 logger.info("Person with id: %s deleted from mysql db.✅️", person_id)
                 return {"status": "success", "message": "record deleted from mysql db"}
-            logger.info("record deletion waiting to be commited to mysql db.🕓")
-            return {"status": "success", "message": "record deletion waiting to be commited to mysql db."}
-    except pymysql.Error as excep:
-        logger.error("%s: mysql record deletion failed ❌", excep)
+            logger.info("record deletion waiting to be committed to mysql db.🕓")
+            return {"status": "success", "message": "record deletion waiting to be committed to mysql db."}
+    except pymysql.Error as exception:
+        logger.error("%s: mysql record deletion failed ❌", exception)
         return {"status": "failed", "message": "mysql record deletion error"}

@@ -5,8 +5,8 @@ configurations and env variables load
 import os
 from logging.config import dictConfig
 
-from models import ModelType
-from models.logging import LogConfig
+from app.models import ModelType
+from app.models.logging import LogConfig
 
 # save directories
 DOWNLOAD_CACHE_PATH = os.getenv("DOWNLOAD_CACHE_PATH", default="app/.data")

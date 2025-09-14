@@ -1,5 +1,5 @@
 """
-Inference with tritonserver. The tritonserver must be runnign the background
+Inference with tritonserver. The tritonserver must be running in the background
 """
 
 import os
@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 from utils.image import draw_bbox_on_image, pad_resize_image, scale_coords
 
-from face_reg_recog_milvus.app.utils.trtserver import (
+from app.utils.trtserver import (
     FlagConfig,
     extract_data_from_media,
     get_client_and_model_metadata_config,

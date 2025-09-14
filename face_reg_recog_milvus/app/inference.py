@@ -8,14 +8,17 @@ import shutil
 
 import pymysql
 import redis
-from api.milvus import get_milvus_collec_conn
-from api.mysql import (
+from pymilvus import MilvusException
+from pymysql.cursors import DictCursor
+
+from app.api.milvus import get_milvus_collec_conn
+from app.api.mysql import (
     delete_person_data_from_sql_with_id,
     insert_person_data_into_sql,
     select_all_person_data_from_sql,
     select_person_data_from_sql_with_id,
 )
-from config import (
+from app.config import (
     DOWNLOAD_IMAGE_PATH,
     FACE_COLLECTION_NAME,
     FACE_INDEX_NLIST,
@@ -34,9 +37,7 @@ from config import (
     REDIS_HOST,
     REDIS_PORT,
 )
-from pymilvus import MilvusException
-from pymysql.cursors import DictCursor
-from triton_server.inference_trtserver import run_inference
+from app.triton_server.inference_trtserver import run_inference
 
 logger = logging.getLogger("inference_api")
 

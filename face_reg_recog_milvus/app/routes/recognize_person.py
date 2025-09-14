@@ -1,5 +1,5 @@
 """
-Face Recogntion fastapi file
+Face Recognition fastapi file
 """
 
 import logging
@@ -7,11 +7,12 @@ import os
 import traceback
 import uuid
 
-from config import DOWNLOAD_CACHE_PATH, FACE_FEAT_MODEL_TYPE
 from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile, status
-from inference import recognize_person
-from models import InputModel
-from utils import cache_file_locally, download_url_file, get_mode_ext, remove_file
+
+from app.config import DOWNLOAD_CACHE_PATH, FACE_FEAT_MODEL_TYPE
+from app.inference import recognize_person
+from app.models import InputModel
+from app.utils import cache_file_locally, download_url_file, get_mode_ext, remove_file
 
 router = APIRouter()
 logger = logging.getLogger("recognize_person_route")

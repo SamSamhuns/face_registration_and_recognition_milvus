@@ -2,4 +2,4 @@
 import all data models
 """
 
-from .model import *
+from .model import InputModel, ModelType, PersonModel

@@ -1,5 +1,5 @@
 """
-milvus api functions
+Milvus api functions
 """
 
 import logging
@@ -70,5 +70,5 @@ def get_registered_person_milvus(milvus_collec_conn, person_id: int, output_fiel
             "person_data": results,
         }
     except MilvusException as excep:
-        logger.error("%s: error running mivlus database query", excep)
-        return {"status": "failed", "message": "error running mivlus database query"}
+        logger.error("%s: error running milvus database query", excep)
+        return {"status": "failed", "message": "error running milvus database query"}

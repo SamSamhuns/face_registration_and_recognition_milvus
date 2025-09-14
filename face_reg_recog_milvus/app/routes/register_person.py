@@ -9,9 +9,10 @@ import uuid
 
 from config import DOWNLOAD_CACHE_PATH, FACE_FEAT_MODEL_TYPE
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
-from inference import register_person
-from models import InputModel, PersonModel
-from utils import cache_file_locally, download_url_file, get_mode_ext, remove_file
+
+from app.inference import register_person
+from app.models import InputModel, PersonModel
+from app.utils import cache_file_locally, download_url_file, get_mode_ext, remove_file
 
 router = APIRouter()
 logger = logging.getLogger("register_person_router")

@@ -13,7 +13,8 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from routes import person, recognize_person, register_person
+
+from app.routes import person, recognize_person, register_person
 
 # logging
 logger = logging.getLogger("server")
