@@ -100,7 +100,8 @@ jobs:
             tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
 
       - name: Run PyTest
-        run: |
+        run: | 
+            ls -lh && \
             pip install -r requirements.txt && \
             pip install -r tests/requirements.txt && \
             PYTHONPATH="./" pytest tests -v --tb=short
