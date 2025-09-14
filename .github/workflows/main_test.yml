@@ -112,6 +112,7 @@ jobs:
             -e MYSQL_CUR_TABLE=test \
             python:${{ matrix.python }} bash -c "
               cd /workspace/face_reg_recog_milvus && \
+              mkdir -p volumes/person_images && \
               pip install -r requirements.txt && \
               pip install -r tests/requirements.txt && \
               PYTHONPATH="./" pytest tests -v --tb=short
