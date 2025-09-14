@@ -112,10 +112,12 @@ jobs:
             -e REDIS_HOST=redis-server \
             -e MYSQL_CUR_TABLE=test \
             python:${{ matrix.python }} bash -c "
+              ls && \
+              ls app && \
               pip install -r requirements.txt && \
               pip install -r tests/requirements.txt && \
               pytest tests -v --tb=short
             "
 
       - name: Stop Docker Compose services
-        run: docker compose -f face_reg_recog_milvus/docker-compose.yaml down
+        run: docker-compose -f face_reg_recog_milvus/docker-compose.yaml down
