@@ -114,9 +114,7 @@ jobs:
             python:${{ matrix.python }} bash -c "
               ls && \
               echo Python Version: && python --version && \
-              ls app && \
-              echo Python Version: && python --version && \
-              ls /app $$ \
+              ls app/app && \
               pip install -r requirements.txt && \
               pip install -r tests/requirements.txt && \
               pytest tests -v --tb=short
