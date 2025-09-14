@@ -113,6 +113,7 @@ jobs:
             -e MYSQL_CUR_TABLE=test \
             python:${{ matrix.python }} bash -c "
               cd /workspace && \
+              ls -la && \
               pip install -r requirements.txt && \
               pip install -r tests/requirements.txt && \
               pytest tests -v --tb=short
