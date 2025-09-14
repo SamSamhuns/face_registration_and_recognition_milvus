@@ -115,7 +115,7 @@ jobs:
               mkdir -p volumes/person_images && \
               pip install -r requirements.txt && \
               pip install -r tests/requirements.txt && \
-              docker ps && \
+              docker-compose ps && \
               PYTHONPATH="./" pytest tests -v --tb=short
             "
 
