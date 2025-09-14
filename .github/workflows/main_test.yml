@@ -105,7 +105,7 @@ jobs:
         run: |
           docker run --rm \
             --network face_recog_milvus \
-            -v $(pwd):/workspace \
+            -v ${{ github.workspace }}:/workspace \
             -e MILVUS_HOST=standalone \
             -e MYSQL_HOST=mysql \
             -e REDIS_HOST=redis-server \
