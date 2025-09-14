@@ -44,9 +44,6 @@ jobs:
           unzip -o models.zip -d face_reg_recog_milvus/app/triton_server
           rm models.zip
 
-      - name: Verify cached models present
-        run: ls face_reg_recog_milvus/app/triton_server/models
-
       - name: Create .env file
         working-directory: face_reg_recog_milvus
         run: |
@@ -85,6 +82,7 @@ jobs:
 
       - name: Start Docker Compose & trt server services
         run: |
+          sudo rm -rf face_reg_recog_milvus/volumes
           mkdir -p face_reg_recog_milvus/volumes/person_images
           set -o allexport && source face_reg_recog_milvus/.env && set +o allexport
           docker rm -f uvicorn_trt_server_cont || true
@@ -103,7 +101,6 @@ jobs:
 
       - name: Run PyTest in Docker
         run: |
-          docker-compose ps
           docker run --rm \
             --network face_recog_milvus \
             -v ${{ github.workspace }}:/workspace \
@@ -113,7 +110,6 @@ jobs:
             -e MYSQL_CUR_TABLE=test \
             python:${{ matrix.python }} bash -c "
               cd /workspace/face_reg_recog_milvus && \
-              mkdir -p volumes/person_images && \
               pip install -r requirements.txt && \
               pip install -r tests/requirements.txt && \
               PYTHONPATH="./" pytest tests -v --tb=short
