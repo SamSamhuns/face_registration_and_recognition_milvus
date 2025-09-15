@@ -105,6 +105,7 @@ jobs:
       - name: Run PyTest
         shell: bash
         run: | 
+            cd face_reg_recog_milvus
             # Load environment variables before running tests
             set -o allexport && source .env && set +o allexport && \
             pip install -r requirements.txt && \
@@ -112,4 +113,4 @@ jobs:
             PYTHONPATH="./" pytest tests -v --tb=short
 
       - name: Stop Docker Compose services
-        run: docker compose down
+        run: docker compose -f face_reg_recog_milvus/docker-compose.yaml down
