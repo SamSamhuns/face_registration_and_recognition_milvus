@@ -89,7 +89,7 @@ jobs:
           sudo rm -rf volumes
           mkdir -p volumes/person_images
           set -o allexport && source .env && set +o allexport
-          docker compose down || true
+          docker compose down
           docker compose up -d
 
           # Wait for services to be ready
