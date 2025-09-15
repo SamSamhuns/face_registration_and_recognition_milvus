@@ -101,6 +101,7 @@ jobs:
             tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
 
       - name: Run PyTest
+        shell: bash
         run: | 
             cd face_reg_recog_milvus && \
             # Load environment variables before running tests
