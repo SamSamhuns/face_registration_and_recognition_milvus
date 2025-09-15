@@ -32,9 +32,11 @@ jobs:
         run: |
           apt-get update
           apt-get install -y wget unzip sudo
-          # Install docker-compose if not available
-          curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          chmod +x /usr/local/bin/docker-compose
+          # Install docker compose if not available
+          DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+          mkdir -p $DOCKER_CONFIG/cli-plugins
+          curl -SL https://github.com/docker/compose/releases/download/v2.39.3/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
+          chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
 
       - name: Download models
         id: download-models
@@ -77,7 +79,7 @@ jobs:
 
       - name: Build Docker Compose services
         run: |
-            docker-compose -f face_reg_recog_milvus/docker-compose.yaml build
+            docker compose -f face_reg_recog_milvus/docker-compose.yaml build
             docker image prune -f
 
       - name: Start Docker Compose & trt server services
@@ -87,18 +89,10 @@ jobs:
           mkdir -p face_reg_recog_milvus/volumes/person_images
           set -o allexport && source face_reg_recog_milvus/.env && set +o allexport
           docker rm -f uvicorn_trt_server_cont || true
-          docker-compose -f face_reg_recog_milvus/docker-compose.yaml up -d etcd minio standalone attu mysql mysql-admin redis-server
+          docker compose -f face_reg_recog_milvus/docker-compose.yaml up -d
 
           # Wait for services to be ready
           sleep 30
-
-          # Start triton server in the same network
-          docker run -d --rm \
-            --network face_recog_milvus \
-            --name uvicorn_trt_server_cont \
-            -p 8081:8081 \
-            uvicorn_trt_server:latest \
-            tritonserver --model-store app/triton_server/models --allow-grpc=true --allow-http=false --grpc-port=8081
 
       - name: Run PyTest
         shell: bash
@@ -111,4 +105,4 @@ jobs:
             PYTHONPATH="./" pytest tests -v --tb=short
 
       - name: Stop Docker Compose services
-        run: docker-compose -f face_reg_recog_milvus/docker-compose.yaml down
+        run: docker compose -f face_reg_recog_milvus/docker-compose.yaml down
