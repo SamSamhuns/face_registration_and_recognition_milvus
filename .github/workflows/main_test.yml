@@ -19,24 +19,31 @@ jobs:
         --privileged
         --volume /var/run/docker.sock:/var/run/docker.sock
         --volume /usr/bin/docker:/usr/bin/docker
-    
-    strategy:
-      matrix:
-        python: ["3.12"]
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4  # Updated to v4
+        uses: actions/checkout@v4
+
+      - name: Cache Docker Compose binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.docker/cli-plugins/docker-compose
+          key: docker-compose-v2.39.3
 
       - name: Install system dependencies
         run: |
           apt-get update
-          apt-get install -y wget unzip sudo
-          # Install docker compose if not available
+          apt-get install -y wget unzip sudo curl
           DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
           mkdir -p $DOCKER_CONFIG/cli-plugins
-          curl -SL https://github.com/docker/compose/releases/download/v2.39.3/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
-          chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+          if [ ! -f "$DOCKER_CONFIG/cli-plugins/docker-compose" ]; then
+            echo "Downloading Docker Compose..."
+            curl -SL https://github.com/docker/compose/releases/download/v2.39.3/docker-compose-linux-x86_64 \
+              -o $DOCKER_CONFIG/cli-plugins/docker-compose
+            chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+          else
+            echo "Using cached Docker Compose binary"
+          fi
 
       - name: Download models
         id: download-models
