@@ -100,7 +100,7 @@ jobs:
           docker compose up -d
 
           # Wait for services to be ready
-          sleep 30
+          sleep 60
 
       - name: Run PyTest
         shell: bash
