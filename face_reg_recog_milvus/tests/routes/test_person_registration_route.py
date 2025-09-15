@@ -51,7 +51,7 @@ async def test_registration_one_person_url(
     fpath, fcontent = mock_one_face_image_2_file
     param_dict = mock_person_data_dict(TEST_PERSON_URL_ID)
 
-    with patch("routes.register_person.download_url_file", mock_download_url_file(fcontent)):
+    with patch("app.routes.register_person.download_url_file", mock_download_url_file(fcontent)):
         param_dict["img_url"] = "https://example.com/test.jpg"
         response = await test_app_asyncio.post("/register_person_url", params=param_dict)
 

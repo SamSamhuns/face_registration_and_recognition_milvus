@@ -45,7 +45,7 @@ async def test_recognition_one_person_url(
     param_dict = {k: str(v) for k, v in param_dict.items()}
 
     # Patch the download function
-    with patch("routes.recognize_person.download_url_file", mock_download_url_file(fcontent)):
+    with patch("app.routes.recognize_person.download_url_file", mock_download_url_file(fcontent)):
         param_dict["img_url"] = "https://example.com/test.jpg"
         response = await test_app_asyncio.post("/recognize_person_url", params=param_dict)
 
