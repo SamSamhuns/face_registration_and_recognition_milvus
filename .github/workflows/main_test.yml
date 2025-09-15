@@ -85,11 +85,12 @@ jobs:
       - name: Start Docker Compose & trt server services
         shell: bash
         run: |
-          sudo rm -rf face_reg_recog_milvus/volumes
-          mkdir -p face_reg_recog_milvus/volumes/person_images
-          set -o allexport && source face_reg_recog_milvus/.env && set +o allexport
-          docker compose -f face_reg_recog_milvus/docker-compose.yaml down || true
-          docker compose -f face_reg_recog_milvus/docker-compose.yaml up -d
+          cd face_reg_recog_milvus
+          sudo rm -rf volumes
+          mkdir -p volumes/person_images
+          set -o allexport && source .env && set +o allexport
+          docker compose down || true
+          docker compose up -d
 
           # Wait for services to be ready
           sleep 30
@@ -97,7 +98,6 @@ jobs:
       - name: Run PyTest
         shell: bash
         run: | 
-            cd face_reg_recog_milvus && \
             # Load environment variables before running tests
             set -o allexport && source .env && set +o allexport && \
             pip install -r requirements.txt && \
@@ -105,4 +105,4 @@ jobs:
             PYTHONPATH="./" pytest tests -v --tb=short
 
       - name: Stop Docker Compose services
-        run: docker compose -f face_reg_recog_milvus/docker-compose.yaml down
+        run: docker compose down
