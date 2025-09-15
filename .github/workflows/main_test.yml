@@ -97,7 +97,7 @@ jobs:
           mkdir -p volumes/person_images
           set -o allexport && source .env && set +o allexport
           docker compose down
-          docker compose up -d
+          docker compose up -d uvicorn_trt_server etcd minio standalone attu mysql mysql-admin redis-server
 
           # Wait for services to be ready
           sleep 60
@@ -106,11 +106,7 @@ jobs:
         shell: bash
         run: | 
             cd face_reg_recog_milvus
-            # Load environment variables before running tests
-            set -o allexport && source .env && set +o allexport && \
-            pip install -r requirements.txt && \
-            pip install -r tests/requirements.txt && \
-            PYTHONPATH="./" pytest tests -v --tb=short
+            docker compose run --rm pytest
 
       - name: Stop Docker Compose services
         run: docker compose -f face_reg_recog_milvus/docker-compose.yaml down
