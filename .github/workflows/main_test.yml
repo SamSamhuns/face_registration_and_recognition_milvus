@@ -81,6 +81,7 @@ jobs:
             docker image prune -f
 
       - name: Start Docker Compose & trt server services
+        shell: bash
         run: |
           sudo rm -rf face_reg_recog_milvus/volumes
           mkdir -p face_reg_recog_milvus/volumes/person_images
