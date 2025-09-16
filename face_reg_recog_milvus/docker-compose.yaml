@@ -147,10 +147,12 @@ services:
         condition: service_started
     volumes:
     - ./../:/workspace:rw
-    working_dir: /workspace/face_reg_recog_milvus
+    working_dir: /workspace
     command: >
       bash -c "
       ls -lah &&
+      ls app/ &&
+      ls volumes/ &&
       cd face_reg_recog_milvus &&
       ls -lah
       "
