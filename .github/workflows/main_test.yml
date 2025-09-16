@@ -104,15 +104,6 @@ jobs:
           # Wait for services to be ready
           sleep 10
 
-      - name: Sync repo into pytest volume
-        run: |
-          docker volume rm pytest_src || true
-          docker volume create pytest_src
-          docker run --rm \
-            -v pytest_src:/workspace \
-            -v $PWD:/src \
-            alpine sh -c "cp -r /src/* /workspace/ && ls -lah /workspace"
-
       - name: Run PyTest
         shell: bash
         run: | 
