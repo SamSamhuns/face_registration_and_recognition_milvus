@@ -15,7 +15,6 @@
 **Prerequisites**
 
 - `Docker v27.0.3+` and `Docker Compose v2.29.1+`
-- `Intel x86_64 CPU` (`ARM64` not currently supported)
 - `Python 3.11+,<=3.14`
 
 <img src="face_reg_recog_milvus/app/static/project_flow.png" width="60%" alt="project flow" />
@@ -34,6 +33,7 @@
   - [Setup with Docker Compose for Deployment](#setup-with-docker-compose-for-deployment)
     - [Docker Compose Setup](#docker-compose-setup)
     - [Start uvicorn and triton server with a milvus instance for face vector storage \& search](#start-uvicorn-and-triton-server-with-a-milvus-instance-for-face-vector-storage--search)
+    - [Run tests with docker compose](#run-tests-with-docker-compose)
   - [Setup with Docker and local python envs for Development](#setup-with-docker-and-local-python-envs-for-development)
     - [1. Build uvicorn\_trt\_server docker](#1-build-uvicorn_trt_server-docker)
     - [2. Local uvicorn requirements](#2-local-uvicorn-requirements)
@@ -67,11 +67,14 @@ rm models.zip
 
 ### 2. Create .env file
 
-Create a `.env` in `face_reg_recog_milvus/`:
+Create a `.env` in `face_reg_recog_milvus/` with `cp .env.example .env`:
 
 ```yaml
+# Example .env.example
 # core settings
-API_SERVER_PORT=8080
+FASTAPI_SERVER_PORT=8080
+TRITON_SERVER_HOST=uvicorn_trt_server
+TRITON_SERVER_PORT=8081
 DOWNLOAD_CACHE_PATH="app/.data"
 DOWNLOAD_IMAGE_PATH="volumes/person_images"
 # milvus
@@ -140,7 +143,7 @@ If there are GPG key errors during the build of `uvicorn_trt_server:latest` imag
 
 ```shell
 cd face_reg_recog_milvus
-# create shared volume directory to store imgs if not already created
+# create shared volume directory to store images if not already created
 mkdir -p volumes/person_images
 # build all required containers
 docker compose build
@@ -148,18 +151,19 @@ docker compose build
 docker compose up -d
 ```
 
-Face registration and recognition fastapi will be available at <http://localhost:8080>. The exposed port can be changed with the `API_SERVER_PORT` env variable.
+Face registration and recognition fastapi will be available at <http://localhost:8080>. The exposed port can be changed with the `FASTAPI_SERVER_PORT` env variable.
+
+### Run tests with docker compose
+
+```bash
+docker compose run --rm pytest
+```
 
 ## Setup with Docker and local python envs for Development
 
 **Allows for rapid prototyping.**
 
-Change into main working directory where all subsequent commands must be run.
-
-```shell
-cd face_reg_recog_milvus
-```
-
+Change into main working directory where all subsequent commands must be run `cd face_reg_recog_milvus`.
 ### 1. Build uvicorn_trt_server docker
 
 ```shell
@@ -168,20 +172,28 @@ bash scripts/build_docker.sh
 
 ### 2. Local uvicorn requirements
 
-To properly resolve host-names in `.env`, the container service names in `docker compose.yaml` following must be added to `/etc/hosts` in the local system. This is not required when the fastapi-server is running inside a docker container.
+To properly resolve host-names in `.env`, the container service names in `docker compose.yaml` following must be added to `/etc/hosts` in the local system. This is not required when the `fastapi-server` is running inside a docker container.
 
 ```shell
 127.0.0.1  standalone
 127.0.0.1  mysql
 127.0.0.1  redis-server
+127.0.0.1  uvicorn_trt_server
 ```
+
+`poetry`: (Recommended)
+
+```bash
+# install requirements
+poetry install  # --all-groups for dev & test requirements 
+```
+
+`venv`:
 
 ```bash
 # setup virtual env (conda env is fine as well)
-python -m venv venv
-source venv/bin/activate
-# install all reqs
-pip install --upgrade pip
+python -m venv venv; source venv/bin/activate
+# install all requirements
 pip install -r requirements.txt
 ```
 
