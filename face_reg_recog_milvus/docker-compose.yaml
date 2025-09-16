@@ -146,7 +146,9 @@ services:
       uvicorn_trt_server:
         condition: service_started
     volumes:
-      - ${DOCKER_VOLUME_DIRECTORY:-${PWD}}:/workspace
+      - type: bind
+        source: ${DOCKER_VOLUME_DIRECTORY:-.}
+        target: /workspace
     working_dir: /workspace
     command: >
       bash -c "
