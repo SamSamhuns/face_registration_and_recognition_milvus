@@ -150,7 +150,6 @@ services:
     working_dir: /workspace
     command: >
       bash -c "
-      cd face_reg_recog_milvus &&
       ls -lah &&
       pip install -r requirements.txt &&
       pip install -r tests/requirements.txt &&
