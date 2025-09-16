@@ -146,10 +146,11 @@ services:
       uvicorn_trt_server:
         condition: service_started
     volumes:
-      - ${DOCKER_VOLUME_DIRECTORY:-$PWD}:/workspace
+      - ./:/workspace
     working_dir: /workspace
     command: >
       bash -c "
+      ls -lah &&
       pip install -r requirements.txt &&
       pip install -r tests/requirements.txt &&
       pytest tests -v --tb=short
