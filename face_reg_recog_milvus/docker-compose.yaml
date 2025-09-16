@@ -146,20 +146,20 @@ services:
       uvicorn_trt_server:
         condition: service_started
     volumes:
-    - ./../:/workspace:rw
+      - pytest_src:/workspace
     working_dir: /workspace
     command: >
       bash -c "
       ls -lah &&
-      ls app/ &&
-      ls volumes/ &&
       cd face_reg_recog_milvus &&
-      ls -lah
+      pip install -r requirements.txt &&
+      pip install -r tests/requirements.txt &&
+      pytest tests -v --tb=short
       "
 
-# pip install -r requirements.txt &&
-# pip install -r tests/requirements.txt &&
-# pytest tests -v --tb=short
 networks:
   default:
     name: face_recog_milvus
+
+volumes:
+  pytest_src:
