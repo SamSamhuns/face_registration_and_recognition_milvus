@@ -57,9 +57,11 @@ jobs:
         working-directory: face_reg_recog_milvus
         run: |
             touch .env
+            echo FASTAPI_SERVER_PORT=8080 >> .env
+            echo TRITON_SERVER_HOST=uvicorn_trt_server >> .env
+            echo TRITON_SERVER_PORT=8081 >> .env
             echo DOWNLOAD_CACHE_PATH="app/.data" >> .env
             echo DOWNLOAD_IMAGE_PATH="volumes/person_images" >> .env
-            echo API_SERVER_PORT=8080 >> .env
             echo MILVUS_HOST=standalone >> .env
             echo MILVUS_PORT=19530 >> .env
             echo ATTU_PORT=3000 >> .env
@@ -67,9 +69,9 @@ jobs:
             echo MYSQL_PORT=3306 >> .env
             echo MYSQL_USER=user >> .env
             echo MYSQL_PASSWORD=pass >> .env
+            echo MYSQL_ROOT_PASSWORD=admin >> .env
             echo MYSQL_DATABASE=default >> .env
             echo MYSQL_PERSON_TABLE=person >> .env
-            echo MYSQL_ROOT_PASSWORD=admin >> .env
             echo PMA_GUI_PORT=8001 >> .env
             echo PMA_HOST=mysql >> .env
             echo PMA_PORT=3306 >> .env
@@ -83,6 +85,7 @@ jobs:
             echo "127.0.0.1  standalone" >> /etc/hosts
             echo "127.0.0.1  mysql" >> /etc/hosts
             echo "127.0.0.1  redis-server" >> /etc/hosts
+            echo "127.0.0.1  uvicorn_trt_server" >> /etc/hosts
 
       - name: Build Docker Compose services
         run: |
@@ -95,7 +98,6 @@ jobs:
           cd face_reg_recog_milvus
           sudo rm -rf volumes
           mkdir -p volumes/person_images
-          set -o allexport && source .env && set +o allexport
           docker compose down
           docker compose up -d uvicorn_trt_server etcd minio standalone attu mysql mysql-admin redis-server
 
