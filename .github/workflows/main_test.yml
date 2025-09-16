@@ -108,6 +108,8 @@ jobs:
         shell: bash
         run: | 
             cd face_reg_recog_milvus
+            # Set the Docker volume directory to the current working directory
+            export DOCKER_VOLUME_DIRECTORY=${PWD}
             docker compose run --rm pytest
 
       - name: Stop Docker Compose services

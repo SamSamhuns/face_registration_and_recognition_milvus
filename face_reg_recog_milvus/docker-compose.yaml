@@ -147,15 +147,13 @@ services:
         condition: service_started
     volumes:
       - type: bind
-        source: ${DOCKER_VOLUME_DIRECTORY:-.}
+        source: ${DOCKER_VOLUME_DIRECTORY:-${PWD}}}
         target: /workspace
     working_dir: /workspace
     command: >
       bash -c "
       ls -lah &&
-      ls face_reg_recog_milvus &&
-      cd face_reg_recog_milvus &&
-      ls -lah
+      pytest tests -v --tb=short
       "
 
 # pip install -r requirements.txt &&
