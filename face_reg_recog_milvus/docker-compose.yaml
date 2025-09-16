@@ -142,7 +142,7 @@ services:
       redis-server:
         condition: service_started
     volumes:
-      - .:/workspace
+      - ${PWD}:/workspace
     working_dir: /workspace/face_reg_recog_milvus
     command: >
       bash -c "
