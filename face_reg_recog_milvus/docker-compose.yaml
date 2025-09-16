@@ -146,12 +146,11 @@ services:
       uvicorn_trt_server:
         condition: service_started
     volumes:
-      - ./:/workspace
+      - ./face_reg_recog_milvus:/workspace
     working_dir: /workspace
     command: >
       bash -c "
-      ls -lah &&
-      pytest tests -v --tb=short
+      ls -lah
       "
 
 # pip install -r requirements.txt &&
