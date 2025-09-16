@@ -108,8 +108,6 @@ jobs:
         shell: bash
         run: | 
             cd face_reg_recog_milvus
-            ls -lah
-            echo "Current working directory: $(pwd)"
             docker compose run --rm pytest
 
       - name: Stop Docker Compose services

@@ -146,10 +146,12 @@ services:
       uvicorn_trt_server:
         condition: service_started
     volumes:
-      - ./face_reg_recog_milvus:/workspace
-    working_dir: /workspace
+    - ./../:/workspace:rw
+    working_dir: /workspace/face_reg_recog_milvus
     command: >
       bash -c "
+      ls -lah &&
+      cd face_reg_recog_milvus &&
       ls -lah
       "
 
