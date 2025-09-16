@@ -34,7 +34,7 @@ from app.api.mysql import insert_person_data_into_sql
 from app.models.model import ModelType, PersonModel
 from pymysql.cursors import DictCursor
 
-IMG_EXTS = set([".jpg", ".png", ".jpeg"])
+IMG_EXTS = {".jpg", ".png", ".jpeg"}
 
 # Connect to MySQL
 mysql_conn = pymysql.connect(
@@ -69,7 +69,7 @@ def insert_embeddings_into_milvus_towhee(img_dir: str):
     def load_image(path_pattern):
         """Yield image paths"""
         for item in glob.glob(path_pattern):
-            yield item
+            yield from item
 
     @register
     def gen_int_id(x=None):
