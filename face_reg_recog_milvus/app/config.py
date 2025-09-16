@@ -26,7 +26,11 @@ log_cfg.handlers["error_file_handler"]["filename"] = os.path.join(LOG_STORAGE_PA
 dictConfig(log_cfg.model_dump())
 
 # http api server
-API_SERVER_PORT = int(os.getenv("API_SERVER_PORT", default="8080"))
+FASTAPI_SERVER_PORT = int(os.getenv("FASTAPI_SERVER_PORT", default="8080"))
+
+# triton server conf
+TRITON_SERVER_HOST = os.getenv("TRITON_SERVER_HOST", default="0.0.0.0")
+TRITON_SERVER_PORT = int(os.getenv("TRITON_SERVER_PORT", default="8081"))
 
 # redis conf
 REDIS_HOST = os.getenv("REDIS_HOST", default="0.0.0.0")

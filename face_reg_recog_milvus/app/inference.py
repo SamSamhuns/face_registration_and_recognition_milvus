@@ -36,6 +36,8 @@ from app.config import (
     MYSQL_USER,
     REDIS_HOST,
     REDIS_PORT,
+    TRITON_SERVER_HOST,
+    TRITON_SERVER_PORT,
 )
 from app.triton_server.inference_trtserver import run_inference
 
@@ -147,6 +149,8 @@ def register_person(
         face_det_thres=face_det_threshold,
         face_bbox_area_thres=0.10,
         face_count_thres=1,
+        host=TRITON_SERVER_HOST,
+        port=TRITON_SERVER_PORT,
         return_mode="json",
     )
 
@@ -208,6 +212,8 @@ def recognize_person(
         face_det_thres=face_det_threshold,
         face_bbox_area_thres=0.10,
         face_count_thres=1,
+        host=TRITON_SERVER_HOST,
+        port=TRITON_SERVER_PORT,
         return_mode="json",
     )
 

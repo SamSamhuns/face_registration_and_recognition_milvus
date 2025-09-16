@@ -83,6 +83,7 @@ def run_inference(
     face_count_thres: int = 1,
     save_result_dir: str = None,  # set to None prevent saving
     debug: bool = False,
+    host: str = "127.0.0.1",
     port: int = 8081,
     return_mode: str = "json",
 ) -> dict:
@@ -99,7 +100,7 @@ def run_inference(
     FLAGS.result_save_dir = save_result_dir
     FLAGS.model_version = ""  # empty str means use latest
     FLAGS.protocol = "grpc"
-    FLAGS.url = f"127.0.0.1:{port}"
+    FLAGS.url = f"{host}:{port}"
     FLAGS.verbose = False
     FLAGS.classes = 0  # classes must be set to 0
     FLAGS.debug = debug
@@ -208,6 +209,7 @@ def main():
         face_count_thres=1,
         save_result_dir="output",  # set to None prevent saving
         debug=True,
+        host="127.0.0.1",
         port=8081,
         return_mode="image",
     )
