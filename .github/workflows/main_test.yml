@@ -32,8 +32,10 @@ jobs:
 
       - name: Install system dependencies
         run: |
+          export DEBIAN_FRONTEND=noninteractive
           apt-get update
-          apt-get install -y sudo
+          apt-get install -y --no-install-recommends sudo ca-certificates
+          rm -rf /var/lib/apt/lists/*
           DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
           mkdir -p $DOCKER_CONFIG/cli-plugins
           if [ ! -f "$DOCKER_CONFIG/cli-plugins/docker-compose" ]; then
@@ -45,11 +47,18 @@ jobs:
             echo "Using cached Docker Compose binary"
           fi
 
+      - name: Cache models
+        id: cache-models
+        uses: actions/cache@v4
+        with:
+          path: face_reg_recog_milvus/app/triton_server/models
+          key: model-cache-1PTZrQwo_tv34J8fAZ6em1DEr1ymFLPvg
+
       - name: Download models
-        id: download-models
+        if: steps.cache-models.outputs.cache-hit != 'true'
         run: |
           pip install gdown
-          gdown 1PTZrQwo_tv34J8fAZ6em1DEr1ymFLPvg
+          gdown 1PTZrQwo_tv34J8fAZ6em1DEr1ymFLPvg -O models.zip
           unzip -o models.zip -d face_reg_recog_milvus/app/triton_server
           rm models.zip
 
@@ -80,16 +89,11 @@ jobs:
         working-directory: face_reg_recog_milvus
         shell: bash
         run: |
-          docker run --rm \
-            --network face_recog_milvus \
-            -v $(pwd):/workspace \
-            -w /workspace \
-            python:3.12 \
-            bash -c "
-              pip install -r requirements.txt &&
-              pip install -r tests/requirements.txt &&
-              pytest tests -v --tb=short
-            "
+          docker compose exec -T standalone bash -c "
+            pip install -r requirements.txt &&
+            pip install -r tests/requirements.txt &&
+            pytest tests -v --tb=short
+          "
 
       - name: Stop Docker Compose services
         working-directory: face_reg_recog_milvus
