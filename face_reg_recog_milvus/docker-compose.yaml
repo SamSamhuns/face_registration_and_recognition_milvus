@@ -134,6 +134,32 @@ services:
     healthcheck:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
 
+  pytest:
+    image: python:3.12
+    profiles: ["test"]
+    env_file: ./.env
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis-server:
+        condition: service_started
+      uvicorn_trt_server:
+        condition: service_started
+    volumes:
+      - type: bind
+        source: ${GITHUB_WORKSPACE}/face_reg_recog_milvus
+        target: /workspace
+    working_dir: /workspace
+    command: >
+      bash -c '
+        ls -lah &&
+        ls -lah app/ &&
+        ls -lah volumes/ &&
+        pip install -r requirements.txt &&
+        pip install -r tests/requirements.txt &&
+        pytest tests -v --tb=short
+      '
+
 networks:
   default:
     name: face_recog_milvus

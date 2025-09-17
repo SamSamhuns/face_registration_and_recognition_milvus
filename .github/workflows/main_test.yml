@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - master
-  pull_request:
-    branches:
-      - master
 
 jobs:
   test:
@@ -87,13 +84,7 @@ jobs:
 
       - name: Run PyTest
         working-directory: face_reg_recog_milvus
-        shell: bash
-        run: |
-          docker compose exec -T standalone bash -c "
-            pip install -r requirements.txt &&
-            pip install -r tests/requirements.txt &&
-            pytest tests -v --tb=short
-          "
+        run: docker compose run --rm pytest
 
       - name: Stop Docker Compose services
         working-directory: face_reg_recog_milvus
