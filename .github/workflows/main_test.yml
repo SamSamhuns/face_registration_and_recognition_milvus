@@ -56,14 +56,7 @@ jobs:
       - name: Create .env file
         working-directory: face_reg_recog_milvus
         run: |
-            copy .env.example .env
-
-      - name: Add hosts to /etc/hosts
-        run: |
-            echo "127.0.0.1  standalone" >> /etc/hosts
-            echo "127.0.0.1  mysql" >> /etc/hosts
-            echo "127.0.0.1  redis-server" >> /etc/hosts
-            echo "127.0.0.1  uvicorn_trt_server" >> /etc/hosts
+            cp .env.example .env
 
       - name: Build Docker Compose services
         working-directory: face_reg_recog_milvus
@@ -85,9 +78,14 @@ jobs:
 
       - name: Run PyTest
         working-directory: face_reg_recog_milvus
+        shell: bash
         run: |
-          pip install -r requirements.txt &&
-          pip install -r tests/requirements.txt &&
+          echo "127.0.0.1  standalone" >> /etc/hosts
+          echo "127.0.0.1  mysql" >> /etc/hosts
+          echo "127.0.0.1  redis-server" >> /etc/hosts
+          echo "127.0.0.1  uvicorn_trt_server" >> /etc/hosts
+          pip install -r requirements.txt
+          pip install -r tests/requirements.txt
           pytest tests -v --tb=short
 
       - name: Stop Docker Compose services
