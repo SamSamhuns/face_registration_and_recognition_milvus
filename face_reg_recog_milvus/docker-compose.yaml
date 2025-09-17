@@ -154,8 +154,6 @@ services:
         ls -lah app/ &&
         ls -lah volumes/ &&
         ls -lah face_reg_recog_milvus/ &&
-        cd face_reg_recog_milvus &&
-        ls -lah &&
         pip install -r requirements.txt &&
         pip install -r face_reg_recog_milvus/tests/requirements.txt &&
         pytest tests -v --tb=short
