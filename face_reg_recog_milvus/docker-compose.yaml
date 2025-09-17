@@ -152,10 +152,10 @@ services:
       bash -c "
       ls -lah &&
       echo ${PWD} &&
+      pip install -r requirements.txt &&
       cd face_reg_recog_milvus &&
       echo ${PWD} &&
       ls -lah &&
-      pip install -r requirements.txt &&
       pip install -r tests/requirements.txt &&
       pytest tests -v --tb=short
       "
