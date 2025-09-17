@@ -105,7 +105,8 @@ jobs:
           sleep 10
 
       - name: Run PyTest
-        shell: bash
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
         run: | 
             cd face_reg_recog_milvus
             ls -lah
