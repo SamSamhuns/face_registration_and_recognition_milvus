@@ -146,7 +146,7 @@ services:
       uvicorn_trt_server:
         condition: service_started
     volumes:
-      - ./:/workspace
+      - ../:/workspace
     working_dir: /workspace
     command: >
       bash -c "
