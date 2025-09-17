@@ -1,6 +1,5 @@
 services:
   uvicorn_trt_server:
-    container_name: uvicorn_trt_server_cont
     image: uvicorn_trt_server
     build:
       context: ./
@@ -26,7 +25,6 @@ services:
         condition: service_healthy
 
   etcd:
-    container_name: milvus-etcd
     image: quay.io/coreos/etcd:v3.5.5
     environment:
       - ETCD_AUTO_COMPACTION_MODE=revision
@@ -38,7 +36,6 @@ services:
     command: etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
 
   minio:
-    container_name: milvus-minio
     image: minio/minio:RELEASE.2023-09-23T03-47-50Z
     environment:
       MINIO_ACCESS_KEY: minioadmin
@@ -55,7 +52,6 @@ services:
       retries: 3
 
   standalone:
-    container_name: milvus-standalone
     image: milvusdb/milvus:v2.4.11
     command: [ "milvus", "run", "standalone" ]
     environment:
@@ -70,7 +66,6 @@ services:
       - "minio"
 
   attu:
-    container_name: milvus-attu
     image: zilliz/attu:v2.4
     environment:
       MILVUS_URL: standalone:${MILVUS_PORT}
@@ -80,7 +75,6 @@ services:
       - "standalone"
 
   mysql:
-    container_name: mariadb
     image: mariadb:10.7
     restart: always
     ports:
@@ -105,7 +99,6 @@ services:
       retries: 10
 
   mysql-admin:
-    container_name: mariadb-phpmyadmin
     image: phpmyadmin/phpmyadmin
     restart: always
     ports:
@@ -120,7 +113,6 @@ services:
       - PMA_PASSWORD=${PMA_PASSWORD}
 
   redis-server:
-    container_name: redis-server
     image: redis:7.0.10
     restart: always
     command: /bin/bash -c 'redis-server --appendonly yes'
