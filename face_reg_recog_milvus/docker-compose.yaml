@@ -153,7 +153,7 @@ services:
       ls -lah &&
       echo "cur dir: ${PWD}" &&
       cd face_reg_recog_milvus &&
-      echo "cur dir: ${PWD}" &&
+      echo ${PWD} &&
       ls -lah &&
       pip install -r requirements.txt &&
       pip install -r tests/requirements.txt &&
