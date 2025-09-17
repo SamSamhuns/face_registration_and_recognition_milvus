@@ -151,7 +151,7 @@ services:
     command: >
       bash -c "
       ls -lah &&
-      echo "cur dir: ${PWD}" &&
+      echo ${PWD} &&
       cd face_reg_recog_milvus &&
       echo ${PWD} &&
       ls -lah &&
