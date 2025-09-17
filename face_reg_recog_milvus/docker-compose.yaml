@@ -145,21 +145,18 @@ services:
         condition: service_started
       uvicorn_trt_server:
         condition: service_started
-    volumes:
-      - ../:/workspace          # mount the *repo root*
-    working_dir: /workspace/face_reg_recog_milvus   # run inside the subdir
+    working_dir: /workspace/   # run inside the subdir
     command: >
       bash -euxo pipefail -c '
         echo "PWD=$(pwd)"
         ls -lah
-        test -f requirements.txt || (echo "requirements.txt NOT found in $(pwd)"; ls -lah ..; exit 1)
         pip install -r requirements.txt
-        if [ -f tests/requirements.txt ]; then
-          pip install -r tests/requirements.txt
+        if [ -f face_reg_recog_milvus/tests/requirements.txt ]; then
+          pip install -r face_reg_recog_milvus/tests/requirements.txt
         fi
+        cd face_reg_recog_milvus
         pytest tests -v --tb=short
       '
-
 networks:
   default:
     name: face_recog_milvus
