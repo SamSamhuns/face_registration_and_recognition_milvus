@@ -33,7 +33,7 @@ jobs:
       - name: Install system dependencies
         run: |
           apt-get update
-          apt-get install -y wget unzip sudo curl
+          apt-get install -y sudo
           DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
           mkdir -p $DOCKER_CONFIG/cli-plugins
           if [ ! -f "$DOCKER_CONFIG/cli-plugins/docker-compose" ]; then
@@ -80,14 +80,16 @@ jobs:
         working-directory: face_reg_recog_milvus
         shell: bash
         run: |
-          echo "127.0.0.1  standalone" >> /etc/hosts
-          echo "127.0.0.1  mysql" >> /etc/hosts
-          echo "127.0.0.1  redis-server" >> /etc/hosts
-          echo "127.0.0.1  uvicorn_trt_server" >> /etc/hosts
-          set -a; source .env; set +a
-          pip install -r requirements.txt
-          pip install -r tests/requirements.txt
-          pytest tests -v --tb=short
+          docker run --rm \
+            --network face_recog_milvus \
+            -v $(pwd):/workspace \
+            -w /workspace \
+            python:3.12 \
+            bash -c "
+              pip install -r requirements.txt &&
+              pip install -r tests/requirements.txt &&
+              pytest tests -v --tb=short
+            "
 
       - name: Stop Docker Compose services
         working-directory: face_reg_recog_milvus
