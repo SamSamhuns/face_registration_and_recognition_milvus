@@ -146,7 +146,9 @@ services:
       uvicorn_trt_server:
         condition: service_started
     volumes:
-      - ./:/workspace
+      - type: bind
+        source: ${GITHUB_WORKSPACE}/face_reg_recog_milvus
+        target: /workspace
     working_dir: /workspace/   # run inside the subdir
     command: >
       bash -c '
