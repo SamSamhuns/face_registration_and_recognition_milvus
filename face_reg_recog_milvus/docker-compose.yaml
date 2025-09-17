@@ -151,9 +151,9 @@ services:
     command: >
       bash -c "
       ls -lah &&
-      echo "cur dir: $(pwd)" &&
+      echo "cur dir: ${PWD}" &&
       cd face_reg_recog_milvus &&
-      echo "cur dir: $(pwd)" &&
+      echo "cur dir: ${PWD}" &&
       ls -lah &&
       pip install -r requirements.txt &&
       pip install -r tests/requirements.txt &&
