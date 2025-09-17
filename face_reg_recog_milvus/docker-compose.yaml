@@ -145,16 +145,19 @@ services:
         condition: service_started
       uvicorn_trt_server:
         condition: service_started
+    volumes:
+      - ./:/workspace
     working_dir: /workspace/   # run inside the subdir
     command: >
-      bash -euxo pipefail -c '
-        echo "PWD=$(pwd)"
-        ls -lah
-        pip install -r requirements.txt
-        if [ -f face_reg_recog_milvus/tests/requirements.txt ]; then
-          pip install -r face_reg_recog_milvus/tests/requirements.txt
-        fi
-        cd face_reg_recog_milvus
+      bash -c '
+        ls -lah &&
+        ls -lah app/ &&
+        ls -lah volumes/ &&
+        ls -lah face_reg_recog_milvus/ &&
+        cd face_reg_recog_milvus &&
+        ls -lah &&
+        pip install -r requirements.txt &&
+        pip install -r face_reg_recog_milvus/tests/requirements.txt &&
         pytest tests -v --tb=short
       '
 networks:

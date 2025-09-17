@@ -110,7 +110,7 @@ jobs:
             cd face_reg_recog_milvus
             ls -lah
             echo "Running PyTest in dir $(pwd)"
-            docker compose run --rm -v $(pwd):/workspace pytest
+            docker compose run --rm pytest
 
       - name: Stop Docker Compose services
         run: docker compose -f face_reg_recog_milvus/docker-compose.yaml down
