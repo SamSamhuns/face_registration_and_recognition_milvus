@@ -152,26 +152,16 @@ services:
     working_dir: /workspace
     command: >
       bash -c "
-        echo '--- WORKSPACE CHECK ---' &&
-        ls -lah /workspace &&
-        echo '--- APP DIR CHECK ---' &&
-        ls -lah /workspace/app || true &&
-        echo '--- MYSQL CHECK ---' &&
-        mysqladmin ping -hmysql -uroot -proot || echo 'mysql ping failed' &&
-        echo '--- REDIS CHECK ---' &&
-        redis-cli -h redis-server ping || echo 'redis ping failed' &&
-        echo '--- UVICORN CHECK ---' &&
-        curl -v uvicorn_trt_server:8081 || echo 'uvicorn not reachable' &&
-        echo '--- DONE ---'
-        ls -lah
-        ls -lah app/
-        ls -lah volumes/
-        copy .env.example .env
-        echo '127.0.0.1  standalone' >> /etc/hosts
-        echo '127.0.0.1  mysql' >> /etc/hosts
-        echo '127.0.0.1  redis-serve' >> /etc/hosts
-        echo '127.0.0.1  uvicorn_trt_server' >> /etc/hosts
-        set -a; source .env; set +a
+        echo ${GITHUB_WORKSPACE} &&
+        ls -lah &&
+        ls -lah app/ &&
+        ls -lah volumes/ &&
+        cp .env.example .env &&
+        echo '127.0.0.1  standalone' >> /etc/hosts  &&
+        echo '127.0.0.1  mysql' >> /etc/hosts &&
+        echo '127.0.0.1  redis-serve' >> /etc/hosts &&
+        echo '127.0.0.1  uvicorn_trt_server' >> /etc/hosts &&
+        set -a; source .env; set +a &&
 
         pip install -r requirements.txt &&
         pip install -r tests/requirements.txt &&
@@ -180,4 +170,5 @@ services:
 
 networks:
   default:
+    external: true
     name: face_recog_milvus
