@@ -56,29 +56,7 @@ jobs:
       - name: Create .env file
         working-directory: face_reg_recog_milvus
         run: |
-            touch .env
-            echo FASTAPI_SERVER_PORT=8080 >> .env
-            echo TRITON_SERVER_HOST=uvicorn_trt_server >> .env
-            echo TRITON_SERVER_PORT=8081 >> .env
-            echo DOWNLOAD_CACHE_PATH="app/.data" >> .env
-            echo DOWNLOAD_IMAGE_PATH="volumes/person_images" >> .env
-            echo MILVUS_HOST=standalone >> .env
-            echo MILVUS_PORT=19530 >> .env
-            echo ATTU_PORT=3000 >> .env
-            echo MYSQL_HOST=mysql >> .env
-            echo MYSQL_PORT=3306 >> .env
-            echo MYSQL_USER=user >> .env
-            echo MYSQL_PASSWORD=pass >> .env
-            echo MYSQL_ROOT_PASSWORD=admin >> .env
-            echo MYSQL_DATABASE=default >> .env
-            echo MYSQL_PERSON_TABLE=person >> .env
-            echo PMA_GUI_PORT=8001 >> .env
-            echo PMA_HOST=mysql >> .env
-            echo PMA_PORT=3306 >> .env
-            echo PMA_USER=user >> .env
-            echo PMA_PASSWORD=pass >> .env
-            echo REDIS_HOST=redis-server >> .env
-            echo REDIS_PORT=6379 >> .env
+            copy .env.example .env
 
       - name: Add hosts to /etc/hosts
         run: |
@@ -88,14 +66,15 @@ jobs:
             echo "127.0.0.1  uvicorn_trt_server" >> /etc/hosts
 
       - name: Build Docker Compose services
+        working-directory: face_reg_recog_milvus
         run: |
-            docker compose -f face_reg_recog_milvus/docker-compose.yaml build
+            docker compose build
             docker image prune -f
 
       - name: Start Docker Compose & trt server services
+        working-directory: face_reg_recog_milvus
         shell: bash
         run: |
-          cd face_reg_recog_milvus
           sudo rm -rf volumes
           mkdir -p volumes/person_images
           docker compose down
@@ -105,10 +84,12 @@ jobs:
           sleep 10
 
       - name: Run PyTest
-        env:
-          GITHUB_WORKSPACE: ${{ github.workspace }}
-        run: | 
-            docker compose -f face_reg_recog_milvus/docker-compose.yaml run --rm pytest
+        working-directory: face_reg_recog_milvus
+        run: |
+          pip install -r requirements.txt &&
+          pip install -r tests/requirements.txt &&
+          pytest tests -v --tb=short
 
       - name: Stop Docker Compose services
-        run: docker compose -f face_reg_recog_milvus/docker-compose.yaml down
+        working-directory: face_reg_recog_milvus
+        run: docker compose down
