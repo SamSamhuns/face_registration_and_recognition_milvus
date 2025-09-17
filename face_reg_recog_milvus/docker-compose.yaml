@@ -147,7 +147,7 @@ services:
         condition: service_started
     volumes:
       - type: bind
-        source: ${GITHUB_WORKSPACE}
+        source: ${GITHUB_WORKSPACE:-.}
         target: /workspace
     working_dir: /workspace
     command: >

@@ -84,6 +84,8 @@ jobs:
 
       - name: Run PyTest
         working-directory: face_reg_recog_milvus
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
         run: docker compose run --rm pytest
 
       - name: Stop Docker Compose services
