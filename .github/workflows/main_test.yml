@@ -108,6 +108,7 @@ jobs:
         shell: bash
         run: | 
             cd face_reg_recog_milvus
+            ls -lah
             docker compose run --rm pytest
 
       - name: Stop Docker Compose services
