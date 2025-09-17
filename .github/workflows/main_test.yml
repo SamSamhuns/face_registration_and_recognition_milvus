@@ -65,6 +65,7 @@ jobs:
         working-directory: face_reg_recog_milvus
         shell: bash
         run: |
+          mkdir -p volumes/person_images
           docker compose -p face_reg_ci down -v
           docker compose -p face_reg_ci up -d uvicorn_trt_server etcd minio standalone attu mysql mysql-admin redis-server
           # Wait for services to be healthy
