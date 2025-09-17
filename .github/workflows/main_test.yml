@@ -8,14 +8,6 @@ on:
 jobs:
   test:
     runs-on: self-hosted-linux
-    
-    # Run the entire job inside a container
-    container:
-      image: python:3.12
-      options: >-
-        --privileged
-        --volume /var/run/docker.sock:/var/run/docker.sock
-        --volume /usr/bin/docker:/usr/bin/docker
 
     steps:
       - name: Checkout repository
@@ -27,21 +19,21 @@ jobs:
           path: ~/.docker/cli-plugins/docker-compose
           key: docker-compose-v2.39.3
 
-      - name: Install system dependencies
+      - name: Ensure Docker Compose available
         run: |
-          export DEBIAN_FRONTEND=noninteractive
-          apt-get update
-          apt-get install -y --no-install-recommends sudo ca-certificates
-          rm -rf /var/lib/apt/lists/*
           DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
           mkdir -p $DOCKER_CONFIG/cli-plugins
-          if [ ! -f "$DOCKER_CONFIG/cli-plugins/docker-compose" ]; then
-            echo "Downloading Docker Compose..."
-            curl -SL https://github.com/docker/compose/releases/download/v2.39.3/docker-compose-linux-x86_64 \
-              -o $DOCKER_CONFIG/cli-plugins/docker-compose
-            chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+          if ! command -v docker compose >/dev/null 2>&1; then
+            if [ ! -f "$DOCKER_CONFIG/cli-plugins/docker-compose" ]; then
+              echo "Installing Docker Compose..."
+              curl -SL https://github.com/docker/compose/releases/download/v2.39.3/docker-compose-linux-x86_64 \
+                -o $DOCKER_CONFIG/cli-plugins/docker-compose
+              chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+            else
+              echo "Using cached Docker Compose binary"
+            fi
           else
-            echo "Using cached Docker Compose binary"
+            echo "Docker Compose already installed"
           fi
 
       - name: Cache models
@@ -61,33 +53,28 @@ jobs:
 
       - name: Create .env file
         working-directory: face_reg_recog_milvus
-        run: |
-            cp .env.example .env
+        run: cp .env.example .env
 
       - name: Build Docker Compose services
         working-directory: face_reg_recog_milvus
         run: |
-            docker compose build
-            docker image prune -f
+          docker compose -p face_reg_ci build
+          docker image prune -f
 
-      - name: Start Docker Compose & trt server services
+      - name: Start Docker Compose services
         working-directory: face_reg_recog_milvus
         shell: bash
         run: |
-          sudo rm -rf volumes
-          mkdir -p volumes/person_images
-          docker compose down
-          docker compose up -d uvicorn_trt_server etcd minio standalone attu mysql mysql-admin redis-server
-
-          # Wait for services to be ready
-          sleep 10
+          docker compose -p face_reg_ci down -v
+          docker compose -p face_reg_ci up -d uvicorn_trt_server etcd minio standalone attu mysql mysql-admin redis-server
+          # Wait for services to be healthy
+          sleep 15
 
       - name: Run PyTest
         working-directory: face_reg_recog_milvus
-        env:
-          GITHUB_WORKSPACE: ${{ github.workspace }}
-        run: docker compose run --rm pytest
+        run: docker compose -p face_reg_ci run --rm pytest
 
       - name: Stop Docker Compose services
+        if: always()
         working-directory: face_reg_recog_milvus
-        run: docker compose down
+        run: docker compose -p face_reg_ci down -v

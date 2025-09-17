@@ -1,5 +1,3 @@
-name: face_recog_milvus
-
 services:
   uvicorn_trt_server:
     container_name: uvicorn_trt_server_cont
@@ -148,21 +146,10 @@ services:
       uvicorn_trt_server:
         condition: service_started
     volumes:
-      - ${GITHUB_WORKSPACE}:/workspace
+      - ${PWD}:/workspace
     working_dir: /workspace
     command: >
       bash -c "
-        echo ${GITHUB_WORKSPACE} &&
-        ls -lah &&
-        ls -lah app/ &&
-        ls -lah volumes/ &&
-        cp .env.example .env &&
-        echo '127.0.0.1  standalone' >> /etc/hosts  &&
-        echo '127.0.0.1  mysql' >> /etc/hosts &&
-        echo '127.0.0.1  redis-serve' >> /etc/hosts &&
-        echo '127.0.0.1  uvicorn_trt_server' >> /etc/hosts &&
-        set -a; source .env; set +a &&
-
         pip install -r requirements.txt &&
         pip install -r tests/requirements.txt &&
         pytest tests -v --tb=short
