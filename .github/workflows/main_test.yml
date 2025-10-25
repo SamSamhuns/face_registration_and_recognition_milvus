@@ -41,13 +41,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path: face_reg_recog_milvus/app/triton_server/models
-          key: model-cache-1PTZrQwo_tv34J8fAZ6em1DEr1ymFLPvg
+          key: model-cache-1gZ3JI-A7L-l_WTE5bDYv9b_GA1IoRvYI
 
       - name: Download models
         if: steps.cache-models.outputs.cache-hit != 'true'
         run: |
           pip install gdown
-          gdown 1PTZrQwo_tv34J8fAZ6em1DEr1ymFLPvg -O models.zip
+          gdown 1gZ3JI-A7L-l_WTE5bDYv9b_GA1IoRvYI -O models.zip
           unzip -o models.zip -d face_reg_recog_milvus/app/triton_server
           rm models.zip
 
