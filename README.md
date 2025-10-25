@@ -60,7 +60,7 @@ source venv/bin/activate
 pip install gdown
 
 # download model weights
-gdown 1PTZrQwo_tv34J8fAZ6em1DEr1ymFLPvg
+gdown 1gZ3JI-A7L-l_WTE5bDYv9b_GA1IoRvYI
 unzip models.zip -d face_reg_recog_milvus/app/triton_server
 rm models.zip
 ```
