@@ -158,5 +158,5 @@ services:
 
 networks:
   default:
-    external: true
     name: face_recog_milvus
+    driver: bridge
