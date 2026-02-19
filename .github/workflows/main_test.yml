@@ -69,7 +69,41 @@ jobs:
           docker compose -p face_reg_ci down -v
           docker compose -p face_reg_ci up -d uvicorn_trt_server etcd minio standalone attu mysql mysql-admin redis-server
           # Wait for services to be healthy
-          sleep 15
+          services=("etcd" "minio" "mysql" "redis-server" "standalone" "uvicorn_trt_server")
+          for service in "${services[@]}"; do
+            cid=$(docker compose -p face_reg_ci ps -q "$service")
+            if [ -z "$cid" ]; then
+              echo "Missing container for $service"
+              exit 1
+            fi
+          done
+          attempts=60
+          for i in $(seq 1 "$attempts"); do
+            all_ok=true
+            for service in "${services[@]}"; do
+              cid=$(docker compose -p face_reg_ci ps -q "$service")
+              status=$(docker inspect --format='{{.State.Status}}' "$cid")
+              health=$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$cid")
+              if [ "$health" = "healthy" ]; then
+                continue
+              fi
+              if [ "$health" = "none" ] && [ "$status" = "running" ]; then
+                continue
+              fi
+              all_ok=false
+              echo "Waiting on $service (status=$status, health=$health)"
+            done
+            if [ "$all_ok" = "true" ]; then
+              echo "All services ready"
+              break
+            fi
+            sleep 2
+          done
+          if [ "$all_ok" != "true" ]; then
+            echo "Services did not become ready in time"
+            docker compose -p face_reg_ci ps
+            exit 1
+          fi
 
       - name: Run PyTest
         working-directory: face_reg_recog_milvus
