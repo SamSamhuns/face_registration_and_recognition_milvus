@@ -58,7 +58,7 @@ jobs:
       - name: Build Docker Compose services
         working-directory: face_reg_recog_milvus
         run: |
-          docker compose -p face_reg_ci build
+          docker compose -f docker-compose.yaml -f docker-compose.ci.yaml -p face_reg_ci build
           docker image prune -f
 
       - name: Start Docker Compose services
@@ -66,8 +66,8 @@ jobs:
         shell: bash
         run: |
           mkdir -p volumes/person_images
-          docker compose -p face_reg_ci down -v
-          docker compose -p face_reg_ci up -d uvicorn_trt_server etcd minio standalone attu mysql mysql-admin redis-server
+          docker compose -f docker-compose.yaml -f docker-compose.ci.yaml -p face_reg_ci down -v
+          docker compose -f docker-compose.yaml -f docker-compose.ci.yaml -p face_reg_ci up -d uvicorn_trt_server etcd minio standalone attu mysql mysql-admin redis-server
           # Wait for services to be healthy
           services=("etcd" "minio" "mysql" "redis-server" "standalone" "uvicorn_trt_server")
           for service in "${services[@]}"; do
@@ -107,9 +107,9 @@ jobs:
 
       - name: Run PyTest
         working-directory: face_reg_recog_milvus
-        run: docker compose -p face_reg_ci run --rm pytest
+        run: docker compose -f docker-compose.yaml -f docker-compose.ci.yaml -p face_reg_ci run --rm pytest
 
       - name: Stop Docker Compose services
         if: always()
         working-directory: face_reg_recog_milvus
-        run: docker compose -p face_reg_ci down -v
+        run: docker compose -f docker-compose.yaml -f docker-compose.ci.yaml -p face_reg_ci down -v

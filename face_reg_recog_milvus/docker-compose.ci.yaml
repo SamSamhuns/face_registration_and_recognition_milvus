@@ -1,0 +1,18 @@
+services:
+  uvicorn_trt_server:
+    ports: []
+
+  standalone:
+    ports: []
+
+  attu:
+    ports: []
+
+  mysql:
+    ports: []
+
+  mysql-admin:
+    ports: []
+
+  redis-server:
+    ports: []
