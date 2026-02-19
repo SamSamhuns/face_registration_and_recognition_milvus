@@ -5,6 +5,8 @@ Inference functions for registering and recognizing face with trtserver models a
 import logging
 import os
 import shutil
+import threading
+import time
 
 import pymysql
 import redis
@@ -43,31 +45,102 @@ from app.triton_server.inference_trtserver import run_inference
 
 logger = logging.getLogger("inference_api")
 
-# connect to Redis
-redis_conn = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
+_conn_lock = threading.Lock()
+redis_conn = None
+mysql_conn = None
+milvus_collec_conn = None
 
-# Connect to MySQL
-mysql_conn = pymysql.connect(
-    host=MYSQL_HOST,
-    port=MYSQL_PORT,
-    user=MYSQL_USER,
-    password=MYSQL_PASSWORD,
-    db=MYSQL_DATABASE,
-    cursorclass=DictCursor,
-)
 
-# connect to milvus connec
-milvus_collec_conn = get_milvus_collec_conn(
-    collection_name=FACE_COLLECTION_NAME,
-    milvus_host=MILVUS_HOST,
-    milvus_port=MILVUS_PORT,
-    vector_dim=FACE_VECTOR_DIM,
-    metric_type=FACE_METRIC_TYPE,
-    index_type=FACE_INDEX_TYPE,
-    index_metric_params={"nlist": FACE_INDEX_NLIST},
-)
-# load milvus_collec_conn into memory for faster searches
-milvus_collec_conn.load()
+def _retry(action, label: str, retries: int = 10, delay: float = 1.0, backoff: float = 1.5):
+    last_exc = None
+    for attempt in range(1, retries + 1):
+        try:
+            return action()
+        except Exception as exc:
+            last_exc = exc
+            logger.warning("%s connection attempt %s/%s failed: %s", label, attempt, retries, exc)
+            time.sleep(delay)
+            delay *= backoff
+    raise last_exc
+
+
+def _connect_redis():
+    conn = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
+    conn.ping()
+    return conn
+
+
+def _connect_mysql():
+    conn = pymysql.connect(
+        host=MYSQL_HOST,
+        port=MYSQL_PORT,
+        user=MYSQL_USER,
+        password=MYSQL_PASSWORD,
+        database=MYSQL_DATABASE,
+        cursorclass=DictCursor,
+        connect_timeout=5,
+    )
+    with conn.cursor() as cursor:
+        cursor.execute("SELECT 1")
+    return conn
+
+
+def _connect_milvus():
+    conn = get_milvus_collec_conn(
+        collection_name=FACE_COLLECTION_NAME,
+        milvus_host=MILVUS_HOST,
+        milvus_port=MILVUS_PORT,
+        vector_dim=FACE_VECTOR_DIM,
+        metric_type=FACE_METRIC_TYPE,
+        index_type=FACE_INDEX_TYPE,
+        index_metric_params={"nlist": FACE_INDEX_NLIST},
+    )
+    conn.load()
+    return conn
+
+
+def init_connections(retries: int = 10, delay: float = 1.0, backoff: float = 1.5) -> None:
+    """
+    Initialize Redis/MySQL/Milvus connections with retry/backoff.
+    Safe to call multiple times.
+    """
+    global redis_conn, mysql_conn, milvus_collec_conn
+    with _conn_lock:
+        if redis_conn is None:
+            redis_conn = _retry(_connect_redis, "redis", retries, delay, backoff)
+        if mysql_conn is None:
+            mysql_conn = _retry(_connect_mysql, "mysql", retries, delay, backoff)
+        if milvus_collec_conn is None:
+            milvus_collec_conn = _retry(_connect_milvus, "milvus", retries, delay, backoff)
+
+
+def ensure_connections() -> None:
+    if redis_conn is None or mysql_conn is None or milvus_collec_conn is None:
+        init_connections()
+
+
+def close_connections() -> None:
+    global redis_conn, mysql_conn, milvus_collec_conn
+    with _conn_lock:
+        if redis_conn is not None:
+            try:
+                redis_conn.close()
+            except Exception:
+                pass
+        redis_conn = None
+        if mysql_conn is not None:
+            try:
+                mysql_conn.close()
+            except Exception:
+                pass
+        mysql_conn = None
+        try:
+            from pymilvus import connections
+
+            connections.disconnect("default")
+        except Exception:
+            pass
+        milvus_collec_conn = None
 
 
 def get_registered_person(person_id: int, table: str = MYSQL_CUR_TABLE) -> dict:
@@ -75,6 +148,7 @@ def get_registered_person(person_id: int, table: str = MYSQL_CUR_TABLE) -> dict:
     Get registered person by person_id.
     Checks redis cache, otherwise query mysql
     """
+    ensure_connections()
     # try cached redis data
     redis_key = f"{table}_{person_id}"
     cached_person_dict = redis_conn.hgetall(name=redis_key)
@@ -94,6 +168,7 @@ def get_all_registered_person(table: str = MYSQL_CUR_TABLE) -> dict:
     """
     Get all registered persons query mysql
     """
+    ensure_connections()
     return select_all_person_data_from_sql(mysql_conn, table)
 
 
@@ -103,6 +178,7 @@ def unregister_person(person_id: int, table: str = MYSQL_CUR_TABLE) -> dict:
     Must use expr with the term expression `in` for delete operations
     Operation is atomic, if one delete op fails, all ops fail
     """
+    ensure_connections()
     try:
         # unregister from mysql
         # commit is set to False so that the op is atomic with milvus & redis
@@ -138,6 +214,7 @@ def register_person(
     person_data dict should be based on the init.sql table schema
     Operation is atomic, if one insert op fails, all ops fail
     """
+    ensure_connections()
     person_id = person_data["ID"]  # uniq person id from user input
     # check if face already exists in redis/mysql
     if get_registered_person(person_id, table)["status"] == "success":
@@ -206,6 +283,7 @@ def recognize_person(
     Detects faces in image from the file_path and finds the most similar face vector
     from a set of saved face vectors
     """
+    ensure_connections()
     pred_dict = run_inference(
         file_path,
         face_feat_model=model_name,
