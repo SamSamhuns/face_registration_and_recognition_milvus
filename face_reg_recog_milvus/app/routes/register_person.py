@@ -61,7 +61,7 @@ async def register_person_file(
     response_data = {}
     try:
         file_name = str(uuid.uuid4()) + get_mode_ext("image")
-        file_bytes_content = img_file.file.read()
+        file_bytes_content = await img_file.read()
         file_cache_path = os.path.join(DOWNLOAD_CACHE_PATH, file_name)
 
         await cache_file_locally(file_cache_path, file_bytes_content)

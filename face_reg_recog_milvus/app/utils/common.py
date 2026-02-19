@@ -4,7 +4,8 @@ common utils
 
 import os
 
-import requests
+import aiofiles
+import httpx
 
 
 def get_mode_ext(mode):
@@ -38,14 +39,14 @@ async def download_url_file(download_url: str, download_path: str, timeout: int 
         timeout (int): The timeout in seconds to use for the request.
     """
     # Stream the download to handle large files
-    with requests.get(download_url, stream=True, timeout=timeout) as response:
-        # Raise an HTTPError for bad responses
+    async with httpx.AsyncClient(follow_redirects=True, timeout=timeout) as client:
+        response = await client.get(download_url)
         response.raise_for_status()
 
         # Write the file out in chunks to avoid using too much memory
-        with open(download_path, "wb") as file:
-            for chunk in response.iter_content(chunk_size=8192):
-                file.write(chunk)
+        async with aiofiles.open(download_path, "wb") as file:
+            async for chunk in response.aiter_bytes(chunk_size=8192):
+                await file.write(chunk)
 
 
 async def cache_file_locally(file_cache_path: str, data: bytes) -> None:
@@ -55,5 +56,5 @@ async def cache_file_locally(file_cache_path: str, data: bytes) -> None:
         file_cache_path (str): The path to save the data.
         data (bytes): The data to cache.
     """
-    with open(file_cache_path, "wb") as img_file_ptr:
-        img_file_ptr.write(data)
+    async with aiofiles.open(file_cache_path, "wb") as img_file_ptr:
+        await img_file_ptr.write(data)
