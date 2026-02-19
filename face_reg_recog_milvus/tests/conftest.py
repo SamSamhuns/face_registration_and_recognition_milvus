@@ -77,7 +77,7 @@ async def test_app_asyncio():
     Sets up the async server
     for httpx>=20, follow_redirects=True (cf. https://github.com/encode/httpx/releases/tag/0.20.0)
     """
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=app, lifespan="on")
     async with AsyncClient(transport=transport, base_url="http://test") as aclient:
         yield aclient
 

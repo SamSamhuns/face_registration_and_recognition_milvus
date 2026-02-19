@@ -6,6 +6,7 @@ import argparse
 import logging
 import os
 import time
+from contextlib import asynccontextmanager
 
 import uvicorn
 from config import FASTAPI_SERVER_PORT
@@ -14,15 +15,25 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from app import inference
 from app.routes import person, recognize_person, register_person
 
 # logging
 logger = logging.getLogger("server")
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    inference.init_connections()
+    try:
+        yield
+    finally:
+        inference.close_connections()
+
+
 def get_application(title="Face Registration and Recognition"):
     """Gets FastAPI application object with CORS enabled."""
-    fastapi_app = FastAPI(title=title, version="1.0.0")
+    fastapi_app = FastAPI(title=title, version="1.0.0", lifespan=lifespan)
     fastapi_app.mount("/static", StaticFiles(directory="./app/static"), name="static")
     fastapi_app.add_middleware(
         CORSMiddleware,
