@@ -119,7 +119,7 @@ def ensure_connections() -> None:
         init_connections()
 
 
-def close_connections() -> None:
+def close_connections(disconnect_milvus: bool = True) -> None:
     global redis_conn, mysql_conn, milvus_collec_conn
     with _conn_lock:
         if redis_conn is not None:
@@ -134,12 +134,13 @@ def close_connections() -> None:
             except Exception:
                 pass
         mysql_conn = None
-        try:
-            from pymilvus import connections
+        if disconnect_milvus:
+            try:
+                from pymilvus import connections
 
-            connections.disconnect("default")
-        except Exception:
-            pass
+                connections.disconnect("default")
+            except Exception:
+                pass
         milvus_collec_conn = None
 
 

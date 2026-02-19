@@ -26,6 +26,7 @@ MYSQL_TEST_TABLE = "test"
 os.environ["MYSQL_CUR_TABLE"] = MYSQL_TEST_TABLE  # chg cur table for test duration
 
 # custom imports
+from app import inference
 from app.api.milvus import get_milvus_collec_conn
 from app.config import (
     FACE_INDEX_NLIST,
@@ -77,9 +78,13 @@ async def test_app_asyncio():
     Sets up the async server
     for httpx>=20, follow_redirects=True (cf. https://github.com/encode/httpx/releases/tag/0.20.0)
     """
-    transport = ASGITransport(app=app, lifespan="on")
-    async with AsyncClient(transport=transport, base_url="http://test") as aclient:
-        yield aclient
+    inference.init_connections()
+    transport = ASGITransport(app=app)
+    try:
+        async with AsyncClient(transport=transport, base_url="http://test") as aclient:
+            yield aclient
+    finally:
+        inference.close_connections(disconnect_milvus=False)
 
 
 @pytest.fixture(scope="session")
